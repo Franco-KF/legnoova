@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 export function GoogleSignInButton({ callbackUrl = "/app" }: { callbackUrl?: string }) {
