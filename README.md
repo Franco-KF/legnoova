@@ -1,4 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Legnoova
+
+AI-powered Forex chart analysis SaaS. Upload or reference a chart and get a risk-aware, evidence-based technical analysis that only uses what is visible in the chart itself.
+
+## Stack
+
+- **Framework:** Next.js 16 (App Router), TypeScript, Tailwind CSS, shadcn/ui (Base UI)
+- **Database:** MongoDB (Mongoose)
+- **Auth:** Auth.js v5 (Google OAuth + email/password, JWT sessions)
+- **AI:** Google Gemini
+- **Payments:** Paddle
+- **Storage:** Cloudflare R2
+
+## Getting Started
+
+First, configure your environment (see `.env.example`) and install dependencies:
+
+```bash
+npm install
+cp .env.example .env.local
+```
+
+Then run the development server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## Getting Started
 
