@@ -6,7 +6,12 @@ const { auth } = NextAuth(authConfig);
 
 const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password"];
 const PROTECTED_PREFIX = "/app";
-const API_PROTECTED = ["/api/account"];
+const API_PROTECTED = [
+  "/api/account",
+  "/api/analyze",
+  "/api/history",
+  "/api/watchlist",
+];
 
 export default auth((req) => {
   const { nextUrl } = req;
@@ -44,6 +49,9 @@ export const config = {
   matcher: [
     "/app/:path*",
     "/api/account/:path*",
+    "/api/analyze/:path*",
+    "/api/history/:path*",
+    "/api/watchlist/:path*",
     "/login",
     "/register",
     "/forgot-password",
