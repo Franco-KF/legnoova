@@ -17,6 +17,28 @@ export default function LoginPage() {
   );
 }
 
+// Human-readable messages for the Auth.js error codes that redirect
+// back to /login?error=...
+const AUTH_ERROR_MESSAGES: Record<string, string> = {
+  CredentialsSignin: "Invalid email or password. Please try again.",
+  OAuthSignin: "Could not start Google sign-in. Please try again.",
+  OAuthCallbackError:
+    "Google sign-in failed or was cancelled. Please try again.",
+  OAuthCreateAccount: "Could not create your account with Google. Please try again.",
+  OAuthAccountNotLinked:
+    "This email is already registered with a password. Sign in with your email and password instead.",
+  AccessDenied:
+    "You denied the Google permissions request. Allow access to sign in with Google.",
+  Configuration:
+    "There is a problem with the sign-in configuration. Please contact support.",
+  Verification: "That link is invalid or has expired. Please request a new one.",
+  Default: "Something went wrong. Please try again.",
+};
+
+function authErrorMessage(code: string | null) {
+  return (code && AUTH_ERROR_MESSAGES[code]) || AUTH_ERROR_MESSAGES.Default;
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -85,11 +107,11 @@ function LoginForm() {
 
       {/* Error banner */}
       {(errorParam || errors.general) && (
-        <div className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-          {errors.general ||
-            (errorParam === "CredentialsSignin"
-              ? "Invalid email or password."
-              : "Something went wrong. Please try again.")}
+        <div
+          role="alert"
+          className="mb-4 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400"
+        >
+          {errors.general || authErrorMessage(errorParam)}
         </div>
       )}
 

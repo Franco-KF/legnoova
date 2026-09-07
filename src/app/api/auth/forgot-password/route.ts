@@ -4,7 +4,7 @@ import { dbConnect } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { PasswordResetToken } from "@/models/PasswordResetToken";
 import { generateToken } from "@/lib/auth/token";
-import { sendEmail } from "@/lib/email";
+import { sendEmail, APP_URL } from "@/lib/email";
 import { passwordResetHtml, passwordResetText } from "@/emails/password-reset";
 
 const forgotSchema = z.object({
@@ -46,8 +46,7 @@ export async function POST(req: Request) {
       used: false,
     });
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    const resetUrl = `${appUrl}/reset-password?token=${token}`;
+    const resetUrl = `${APP_URL}/reset-password?token=${token}`;
     const html = passwordResetHtml({ resetUrl, expiresInHours: EXPIRES_HOURS });
     const text = passwordResetText({ resetUrl, expiresInHours: EXPIRES_HOURS });
 

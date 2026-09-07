@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import { toast } from "sonner";
 
 export function GoogleSignInButton({ callbackUrl = "/app" }: { callbackUrl?: string }) {
   const [loading, setLoading] = useState(false);
@@ -10,8 +11,13 @@ export function GoogleSignInButton({ callbackUrl = "/app" }: { callbackUrl?: str
     setLoading(true);
     try {
       await signIn("google", { callbackUrl });
+      // A full-page redirect happens on success; if we get here the
+      // provider flow failed to start.
+      setLoading(false);
+      toast.error("Could not start Google sign-in. Please try again.");
     } catch {
       setLoading(false);
+      toast.error("Could not start Google sign-in. Please try again.");
     }
   };
 
