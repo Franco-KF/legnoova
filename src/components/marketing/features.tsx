@@ -12,7 +12,7 @@ const features = [
     icon: BrainCircuit,
     title: "Multi-Strategy AI Engine",
     description:
-      "Six independent strategy modules analyze your chart simultaneously. Each brings a different lens to market structure, price action and momentum.",
+      "Seven independent strategy modules analyze your chart simultaneously. Each brings a different lens — from price action to Smart Money Concepts — to market structure, liquidity and momentum.",
     accent: "text-emerald-400",
     border: "hover:border-emerald-500/30",
     tint: "bg-emerald-500/10",

@@ -21,7 +21,7 @@ export const PLANS: Plan[] = [
     highlight: false,
     features: [
       "Unlimited AI chart analyses",
-      "All 6 trading strategies",
+      "All 7 trading strategies incl. Smart Money Concepts",
       "Multi-timeframe analysis",
       "Advanced risk analysis",
       "Full analysis history",

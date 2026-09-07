@@ -2,7 +2,16 @@ import {
   GoogleGenerativeAI,
   type GenerativeModel,
 } from "@google/generative-ai";
-import type { Analysis, TakeProfit, StrategyAssessment } from "./analysis/types";
+import type {
+  Analysis,
+  TakeProfit,
+  StrategyAssessment,
+  StrategyChecklistItem,
+  KeyFinding,
+  ChecklistStatus,
+  FindingTone,
+} from "./analysis/types";
+import { getStrategy } from "./analysis/types";
 
 const MODEL = "gemini-2.0-flash";
 
@@ -32,7 +41,6 @@ export interface AnalyzeChartOptions {
   symbolHint: string;
   timeframe: string;
   strategy: string;
-  strategyLabel: string;
 }
 
 function cumulativeRiskRewards(
@@ -67,7 +75,64 @@ function stripCodeFence(text: string): string {
   return trimmed.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
 }
 
-function parseAnalysis(raw: string): Analysis {
+const CHECKLIST_STATUSES: ChecklistStatus[] = ["confirmed", "partial", "failed"];
+const FINDING_TONES: FindingTone[] = ["bullish", "bearish", "neutral"];
+
+function parseChecklist(
+  raw: unknown,
+  expectedPoints: string[]
+): StrategyChecklistItem[] {
+  const items = Array.isArray(raw) ? raw : [];
+  const normalized = new Map<string, StrategyChecklistItem>();
+  for (const item of items) {
+    if (!item || typeof item !== "object") continue;
+    const point = String((item as Record<string, unknown>).point || "").trim();
+    if (!point) continue;
+    const rawStatus = String(
+      (item as Record<string, unknown>).status || ""
+    ).toLowerCase();
+    const status: ChecklistStatus = CHECKLIST_STATUSES.includes(
+      rawStatus as ChecklistStatus
+    )
+      ? (rawStatus as ChecklistStatus)
+      : "partial";
+    normalized.set(point.toLowerCase(), {
+      point,
+      status,
+      note: String((item as Record<string, unknown>).note || "").trim(),
+    });
+  }
+  // Return the checklist in the strategy's canonical order so the UI is stable.
+  return expectedPoints.map(
+    (point) =>
+      normalized.get(point.toLowerCase()) || {
+        point,
+        status: "partial" as ChecklistStatus,
+        note: "No clear evidence visible on this chart.",
+      }
+  );
+}
+
+function parseKeyFindings(raw: unknown): KeyFinding[] {
+  const items = Array.isArray(raw) ? raw : [];
+  return items
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const rec = item as Record<string, unknown>;
+      const label = String(rec.label || "").trim();
+      const value = String(rec.value || "").trim();
+      if (!label || !value) return null;
+      const rawTone = String(rec.tone || "").toLowerCase();
+      const tone: FindingTone = FINDING_TONES.includes(rawTone as FindingTone)
+        ? (rawTone as FindingTone)
+        : "neutral";
+      return { label, value, tone };
+    })
+    .filter((f): f is KeyFinding => f !== null)
+    .slice(0, 6);
+}
+
+function parseAnalysis(raw: string, strategyId: string): Analysis {
   const cleaned = stripCodeFence(raw);
   const parsed = JSON.parse(cleaned) as Analysis;
 
@@ -171,6 +236,11 @@ function parseAnalysis(raw: string): Analysis {
         : [],
     },
     strategyAssessments,
+    keyFindings: parseKeyFindings(parsed.keyFindings),
+    strategyChecklist: parseChecklist(
+      parsed.strategyChecklist,
+      getStrategy(strategyId).checklist
+    ),
     riskDisclosure: String(
       parsed.riskDisclosure ||
         "AI-generated analysis is for informational purposes only and does not constitute financial advice."
@@ -182,6 +252,16 @@ export async function analyzeChart(
   options: AnalyzeChartOptions
 ): Promise<Analysis> {
   const model = getModel();
+  const strategy = getStrategy(options.strategy);
+
+  const strategySection = `
+## Strategy focus: ${strategy.label}
+${strategy.description}
+${strategy.promptFocus}
+
+You MUST evaluate each point of this strategy checklist against the chart:
+${strategy.checklist.map((c, i) => `${i + 1}. ${c}`).join("\n")}
+`;
 
   const prompt = `
 You are an expert, risk-first forex technical analyst. A trader has uploaded a screenshot of a price chart and wants a professional, evidence-based signal.
@@ -189,14 +269,14 @@ You are an expert, risk-first forex technical analyst. A trader has uploaded a s
 ## Chart context
 - Symbol / pair hint from trader: ${options.symbolHint || "not provided (read from chart)"}
 - Timeframe visible in the chart: ${options.timeframe}
-- Strategy the trader wants you to focus on: ${options.strategyLabel}
-
+- Strategy the trader wants you to focus on: ${strategy.label}
+${strategySection}
 ## Your task
-Analyse ONLY what is visible in the chart image. Identify the current market structure, key support and resistance, trend, and any clear entry/exit points. Then produce a single trade setup with:
+Analyse ONLY what is visible in the chart image through the lens of the requested strategy. Identify the current market structure, key support and resistance, trend, and any clear entry/exit points. Then produce a single trade setup with:
 
 1. **direction**: "buy" or "sell" (or "neutral" if no clear edge — see below).
 2. **entryPrice**: a precise, realistic entry level.
-3. **stopLoss**: a price that invalidates the idea (beyond the nearest swing / structure).
+3. **stopLoss**: a price that invalidates the idea (beyond the nearest swing / structure / zone).
 4. **takeProfits**: a JSON array of 1, 2 or up to 3 targets. IMPORTANT — the number must be DYNAMIC:
    - If the chart only shows ONE clear, strong target zone ahead, return just ONE target (TP1).
    - If there are TWO clear minor/major levels ahead, return TWO targets (TP1, TP2).
@@ -205,13 +285,15 @@ Analyse ONLY what is visible in the chart image. Identify the current market str
    Each take profit must include: \`price\`, \`label\` ("TP1"/"TP2"/"TP3"), \`riskReward\` (computed as |target - entry| / |entry - stop|, rounded to 1 decimal), and a short \`explanation\` of which structure/zone it sits at.
 5. **riskReward**: the overall best risk:reward across the targets.
 6. **confidence**: an integer 0-100 based only on the strength/evidence visible in the chart.
-7. **summary**: 2-3 sentences explaining the thesis and key evidence.
+7. **summary**: 2-3 sentences explaining the thesis and key evidence in the language of the requested strategy.
 8. **keyLevels**: arrays of concrete \`support\` and \`resistance\` prices read from the chart.
-9. **strategyAssessments**: optional per-strategy read for the requested strategy and adjacent confirming strategies → array of { strategyId, verdict: "bullish"|"bearish"|"neutral", confidence: 0-100, note }.
-10. **pair** and **symbol**: derive from the chart if legible, otherwise use the trader's hint.
+9. **keyFindings**: 3-5 strategy-specific findings → array of { label, value, tone } where tone is "bullish", "bearish" or "neutral". The labels and values must speak the language of the requested strategy (e.g. for Smart Money Concepts: "Structure", "Order Block", "Fair Value Gap", "Liquidity", "Premium/Discount"; for Support & Resistance: "Key Level", "Touches", "Role Flip").
+10. **strategyChecklist**: one entry for EVERY checklist point listed above, in the same order → array of { point, status, note } where status is "confirmed" (clear evidence), "partial" (some evidence / unclear) or "failed" (evidence contradicts the setup), and note is one short sentence of what you saw.
+11. **strategyAssessments**: per-strategy verdicts for the requested strategy and adjacent confirming strategies → array of { strategyId, verdict: "bullish"|"bearish"|"neutral", confidence: 0-100, note }.
+12. **pair** and **symbol**: derive from the chart if legible, otherwise use the trader's hint.
 
 ## Rules
-- Be conservative. If there is NO clear, high-quality setup visible, return direction "neutral", and an empty takeProfits array, a confidence below 50, and a summary explaining why there's no trade.
+- Be conservative. If there is NO clear, high-quality setup visible, return direction "neutral", an empty takeProfits array, a confidence below 50, and a summary explaining why there's no trade.
 - Never invent prices that are not anchored to visible structure.
 - Use consistent precision (e.g. 4 decimals for FX pairs like EUR/USD, 2 for JPY pairs).
 
@@ -229,9 +311,16 @@ Return ONLY a valid JSON object, no markdown, matching this exact shape:
   ],
   "riskReward": 2.0,
   "confidence": 78,
-  "strategy": "${options.strategyLabel}",
+  "strategy": "${strategy.label}",
   "summary": "...",
   "keyLevels": { "support": [1.0795, 1.0760], "resistance": [1.0895, 1.0945] },
+  "keyFindings": [
+    { "label": "Structure", "value": "BOS above 1.0890 — bullish continuation", "tone": "bullish" },
+    { "label": "Order Block", "value": "1.0812 – 1.0834 (unmitigated bullish OB)", "tone": "bullish" }
+  ],
+  "strategyChecklist": [
+    { "point": "${strategy.checklist[0]}", "status": "confirmed", "note": "..." }
+  ],
   "strategyAssessments": [
     { "strategyId": "price-action", "verdict": "bullish", "confidence": 80, "note": "..." }
   ],
@@ -252,5 +341,5 @@ Return ONLY a valid JSON object, no markdown, matching this exact shape:
   ]);
 
   const text = result.response.text();
-  return parseAnalysis(text);
+  return parseAnalysis(text, options.strategy);
 }

@@ -54,17 +54,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const strategyLabel = STRATEGIES.find(
-      (s) => s.id === parsed.data.strategy
-    )?.label;
-
     const analysis = await analyzeChart({
       imageBase64: parsed.data.image,
       mimeType: parsed.data.mimeType,
       symbolHint: parsed.data.symbolHint,
       timeframe: parsed.data.timeframe,
       strategy: parsed.data.strategy,
-      strategyLabel: strategyLabel || parsed.data.strategy,
     });
 
     const data: AnalysisType = analysis;
@@ -85,6 +80,8 @@ export async function POST(req: Request) {
       summary: data.summary,
       keyLevels: data.keyLevels,
       strategyAssessments: data.strategyAssessments || [],
+      keyFindings: data.keyFindings || [],
+      strategyChecklist: data.strategyChecklist || [],
       riskDisclosure: data.riskDisclosure,
     });
 

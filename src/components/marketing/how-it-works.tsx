@@ -15,7 +15,7 @@ const steps = [
     step: "02",
     title: "AI Analyzes Market Structure",
     description:
-      "Our vision AI reads your chart, extracts market structure, key levels and patterns. Six independent strategies analyze it in parallel.",
+      "Our vision AI reads your chart, extracts market structure, key levels and patterns. Seven independent strategies analyze it in parallel.",
     accent: "text-teal-400",
     bg: "bg-teal-500/10 border-teal-500/20",
   },

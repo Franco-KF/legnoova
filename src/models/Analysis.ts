@@ -20,6 +20,32 @@ const strategyAssessmentSchema = new Schema(
   { _id: false }
 );
 
+const strategyChecklistItemSchema = new Schema(
+  {
+    point: { type: String, required: true },
+    status: {
+      type: String,
+      enum: ["confirmed", "partial", "failed"],
+      required: true,
+    },
+    note: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
+const keyFindingSchema = new Schema(
+  {
+    label: { type: String, required: true },
+    value: { type: String, required: true },
+    tone: {
+      type: String,
+      enum: ["bullish", "bearish", "neutral"],
+      default: "neutral",
+    },
+  },
+  { _id: false }
+);
+
 const analysisSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
@@ -40,6 +66,8 @@ const analysisSchema = new Schema(
       resistance: { type: [Number], default: [] },
     },
     strategyAssessments: { type: [strategyAssessmentSchema], default: [] },
+    keyFindings: { type: [keyFindingSchema], default: [] },
+    strategyChecklist: { type: [strategyChecklistItemSchema], default: [] },
     riskDisclosure: { type: String, default: "" },
   },
   { timestamps: true }
