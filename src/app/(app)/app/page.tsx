@@ -35,7 +35,7 @@ export default function DashboardPage() {
               Analyze a Chart
             </h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Upload a screenshot and get structured AI insight
+              Upload a screenshot and get structured Legnoova AI insight
             </p>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function DashboardPage() {
 
       {/* Disclaimer */}
       <p className="mt-12 text-center text-xs text-muted-foreground/60">
-        Legnoova provides AI-generated market analysis for informational
+        Legnoova AI provides market analysis for informational
         purposes and does not guarantee trading results.
       </p>
     </div>

@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { SubpageHero } from "@/components/marketing/subpage-hero";
+import { siteUrl } from "@/config/site";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Terms of Service",
-  description: "Terms of service for Legnoova.",
+  description:
+    "Legnoova AI terms of service. Informational and educational use only — analysis does not constitute financial advice or guarantee trading results.",
+  alternates: {
+    canonical: `${siteUrl}/terms`,
+  },
 };
 
 const sections = [
@@ -12,7 +18,7 @@ const sections = [
   },
   {
     title: "2. Informational Use Only",
-    body: "Legnoova provides AI-generated market analysis for informational and educational purposes only. Nothing on the platform constitutes financial, investment, or trading advice. Analysis does not guarantee trading results. You are solely responsible for any trading decisions you make.",
+    body: "Legnoova AI provides market analysis for informational and educational purposes only. Nothing on the platform constitutes financial, investment, or trading advice. Analysis does not guarantee trading results. You are solely responsible for any trading decisions you make.",
   },
   {
     title: "3. Accounts and Subscriptions",

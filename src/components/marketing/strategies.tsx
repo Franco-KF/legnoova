@@ -66,12 +66,18 @@ export function Strategies() {
           {/* Left: intro */}
           <div>
             <span className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
-              Strategy Engine
+              Built for Real Traders
             </span>
             <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-              Six Lenses, One<br className="hidden sm:block" /> Transparent Verdict
+              Built for Traders Who<br className="hidden sm:block" /> Already Know
+              How to Trade
             </h2>
             <p className="mt-5 text-base leading-7 text-muted-foreground">
+              This isn&apos;t designed to replace your strategy. It&apos;s designed
+              to make your analysis stronger. You bring the strategy — Legnoova AI
+              brings another perspective — and you make the final decision.
+            </p>
+            <p className="mt-4 text-base leading-7 text-muted-foreground">
               Instead of a single opaque prompt, Legnoova runs six independent
               strategy modules. Each one analyzes your chart through a different
               framework, then a consensus engine weighs their agreement to reach

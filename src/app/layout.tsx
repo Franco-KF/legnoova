@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { siteConfig, siteUrl } from "@/config/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,34 +21,54 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
-    default: "Legnoova — AI-Powered Forex Chart Analysis",
-    template: "%s | Legnoova",
+    default: `${siteConfig.name} — AI Forex Chart Analysis`,
+    template: "%s | Legnoova AI",
   },
-  description:
-    "Turn your forex charts into AI-powered trading insights. Upload a chart and let Legnoova analyze market structure, price action and multiple trading strategies to help you identify potential setups.",
-  keywords: [
-    "forex",
-    "ai analysis",
-    "chart analysis",
-    "trading",
-    "trading signals",
-    "price action",
-    "forex charts",
-  ],
+  description: siteConfig.description,
+  applicationName: siteConfig.name,
+  authors: [{ name: siteConfig.author, url: siteUrl }],
+  creator: siteConfig.author,
+  publisher: siteConfig.name,
+  category: "finance",
+  keywords: siteConfig.keywords,
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   openGraph: {
-    title: "Legnoova — AI-Powered Forex Chart Analysis",
-    description:
-      "Turn your forex charts into AI-powered trading insights.",
     type: "website",
+    siteName: siteConfig.name,
+    url: siteUrl,
     locale: "en_US",
+    title: `${siteConfig.name} — AI Forex Chart Analysis`,
+    description: siteConfig.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Legnoova — AI-Powered Forex Chart Analysis",
-    description:
-      "Turn your forex charts into AI-powered trading insights.",
+    title: `${siteConfig.name} — AI Forex Chart Analysis`,
+    description: siteConfig.description,
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#08130f",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({

@@ -92,7 +92,7 @@ export default function RegisterPage() {
           Create your account
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Start analyzing your forex charts with AI
+          Start analyzing your forex charts with Legnoova AI
         </p>
       </div>
 

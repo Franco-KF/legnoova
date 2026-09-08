@@ -18,11 +18,13 @@ export function CTASection() {
           </div>
 
           <h2 className="mx-auto mt-6 max-w-2xl font-heading text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-            Ready to Decode Your<br className="hidden sm:block" /> Next Setup?
+            Before Your Next Trade...
+            <br className="hidden sm:block" />
+            Upload the Chart.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Upload your first chart free and see how structured, multi-strategy
-            analysis can sharpen your trading decisions.
+            Let Legnoova AI challenge your analysis before you execute. One upload. One
+            clear, independent read. Then make your decision.
           </p>
 
           <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">
@@ -31,7 +33,7 @@ export function CTASection() {
               size="lg"
               className="group h-12 w-full gap-2 rounded-xl px-8 text-base shadow-glow-emerald transition-all hover:scale-[1.02] sm:w-auto"
             >
-              Analyze Your First Chart
+              Analyze My Chart
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Button>
             <Button
@@ -45,7 +47,8 @@ export function CTASection() {
           </div>
 
           <p className="mt-6 text-xs text-muted-foreground/70">
-            Cancel anytime · No long-term contracts
+            Legnoova AI analysis is for informational and educational purposes only. It
+            does not guarantee profitable trades or eliminate market risk.
           </p>
         </div>
       </div>

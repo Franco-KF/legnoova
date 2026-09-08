@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { SubpageHero } from "@/components/marketing/subpage-hero";
 import { HowItWorks } from "@/components/marketing/how-it-works";
 import { CTASection } from "@/components/marketing/cta-section";
+import { JsonLd } from "@/components/seo/json-ld";
+import { siteUrl } from "@/config/site";
 import {
   ScanSearch,
   Boxes,
@@ -10,10 +13,26 @@ import {
   FileCheck2,
 } from "lucide-react";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "How It Works",
   description:
-    "Learn how Legnoova's AI pipeline analyzes your forex charts — from vision extraction to multi-strategy consensus.",
+    "From screenshot to second opinion — how the Legnoova AI pipeline analyzes your forex chart across six transparent stages and explains its reasoning.",
+  alternates: {
+    canonical: `${siteUrl}/how-it-works`,
+  },
+  openGraph: {
+    type: "website",
+    title: "How It Works — Legnoova AI",
+    description:
+      "Upload your chart and get a second opinion you can verify — six clear stages, no black boxes, no invented numbers.",
+    url: `${siteUrl}/how-it-works`,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "How It Works — Legnoova AI",
+    description:
+      "An honest, transparent AI pipeline — from chart screenshot to structured forex insight.",
+  },
 };
 
 const pipeline = [
@@ -22,7 +41,7 @@ const pipeline = [
     step: "1",
     title: "Vision Analyzer",
     description:
-      "Gemini vision AI reads your uploaded chart and extracts only what's visible: market structure, candlesticks, key levels and any present indicators. Nothing is invented.",
+      "Legnoova AI's vision engine reads your uploaded chart and extracts only what's visible: market structure, candlesticks, key levels and any present indicators. Nothing is invented.",
   },
   {
     icon: Boxes,
@@ -64,10 +83,20 @@ const pipeline = [
 export default function HowItWorksPage() {
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: "How It Works — Legnoova AI",
+          url: `${siteUrl}/how-it-works`,
+          description:
+            "From chart screenshot to structured insight: vision extraction, structured data, six independent strategy modules, consensus engine, risk validator and a final validated result.",
+        }}
+      />
       <SubpageHero
         eyebrow="How It Works"
-        title={<>A Transparent AI Pipeline</>}
-        subtitle="From screenshot to structured insight in six clear stages — no black boxes, no invented numbers."
+        title={<>An Honest, Transparent Legnoova AI Pipeline</>}
+        subtitle="Upload your chart and get a second opinion you can verify — six clear stages, no black boxes, no invented numbers."
       />
       <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

@@ -11,11 +11,12 @@ export function Pricing() {
             Pricing
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            Simple, Transparent<br className="hidden sm:block" /> Subscription
-            Plans
+            Your Next Trade Deserves<br className="hidden sm:block" /> a Second
+            Opinion
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Choose the plan that fits your workflow. Cancel anytime.
+            Don&apos;t enter blindly. Analyze your chart, challenge your setup, and
+            trade with more clarity.
           </p>
         </div>
 
@@ -28,7 +29,7 @@ export function Pricing() {
         <div className="mx-auto mt-12 flex max-w-3xl items-start gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 text-left">
           <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
           <p className="text-sm leading-6 text-muted-foreground">
-            Legnoova provides AI-generated market analysis for informational
+            Legnoova AI provides market analysis for informational
             purposes and does not guarantee trading results. Always verify the
             setup before placing a trade.
           </p>

@@ -243,7 +243,7 @@ function parseAnalysis(raw: string, strategyId: string): Analysis {
     ),
     riskDisclosure: String(
       parsed.riskDisclosure ||
-        "AI-generated analysis is for informational purposes only and does not constitute financial advice."
+"Legnoova AI-generated analysis is for informational purposes only and does not constitute financial advice."
     ),
   };
 }
@@ -324,7 +324,7 @@ Return ONLY a valid JSON object, no markdown, matching this exact shape:
   "strategyAssessments": [
     { "strategyId": "price-action", "verdict": "bullish", "confidence": 80, "note": "..." }
   ],
-  "riskDisclosure": "AI-generated analysis is for informational purposes only and does not constitute financial advice."
+  "riskDisclosure": "Legnoova AI-generated analysis is for informational purposes only and does not constitute financial advice."
 }
 `;
 

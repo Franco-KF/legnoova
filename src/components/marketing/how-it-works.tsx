@@ -1,4 +1,4 @@
-import { Upload, Cpu, Lightbulb, CheckCircle2 } from "lucide-react";
+import { Upload, Cpu, Target, CheckCircle2 } from "lucide-react";
 
 const steps = [
   {
@@ -6,49 +6,58 @@ const steps = [
     step: "01",
     title: "Upload Your Chart",
     description:
-      "Drag and drop a screenshot of your forex chart. We accept PNG, JPG, and WEBP files. Add the symbol and timeframe if you know them.",
+      "Take a screenshot of your chart and upload it. PNG, JPG or WEBP — done in seconds.",
     accent: "text-emerald-400",
     bg: "bg-emerald-500/10 border-emerald-500/20",
   },
   {
     icon: Cpu,
     step: "02",
-    title: "AI Analyzes Market Structure",
+    title: "Legnoova AI Analyzes the Market",
     description:
-      "Our vision AI reads your chart, extracts market structure, key levels and patterns. Seven independent strategies analyze it in parallel.",
+      "Legnoova AI examines market structure, trend direction, support and resistance, momentum, and potential price scenarios.",
     accent: "text-teal-400",
     bg: "bg-teal-500/10 border-teal-500/20",
   },
   {
-    icon: Lightbulb,
+    icon: Target,
     step: "03",
-    title: "Get Your Trading Setup",
+    title: "Get Your Setup",
     description:
-      "A consensus engine combines the strategies into a clear BUY, SELL or WAIT signal with entry, stop loss and take profit levels.",
+      "Receive a clear breakdown with potential entry zones, Take Profit, Stop Loss, trend bias — and the reasoning behind it.",
     accent: "text-cyan-400",
     bg: "bg-cyan-500/10 border-cyan-500/20",
+  },
+  {
+    icon: CheckCircle2,
+    step: "04",
+    title: "Validate Before You Trade",
+    description:
+      "Compare Legnoova AI's analysis with your own. Agree? Stronger confirmation. Disagree? Investigate before you enter.",
+    accent: "text-emerald-400",
+    bg: "bg-emerald-500/10 border-emerald-500/20",
   },
 ];
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="border-t border-white/[0.06] py-24">
+    <section id="how-it-works" className="border-t border-white/[0.06] bg-white/[0.01] py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
             How It Works
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            From Chart to Insight in<br className="hidden sm:block" /> Three Simple
-            Steps
+            From Chart to Clearer Decision<br className="hidden sm:block" /> in
+            Seconds
           </h2>
           <p className="mt-4 text-muted-foreground">
-            No setup, no complex tools. Just upload, analyze, and get structured
-            market insight.
+            No complex setup, no learning curve. Upload, analyze, compare, and
+            decide with more confidence.
           </p>
         </div>
 
-        <div className="mt-16 grid gap-6 md:grid-cols-3">
+        <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((step) => (
             <div
               key={step.step}
@@ -70,11 +79,6 @@ export function HowItWorks() {
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
                 {step.description}
               </p>
-
-              <div className="mt-6 flex items-center gap-2 text-xs text-emerald-400/80">
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Part of the standard flow</span>
-              </div>
             </div>
           ))}
         </div>

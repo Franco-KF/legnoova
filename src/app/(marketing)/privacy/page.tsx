@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import { SubpageHero } from "@/components/marketing/subpage-hero";
+import { siteUrl } from "@/config/site";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "Privacy policy for Legnoova.",
+  description:
+    "Legnoova AI privacy policy — how we collect, use and protect your data. Your charts and analyses are private and only accessible to you.",
+  alternates: {
+    canonical: `${siteUrl}/privacy`,
+  },
 };
 
 const sections = [
@@ -20,7 +26,7 @@ const sections = [
   },
   {
     title: "4. Sharing of Information",
-    body: "We do not sell your personal data. We only share information with trusted service providers who need it to operate the platform (such as our AI and billing providers), and only to the extent necessary.",
+    body: "We do not sell your personal data. We only share information with trusted service providers who need it to operate the platform (such as our Legnoova AI engine and billing providers), and only to the extent necessary.",
   },
   {
     title: "5. Data Retention",

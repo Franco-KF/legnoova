@@ -1,5 +1,13 @@
+import type { Metadata } from "next";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { Sidebar } from "@/components/layout/sidebar";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function AppLayout({
   children,

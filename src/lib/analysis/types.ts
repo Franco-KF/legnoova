@@ -254,5 +254,5 @@ export const SAMPLE_ANALYSIS: Analysis = {
     resistance: [1.0895, 1.0945],
   },
   riskDisclosure:
-    "AI-generated analysis is for informational purposes only and does not constitute financial advice.",
+    "Legnoova AI-generated analysis is for informational purposes only and does not constitute financial advice.",
 };

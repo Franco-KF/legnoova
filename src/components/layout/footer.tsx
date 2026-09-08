@@ -21,8 +21,8 @@ export function Footer() {
           <div className="md:col-span-2">
             <Logo />
             <p className="mt-4 max-w-sm text-sm leading-6 text-muted-foreground">
-              Turn your forex charts into AI-powered trading insights. Structured,
-              transparent analysis for informed decision-making.
+              Legnoova AI — a second opinion for your forex analysis. Challenge your own
+              chart reading before you risk money on a trade.
             </p>
             <p className="mt-6 text-xs text-muted-foreground/70">
               Trading involves risk. Legnoova provides informational analysis and

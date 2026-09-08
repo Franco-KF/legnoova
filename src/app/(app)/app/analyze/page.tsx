@@ -186,7 +186,7 @@ export default function AnalyzePage() {
           Chart Analysis
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Upload a chart screenshot, pick your strategy and the AI reads the
+          Upload a chart screenshot, pick your strategy and Legnoova AI reads the
           market through that exact lens — structure, zones and risk-aware
           entry, stop-loss and dynamic take-profit targets.
         </p>
@@ -277,7 +277,7 @@ export default function AnalyzePage() {
                 </h2>
               </div>
               <span className="text-[11px] text-muted-foreground">
-                The AI analyses through your chosen lens
+                Legnoova AI analyses through your chosen lens
               </span>
             </div>
 
@@ -680,7 +680,7 @@ function ResultPanel({ analysis }: { analysis: Analysis }) {
           <ShieldAlert className="mx-auto mb-3 h-8 w-8 text-amber-400" />
           <h3 className="font-heading text-lg font-semibold">No clear setup</h3>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-            The AI didn&apos;t find a high-probability trade in this chart
+            Legnoova AI didn&apos;t find a high-probability trade in this chart
             through the {analysis.strategy} lens. This is a risk-first result —
             better to sit out than force a trade.
           </p>

@@ -17,10 +17,10 @@ export const PLANS: Plan[] = [
     name: "Everything",
     price: 29,
     period: "/month",
-    tagline: "Complete AI chart analysis for serious traders",
+    tagline: "Complete Legnoova AI chart analysis for serious traders",
     highlight: false,
     features: [
-      "Unlimited AI chart analyses",
+      "Unlimited Legnoova AI chart analyses",
       "All 7 trading strategies incl. Smart Money Concepts",
       "Multi-timeframe analysis",
       "Advanced risk analysis",

@@ -1,84 +1,94 @@
 import {
-  BrainCircuit,
-  Network,
-  Scale,
-  Gauge,
-  LayoutDashboard,
-  Eye,
+  FileImage,
+  TrendingUp,
+  Layers,
+  Grip,
+  Target,
+  Clock3,
+  History,
 } from "lucide-react";
 
 const features = [
   {
-    icon: BrainCircuit,
-    title: "Multi-Strategy AI Engine",
+    icon: FileImage,
+    title: "Legnoova AI Chart Analysis",
     description:
-      "Seven independent strategy modules analyze your chart simultaneously. Each brings a different lens — from price action to Smart Money Concepts — to market structure, liquidity and momentum.",
+      "Upload a chart and receive a Legnoova AI-powered technical breakdown — grounded in what's actually visible on it.",
     accent: "text-emerald-400",
     border: "hover:border-emerald-500/30",
     tint: "bg-emerald-500/10",
   },
   {
-    icon: Network,
-    title: "Consensus Engine",
+    icon: TrendingUp,
+    title: "Trend Detection",
     description:
-      "Configurable strategy weights and agreement thresholds combine module results into a single, transparent verdict. No black-box answers.",
+      "Understand whether the market is showing bullish, bearish, or ranging conditions — before you lean on a direction.",
     accent: "text-teal-400",
     border: "hover:border-teal-500/30",
     tint: "bg-teal-500/10",
   },
   {
-    icon: Scale,
-    title: "Risk-First Validation",
+    icon: Layers,
+    title: "Market Structure",
     description:
-      "Every setup goes through a risk validator that checks entries, stop losses and take profits — and falls back to WAIT when evidence is insufficient.",
-    accent: "text-amber-400",
-    border: "hover:border-amber-500/30",
-    tint: "bg-amber-500/10",
-  },
-  {
-    icon: Eye,
-    title: "Vision-Based Analysis",
-    description:
-      "Powered by Gemini vision AI, Legnoova reads what's actually on your chart — extracting only information that's visible or reliably inferable.",
+      "Identify important highs, lows, breaks, and potential changes in market structure that traders look for.",
     accent: "text-cyan-400",
     border: "hover:border-cyan-500/30",
     tint: "bg-cyan-500/10",
   },
   {
-    icon: LayoutDashboard,
-    title: "Professional Dashboard",
+    icon: Grip,
+    title: "Support & Resistance",
     description:
-      "Track your analysis history, saved setups and subscription usage in a clean, trading-terminal interface built for focus.",
+      "Find the key price levels where the market is most likely to react — so your entries sit at the right place.",
+    accent: "text-amber-400",
+    border: "hover:border-amber-500/30",
+    tint: "bg-amber-500/10",
+  },
+  {
+    icon: Target,
+    title: "Entry, TP & SL Ideas",
+    description:
+      "Get potential trade levels to investigate alongside your own strategy — not commands to follow.",
     accent: "text-violet-400",
     border: "hover:border-violet-500/30",
     tint: "bg-violet-500/10",
   },
   {
-    icon: Gauge,
-    title: "Transparent Confidence",
+    icon: Clock3,
+    title: "Multi-Timeframe Thinking",
     description:
-      "Every signal is accompanied by a confidence score and per-strategy breakdown, so you always know how much agreement backs a setup.",
+      "Analyze higher and lower timeframes to understand the bigger picture before zooming into an entry.",
     accent: "text-rose-400",
     border: "hover:border-rose-500/30",
     tint: "bg-rose-500/10",
+  },
+  {
+    icon: History,
+    title: "Analysis History",
+    description:
+      "Keep your previous analyses organized so you can review past decisions and learn from them.",
+    accent: "text-emerald-400",
+    border: "hover:border-emerald-500/30",
+    tint: "bg-emerald-500/10",
   },
 ];
 
 export function Features() {
   return (
-    <section id="features" className="border-t border-white/[0.06] bg-white/[0.01] py-24">
+    <section id="features" className="border-t border-white/[0.06] py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
             Features
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            Built Like a Professional<br className="hidden sm:block" /> Trading
-            Terminal
+            Everything You Need for<br className="hidden sm:block" /> Smarter Chart
+            Analysis
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Every feature is designed to give you clear, structured insight —
-            not noise.
+            Every feature exists for one reason: to help you validate your idea
+            before you risk your money.
           </p>
         </div>
 

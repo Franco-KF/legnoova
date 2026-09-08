@@ -94,7 +94,7 @@ export async function POST(req: Request) {
     console.error("Analyze error:", error);
     const message =
       error instanceof Error && error.message === "GEMINI_API_KEY is not configured"
-        ? "AI service is not configured yet"
+        ? "Legnoova AI service is not configured yet"
         : "Analysis failed. Please ensure the chart is clear and try again.";
     return NextResponse.json({ error: message }, { status: 500 });
   }

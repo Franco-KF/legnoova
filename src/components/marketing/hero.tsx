@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles, ShieldCheck, Bot } from "lucide-react";
+import { ArrowRight, Sparkles, ShieldCheck, GitCompareArrows } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HeroMockAnalysis } from "./hero-mock-analysis";
 
@@ -22,7 +22,7 @@ export function Hero() {
           <div className="flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/[0.07] px-4 py-1.5">
             <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
             <span className="text-sm text-emerald-300/90">
-              Powered by advanced AI vision analysis
+              Your Legnoova AI second opinion before you trade
             </span>
           </div>
         </div>
@@ -31,20 +31,20 @@ export function Hero() {
         <h1
           className="animate-fade-in-up animation-delay-100 mx-auto mt-8 max-w-4xl text-center font-heading text-4xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl"
         >
-          Turn Your Forex Charts Into{" "}
+          Your Forex Analysis,{" "}
           <span className="text-gradient-accent bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-            AI-Powered
+            Supercharged
           </span>{" "}
-          Trading Insights
+          by <span className="whitespace-nowrap">Legnoova&nbsp;AI</span>
         </h1>
 
         {/* Subheadline */}
         <p
           className="animate-fade-in-up animation-delay-200 mx-auto mt-6 max-w-2xl text-center text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl"
         >
-          Upload a forex chart and let Legnoova analyze market structure, price
-          action and multiple trading strategies to help you identify potential
-          setups.
+          Stop entering trades on guesswork. Upload your chart and let
+          Legnoova AI challenge and validate your analysis — trend, structure,
+          momentum, key levels and potential setups — before you risk a cent.
         </p>
 
         {/* CTA buttons */}
@@ -54,7 +54,7 @@ export function Hero() {
             size="lg"
             className="group h-12 w-full gap-2 rounded-xl px-8 text-base shadow-glow-emerald transition-all hover:scale-[1.02] sm:w-auto"
           >
-            Analyze Your First Chart
+            Analyze My Chart
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Button>
           <Button
@@ -63,7 +63,7 @@ export function Hero() {
             variant="outline"
             className="h-12 w-full gap-2 rounded-xl px-8 text-base border-white/[0.12] bg-white/[0.02] hover:bg-white/[0.05] sm:w-auto"
           >
-            <Bot className="h-4 w-4 text-teal-400" />
+            <GitCompareArrows className="h-4 w-4 text-teal-400" />
             See How It Works
           </Button>
         </div>
@@ -74,17 +74,17 @@ export function Hero() {
         >
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <ShieldCheck className="h-4 w-4 text-emerald-400" />
-            Informational analysis only
+            No setup required
           </div>
           <div className="hidden h-4 w-px bg-white/[0.1] sm:block" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Sparkles className="h-4 w-4 text-teal-400" />
-            6 independent trading strategies
+            Legnoova AI analysis in seconds
           </div>
           <div className="hidden h-4 w-px bg-white/[0.1] sm:block" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Bot className="h-4 w-4 text-cyan-400" />
-            Clear BUY / SELL / WAIT states
+            <ShieldCheck className="h-4 w-4 text-cyan-400" />
+            Risk-aware insights
           </div>
         </div>
 
