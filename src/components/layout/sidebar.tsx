@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import {
   LayoutDashboard,
+  BellRing,
   LineChart,
   History,
   Star,
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/app/signals", label: "Signals", icon: BellRing },
   { href: "/app/analyze", label: "Analyze", icon: LineChart },
   { href: "/app/history", label: "History", icon: History },
   { href: "/app/watchlist", label: "Watchlist", icon: Star },
@@ -38,6 +40,7 @@ interface SidebarContentProps {
   initials: string;
   showCollapse: boolean;
   compact: boolean;
+  signalsThisMonth: number | null;
 }
 
 function SidebarContent({
@@ -50,6 +53,7 @@ function SidebarContent({
   initials,
   showCollapse,
   compact,
+  signalsThisMonth,
 }: SidebarContentProps) {
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href) && pathname !== "/app";
@@ -118,13 +122,17 @@ function SidebarContent({
       {!compact && (
         <div className="mx-3 mb-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Analyses this month</span>
-            <span className="font-mono text-emerald-400">—</span>
+            <span className="text-muted-foreground">Signals this month</span>
+            <span className="font-mono text-emerald-400">
+              {signalsThisMonth === null ? "—" : signalsThisMonth}
+            </span>
           </div>
           <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
             <div
               className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400"
-              style={{ width: "0%" }}
+              style={{
+                width: `${Math.min(100, ((signalsThisMonth || 0) / 10) * 100)}%`,
+              }}
             />
           </div>
         </div>
@@ -169,6 +177,26 @@ export function Sidebar() {
   const { data: session } = useSession();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [signalsThisMonth, setSignalsThisMonth] = useState<number | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/signals/stats");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (active) {
+          setSignalsThisMonth(data.stats?.signalsThisMonth ?? 0);
+        }
+      } catch {
+        /* keep the meter silent on failure */
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const user = session?.user;
   const name = user?.name || "";
@@ -202,6 +230,7 @@ export function Sidebar() {
           initials={initials}
           showCollapse
           compact={collapsed}
+          signalsThisMonth={signalsThisMonth}
         />
       </aside>
 
@@ -233,6 +262,7 @@ export function Sidebar() {
               initials={initials}
               showCollapse={false}
               compact={false}
+              signalsThisMonth={signalsThisMonth}
             />
           </aside>
         </div>

@@ -6,6 +6,7 @@ import { User } from "@/models/User";
 
 const updateSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(50).optional(),
+  signalEmailAlerts: z.boolean().optional(),
 });
 
 export async function GET() {
@@ -15,8 +16,10 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await dbConnect();
-    const user = await User.findById(session.user.id).select("name email image");
+await dbConnect();
+    const user = await User.findById(session.user.id).select(
+      "name email image signalEmailAlerts plan planStatus planCurrentPeriodEnd"
+    );
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -28,6 +31,10 @@ export async function GET() {
         name: user.name,
         email: user.email,
         image: user.image ?? null,
+        signalEmailAlerts: !!user.signalEmailAlerts,
+        plan: user.plan ?? null,
+        planStatus: user.planStatus ?? null,
+        planCurrentPeriodEnd: user.planCurrentPeriodEnd?.toISOString() ?? null,
       },
     });
   } catch (error) {
@@ -59,6 +66,8 @@ export async function PATCH(req: Request) {
     }
 
     if (parsed.data.name) user.name = parsed.data.name;
+    if (parsed.data.signalEmailAlerts !== undefined)
+      user.signalEmailAlerts = parsed.data.signalEmailAlerts;
     await user.save();
 
     return NextResponse.json({
@@ -67,6 +76,7 @@ export async function PATCH(req: Request) {
         name: user.name,
         email: user.email,
         image: user.image ?? null,
+        signalEmailAlerts: !!user.signalEmailAlerts,
       },
     });
   } catch (error) {

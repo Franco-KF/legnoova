@@ -23,7 +23,7 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `${siteConfig.name} — AI Forex Chart Analysis`,
+    default: `${siteConfig.name} — AI Forex Signals`,
     template: "%s | Legnoova AI",
   },
   description: siteConfig.description,
@@ -43,12 +43,12 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     url: siteUrl,
     locale: "en_US",
-    title: `${siteConfig.name} — AI Forex Chart Analysis`,
+    title: `${siteConfig.name} — AI Forex Signals`,
     description: siteConfig.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} — AI Forex Chart Analysis`,
+    title: `${siteConfig.name} — AI Forex Signals`,
     description: siteConfig.description,
   },
   robots: {

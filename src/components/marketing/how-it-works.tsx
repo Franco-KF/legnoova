@@ -1,4 +1,4 @@
-import { Upload, Cpu, Target, CheckCircle2 } from "lucide-react";
+import { Upload, Cpu, Target, ClipboardList } from "lucide-react";
 
 const steps = [
   {
@@ -6,34 +6,34 @@ const steps = [
     step: "01",
     title: "Upload Your Chart",
     description:
-      "Take a screenshot of your chart and upload it. PNG, JPG or WEBP — done in seconds.",
+      "Take a screenshot of your trading chart and upload it. PNG, JPG or WEBP — done in seconds.",
     accent: "text-emerald-400",
     bg: "bg-emerald-500/10 border-emerald-500/20",
   },
   {
     icon: Cpu,
     step: "02",
-    title: "Legnoova AI Analyzes the Market",
+    title: "Legnoova AI Scans It",
     description:
-      "Legnoova AI examines market structure, trend direction, support and resistance, momentum, and potential price scenarios.",
+      "Legnoova AI reads market structure, trend, support/resistance, order flow and prices visible on the chart, then checks the setup against every strategy.",
     accent: "text-teal-400",
     bg: "bg-teal-500/10 border-teal-500/20",
   },
   {
     icon: Target,
     step: "03",
-    title: "Get Your Setup",
+    title: "Get a Structured Signal",
     description:
-      "Receive a clear breakdown with potential entry zones, Take Profit, Stop Loss, trend bias — and the reasoning behind it.",
+      "Receive a tradable signal: direction with confidence, entry, stop-loss, dynamic take-profit targets (TP1–TP3) and the risk:reward — plus the evidence behind every level.",
     accent: "text-cyan-400",
     bg: "bg-cyan-500/10 border-cyan-500/20",
   },
   {
-    icon: CheckCircle2,
+    icon: ClipboardList,
     step: "04",
-    title: "Validate Before You Trade",
+    title: "Trade, Then Log the Outcome",
     description:
-      "Compare Legnoova AI's analysis with your own. Agree? Stronger confirmation. Disagree? Investigate before you enter.",
+      "Take the trade or sit it out. Mark what happened — TP hit or stopped — and your hit rate vs Legnoova AI builds in your dashboard.",
     accent: "text-emerald-400",
     bg: "bg-emerald-500/10 border-emerald-500/20",
   },
@@ -48,12 +48,11 @@ export function HowItWorks() {
             How It Works
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            From Chart to Clearer Decision<br className="hidden sm:block" /> in
-            Seconds
+            From Chart to Signal<br className="hidden sm:block" /> in Seconds
           </h2>
           <p className="mt-4 text-muted-foreground">
-            No complex setup, no learning curve. Upload, analyze, compare, and
-            decide with more confidence.
+            No complex setup, no signals you can&apos;t verify. Upload, scan,
+            and get a signal with the full reasoning behind it.
           </p>
         </div>
 

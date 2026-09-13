@@ -3,6 +3,7 @@ import { z } from "zod";
 import { dbConnect } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { hashPassword } from "@/lib/auth/password";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const registerSchema = z.object({
   name: z
@@ -21,6 +22,11 @@ const registerSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitResponse(
+      rateLimit(req, { key: "register", limit: 5, windowMs: 15 * 60 * 1000 })
+    );
+    if (limited) return limited;
+
     const body = await req.json().catch(() => null);
     const parsed = registerSchema.safeParse(body);
     if (!parsed.success) {

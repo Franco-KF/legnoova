@@ -1,11 +1,17 @@
 export const siteConfig = {
   name: "Legnoova AI",
   legalName: "Legnoova",
-  tagline: "Your forex analysis, supercharged by Legnoova AI.",
+  tagline: "AI forex signals that show their work — entry, stop-loss, targets and the evidence behind each call.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://legnoova.com",
   description:
-    "Upload your forex chart and let Legnoova AI challenge and validate your analysis before you trade. Trend detection, market structure, key levels, entries, TP & SL — a risk-aware AI second opinion for forex traders.",
+    "Get a Legnoova AI forex signal with entry, stop-loss, take-profit targets and the evidence behind each call. Upload your chart, get a structured AI signal, track your hit rate — a transparent AI signal provider for Forex traders.",
   keywords: [
+    "AI forex signals",
+    "forex signal provider",
+    "AI trading signals",
+    "structured forex signals",
+    "forex signals with stop loss",
+    "AI signal",
     "forex AI",
     "AI forex analysis",
     "forex chart analysis",
@@ -20,8 +26,10 @@ export const siteConfig = {
     "AI for traders",
     "smart money concepts AI",
     "forex analysis tool",
+    "signal hit rate",
+    "trading journal",
   ],
-  ogSiteName: "Legnoova AI — Forex Chart Analysis",
+  ogSiteName: "Legnoova AI — Forex Signals",
   twitter: {
     card: "summary_large_image",
     site: "@legnoova",

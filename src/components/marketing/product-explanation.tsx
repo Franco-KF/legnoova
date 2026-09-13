@@ -11,9 +11,9 @@ const steps = [
   {
     icon: Eye,
     step: "02",
-    title: "Get an independent Legnoova AI analysis",
+    title: "Get a Legnoova AI signal",
     description:
-      "Legnoova AI reads the same chart you're looking at — and returns its own honest read of it.",
+      "Legnoova AI reads the same chart you're looking at and returns its own honest read — as a structured signal with entry, stop-loss, take-profit targets and the evidence behind it.",
   },
   {
     icon: GitCompareArrows,

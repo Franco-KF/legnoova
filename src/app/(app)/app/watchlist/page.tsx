@@ -8,10 +8,11 @@ import {
   TrendingDown,
   Loader2,
   ArrowRight,
-  Plus,
   Trash2,
+  BellRing,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface WatchlistEntry {
   symbol: string;
@@ -28,6 +29,7 @@ export default function WatchlistPage() {
   const [entries, setEntries] = useState<WatchlistEntry[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -44,39 +46,61 @@ export default function WatchlistPage() {
     })();
   }, []);
 
-  const addCurrentAnalysis = async () => {
+  const addLatestSignal = async () => {
+    if (adding) return;
+    setAdding(true);
     try {
+      const sigRes = await fetch("/api/signals?limit=1");
+      const sigData = await sigRes.json();
+      if (!sigRes.ok) throw new Error(sigData.error || "No signals found");
+      const signal = sigData.items?.[0];
+      if (!signal) {
+        toast.error("No signals yet — analyze a chart to generate one");
+        return;
+      }
+
       const res = await fetch("/api/watchlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           entry: {
-            symbol: "EURUSD",
-            pair: "EUR/USD",
-            timeframe: "H1",
-            direction: "buy",
-            entryPrice: 1.0845,
-            takeProfits: [1.0895, 1.0945],
-            stopLoss: 1.0795,
+            symbol: signal.symbol,
+            pair: signal.pair,
+            timeframe: signal.timeframe,
+            direction: signal.direction,
+            entryPrice: signal.entryPrice,
+            takeProfits: (signal.takeProfits || []).map(
+              (tp: { price: number }) => tp.price
+            ),
+            stopLoss: signal.stopLoss,
+            note: signal.summary ? signal.summary.slice(0, 120) : "",
           },
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to add");
       setEntries((prev) => [
-        ...(prev || []),
         {
-          symbol: "EURUSD",
-          pair: "EUR/USD",
-          timeframe: "H1",
-          direction: "buy",
-          entryPrice: 1.0845,
-          takeProfits: [1.0895, 1.0945],
-          stopLoss: 1.0795,
+          symbol: signal.symbol,
+          pair: signal.pair,
+          timeframe: signal.timeframe,
+          direction: signal.direction,
+          entryPrice: signal.entryPrice,
+          takeProfits: (signal.takeProfits || []).map(
+            (tp: { price: number }) => tp.price
+          ),
+          stopLoss: signal.stopLoss,
+          note: signal.summary ? signal.summary.slice(0, 120) : "",
         },
+        ...(prev || []),
       ]);
+      toast.success(`${signal.symbol} added from your latest signal`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to add latest signal"
+      );
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -91,10 +115,16 @@ export default function WatchlistPage() {
           </p>
         </div>
         <button
-          onClick={addCurrentAnalysis}
-          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-400"
+          onClick={addLatestSignal}
+          disabled={adding}
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <Plus className="h-4 w-4" /> Add
+          {adding ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <BellRing className="h-4 w-4" />
+          )}{" "}
+          Add latest signal
         </button>
       </div>
 

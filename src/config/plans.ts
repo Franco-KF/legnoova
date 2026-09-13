@@ -9,7 +9,15 @@ export interface Plan {
   highlight: boolean;
   features: string[];
   cta: string;
+  /** Paddle price id (pri_...). Public identifier, resolved from env. */
+  priceId?: string;
 }
+
+/**
+ * Analyses per calendar month on the free tier (before upgrading).
+ * Paid limits are effectively unmetered via USAGE_LIMITS.
+ */
+export const FREE_ANALYSIS_LIMIT = 10;
 
 export const PLANS: Plan[] = [
   {
@@ -17,34 +25,38 @@ export const PLANS: Plan[] = [
     name: "Everything",
     price: 29,
     period: "/month",
-    tagline: "Complete Legnoova AI chart analysis for serious traders",
+    tagline: "Pro-grade Legnoova AI signals with full reasoning behind every level",
     highlight: false,
     features: [
       "Unlimited Legnoova AI chart analyses",
+      "Structured signals with entry, stop-loss & targets",
+      "Signal journal & hit-rate tracking (You vs Legnoova AI)",
+      "Live signals feed + market signals",
+      "Email alerts when signals match your watchlist",
       "All 7 trading strategies incl. Smart Money Concepts",
       "Multi-timeframe analysis",
-      "Advanced risk analysis",
-      "Full analysis history",
-      "Unlimited watchlists",
+      "Full analysis history & unlimited watchlists",
       "Priority processing",
     ],
     cta: "Start with $29/mo",
+    priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_ANALYZE,
   },
   {
     id: "broker",
     name: "Everything + Broker",
     price: 59,
     period: "/month",
-    tagline: "Analysis plus direct broker connection",
+    tagline: "Signals plus direct broker connection for automated traders",
     highlight: true,
     features: [
       "Everything in the $29 plan",
       "Broker connection support",
-      "Advanced automation",
+      "Advanced automation & custom alerts",
       "Priority broker integration",
       "Dedicated support",
     ],
     cta: "Upgrade to $59/mo",
+    priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_BROKER,
   },
 ];
 

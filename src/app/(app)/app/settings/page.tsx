@@ -1,16 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Loader2, User as UserIcon, Check } from "lucide-react";
+import { Loader2, User as UserIcon, Check, Mail, BellRing } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
   const { data: session, update } = useSession();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [alerts, setAlerts] = useState(true);
+  const [alertsLoaded, setAlertsLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [savingAlerts, setSavingAlerts] = useState(false);
   const [initialized, setInitialized] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/account");
+        const data = await res.json();
+        if (active && res.ok && data.user) {
+          setAlerts(data.user.signalEmailAlerts !== false);
+          setAlertsLoaded(true);
+        }
+      } catch {
+        /* keep default on failure */
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   if (session?.user && !initialized) {
     setName(session.user.name || "");
@@ -35,6 +58,29 @@ export default function SettingsPage() {
       toast.error(err instanceof Error ? err.message : "Failed to update");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const toggleAlerts = async () => {
+    const next = !alerts;
+    setSavingAlerts(true);
+    setAlerts(next);
+    try {
+      const res = await fetch("/api/account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ signalEmailAlerts: next }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update");
+      const confirmed = data.user?.signalEmailAlerts !== false;
+      setAlerts(confirmed);
+      toast.success(next ? "Signal alerts on" : "Signal alerts off");
+    } catch (err) {
+      setAlerts(!next);
+      toast.error(err instanceof Error ? err.message : "Failed to update");
+    } finally {
+      setSavingAlerts(false);
     }
   };
 
@@ -113,6 +159,56 @@ export default function SettingsPage() {
               Email cannot be changed here.
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Signal alerts */}
+      <div className="glass-panel mt-6 overflow-hidden">
+        <div className="flex items-center gap-4 border-b border-white/[0.06] p-6">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/15 ring-1 ring-emerald-500/30">
+            <BellRing className="h-5 w-5 text-emerald-400" />
+          </div>
+          <div>
+            <p className="font-heading text-lg font-semibold">Signal Alerts</p>
+            <p className="text-sm text-muted-foreground">
+              Get an email the moment Legnoova AI publishes a signal on a pair
+              you watch.
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-4 p-6">
+          <div className="flex items-center gap-3">
+            <Mail className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">
+                Email me new signals matching my watchlist
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Only fires for pairs already on your watchlist. No spam.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={alerts}
+            onClick={toggleAlerts}
+            disabled={savingAlerts || !alertsLoaded}
+            className={cn(
+              "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full border transition-colors",
+              alerts
+                ? "border-emerald-500/50 bg-emerald-500"
+                : "border-white/[0.1] bg-white/[0.06]",
+              (savingAlerts || !alertsLoaded) && "opacity-60"
+            )}
+          >
+            <span
+              className={cn(
+                "absolute h-5 w-5 rounded-full bg-white transition-all",
+                alerts ? "left-[calc(100%-22px)]" : "left-1"
+              )}
+            />
+          </button>
         </div>
       </div>
     </div>

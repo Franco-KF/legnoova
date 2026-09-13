@@ -6,6 +6,7 @@ import { PasswordResetToken } from "@/models/PasswordResetToken";
 import { generateToken } from "@/lib/auth/token";
 import { sendEmail, APP_URL } from "@/lib/email";
 import { passwordResetHtml, passwordResetText } from "@/emails/password-reset";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const forgotSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -15,6 +16,11 @@ const EXPIRES_HOURS = 1;
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitResponse(
+      rateLimit(req, { key: "forgot-password", limit: 5, windowMs: 15 * 60 * 1000 })
+    );
+    if (limited) return limited;
+
     const body = await req.json().catch(() => null);
     const parsed = forgotSchema.safeParse(body);
     if (!parsed.success) {

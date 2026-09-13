@@ -11,12 +11,12 @@ export function Pricing() {
             Pricing
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            Your Next Trade Deserves<br className="hidden sm:block" /> a Second
-            Opinion
+            Your Next Trade Deserves<br className="hidden sm:block" /> a Signal
+            That Shows Its Work
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Don&apos;t enter blindly. Analyze your chart, challenge your setup, and
-            trade with more clarity.
+            Every signal ships with entry, stop-loss, targets and the evidence
+            behind them — no blindly-followed calls.
           </p>
         </div>
 

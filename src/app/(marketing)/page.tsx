@@ -16,20 +16,20 @@ import { faqs } from "@/config/faqs";
 import { PLANS, CONSENSUS_THRESHOLDS } from "@/config/plans";
 
 export const metadata: Metadata = {
-  title: `${siteConfig.name} — AI Forex Chart Analysis`,
+  title: `${siteConfig.name} — AI Forex Signals`,
   description: siteConfig.description,
   alternates: {
     canonical: siteUrl,
   },
   openGraph: {
     type: "website",
-    title: `${siteConfig.name} — AI Forex Chart Analysis`,
+    title: `${siteConfig.name} — AI Forex Signals`,
     description: siteConfig.description,
     url: siteUrl,
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} — AI Forex Chart Analysis`,
+    title: `${siteConfig.name} — AI Forex Signals`,
     description: siteConfig.description,
   },
 };

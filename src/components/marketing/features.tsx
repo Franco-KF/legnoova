@@ -6,14 +6,16 @@ import {
   Target,
   Clock3,
   History,
+  BellRing,
+  ClipboardList,
 } from "lucide-react";
 
 const features = [
   {
     icon: FileImage,
-    title: "Legnoova AI Chart Analysis",
+    title: "Legnoova AI Signal Analysis",
     description:
-      "Upload a chart and receive a Legnoova AI-powered technical breakdown — grounded in what's actually visible on it.",
+      "Upload a chart and get a structured signal — direction with confidence, entry, stop-loss and dynamic targets — grounded in what's actually visible on it.",
     accent: "text-emerald-400",
     border: "hover:border-emerald-500/30",
     tint: "bg-emerald-500/10",
@@ -22,7 +24,7 @@ const features = [
     icon: TrendingUp,
     title: "Trend Detection",
     description:
-      "Understand whether the market is showing bullish, bearish, or ranging conditions — before you lean on a direction.",
+      "Know whether the market is bullish, bearish, or ranging before you lean on a direction — every signal states the bias up front.",
     accent: "text-teal-400",
     border: "hover:border-teal-500/30",
     tint: "bg-teal-500/10",
@@ -31,7 +33,7 @@ const features = [
     icon: Layers,
     title: "Market Structure",
     description:
-      "Identify important highs, lows, breaks, and potential changes in market structure that traders look for.",
+      "Important highs, lows, breaks and potential changes in market structure — read institutionally, like a pro trader.",
     accent: "text-cyan-400",
     border: "hover:border-cyan-500/30",
     tint: "bg-cyan-500/10",
@@ -40,16 +42,16 @@ const features = [
     icon: Grip,
     title: "Support & Resistance",
     description:
-      "Find the key price levels where the market is most likely to react — so your entries sit at the right place.",
+      "The key price levels where the market is most likely to react — so your entries sit at the right place, not mid-range.",
     accent: "text-amber-400",
     border: "hover:border-amber-500/30",
     tint: "bg-amber-500/10",
   },
   {
     icon: Target,
-    title: "Entry, TP & SL Ideas",
+    title: "Entry, TP & SL in Every Signal",
     description:
-      "Get potential trade levels to investigate alongside your own strategy — not commands to follow.",
+      "Each signal ships with a precise entry, stop-loss, take-profit targets (TP1–TP3) and risk:reward — not vague guesses.",
     accent: "text-violet-400",
     border: "hover:border-violet-500/30",
     tint: "bg-violet-500/10",
@@ -58,16 +60,34 @@ const features = [
     icon: Clock3,
     title: "Multi-Timeframe Thinking",
     description:
-      "Analyze higher and lower timeframes to understand the bigger picture before zooming into an entry.",
+      "Analyze higher and lower timeframes to read the bigger picture before zooming into an entry.",
     accent: "text-rose-400",
     border: "hover:border-rose-500/30",
     tint: "bg-rose-500/10",
   },
   {
-    icon: History,
-    title: "Analysis History",
+    icon: BellRing,
+    title: "Signal Feed & Email Alerts",
     description:
-      "Keep your previous analyses organized so you can review past decisions and learn from them.",
+      "Every signal lands in your feed, and you can get an email the moment Legnoova AI publishes a call on a pair you watch.",
+    accent: "text-cyan-400",
+    border: "hover:border-cyan-500/30",
+    tint: "bg-cyan-500/10",
+  },
+  {
+    icon: ClipboardList,
+    title: "Journal & Hit-Rate Tracking",
+    description:
+      "Log whether you took each signal and what happened — TP hit or stopped — and watch your hit rate vs Legnoova AI build up.",
+    accent: "text-teal-400",
+    border: "hover:border-teal-500/30",
+    tint: "bg-teal-500/10",
+  },
+  {
+    icon: History,
+    title: "Full Signal History",
+    description:
+      "Keep every signal organized so you can review past calls, spot patterns and learn from each decision.",
     accent: "text-emerald-400",
     border: "hover:border-emerald-500/30",
     tint: "bg-emerald-500/10",

@@ -69,9 +69,19 @@ const analysisSchema = new Schema(
     keyFindings: { type: [keyFindingSchema], default: [] },
     strategyChecklist: { type: [strategyChecklistItemSchema], default: [] },
     riskDisclosure: { type: String, default: "" },
+    signalStatus: {
+      type: String,
+      enum: ["active", "tp1", "tp2", "tp3", "stopped", "closed"],
+      default: "active",
+    },
+    tookIt: { type: String, enum: ["yes", "no", "unset"], default: "unset" },
+    published: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
+
+analysisSchema.index({ userId: 1, createdAt: -1 });
+analysisSchema.index({ published: 1, createdAt: -1 });
 
 export type IAnalysis = InferSchemaType<typeof analysisSchema> & {
   _id: mongoose.Types.ObjectId;

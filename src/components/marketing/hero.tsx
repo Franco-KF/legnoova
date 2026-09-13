@@ -22,7 +22,7 @@ export function Hero() {
           <div className="flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/[0.07] px-4 py-1.5">
             <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
             <span className="text-sm text-emerald-300/90">
-              Your Legnoova AI second opinion before you trade
+              Legnoova AI signals — with the reasoning behind every level
             </span>
           </div>
         </div>
@@ -42,9 +42,9 @@ export function Hero() {
         <p
           className="animate-fade-in-up animation-delay-200 mx-auto mt-6 max-w-2xl text-center text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl"
         >
-          Stop entering trades on guesswork. Upload your chart and let
-          Legnoova AI challenge and validate your analysis — trend, structure,
-          momentum, key levels and potential setups — before you risk a cent.
+          Stop entering trades on guesswork. Upload your chart and get a
+          structured Legnoova AI signal — entry, stop-loss, take-profit targets
+          and the full evidence behind each level — before you risk a cent.
         </p>
 
         {/* CTA buttons */}
@@ -74,17 +74,17 @@ export function Hero() {
         >
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <ShieldCheck className="h-4 w-4 text-emerald-400" />
-            No setup required
+            Signals that show their work
           </div>
           <div className="hidden h-4 w-px bg-white/[0.1] sm:block" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Sparkles className="h-4 w-4 text-teal-400" />
-            Legnoova AI analysis in seconds
+            Entry · Stop-loss · Targets
           </div>
           <div className="hidden h-4 w-px bg-white/[0.1] sm:block" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <ShieldCheck className="h-4 w-4 text-cyan-400" />
-            Risk-aware insights
+            Risk-aware & transparent
           </div>
         </div>
 

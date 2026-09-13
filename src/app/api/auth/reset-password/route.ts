@@ -4,6 +4,7 @@ import { dbConnect } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { PasswordResetToken } from "@/models/PasswordResetToken";
 import { hashPassword } from "@/lib/auth/password";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const resetSchema = z.object({
   token: z.string().min(1),
@@ -17,6 +18,11 @@ const resetSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    const limited = rateLimitResponse(
+      rateLimit(req, { key: "reset-password", limit: 10, windowMs: 15 * 60 * 1000 })
+    );
+    if (limited) return limited;
+
     const body = await req.json().catch(() => null);
     const parsed = resetSchema.safeParse(body);
     if (!parsed.success) {

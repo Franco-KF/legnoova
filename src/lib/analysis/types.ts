@@ -1,3 +1,18 @@
+export type SignalStatus = "active" | "tp1" | "tp2" | "tp3" | "stopped" | "closed";
+
+export type TookIt = "yes" | "no" | "unset";
+
+export const SIGNAL_STATUSES: SignalStatus[] = [
+  "active",
+  "tp1",
+  "tp2",
+  "tp3",
+  "stopped",
+  "closed",
+];
+
+export const TOOK_IT_VALUES: TookIt[] = ["yes", "no", "unset"];
+
 export type ChecklistStatus = "confirmed" | "partial" | "failed";
 
 export interface StrategyChecklistItem {
@@ -221,38 +236,33 @@ export interface Analysis {
   /** Per-point evaluation of the chosen strategy's checklist. */
   strategyChecklist?: StrategyChecklistItem[];
   riskDisclosure: string;
+  /** Signal lifecycle — directional calls become signals (default "active"). */
+  signalStatus?: SignalStatus;
+  /** Journal: did the trader take this signal? default "unset". */
+  tookIt?: TookIt;
+  /** Whether this signal is syndicated to the public market feed. */
+  published?: boolean;
 }
 
-export const SAMPLE_ANALYSIS: Analysis = {
-  symbol: "EURUSD",
-  pair: "EUR/USD",
-  timeframe: "H1",
-  direction: "buy",
-  entryPrice: 1.0845,
-  stopLoss: 1.0795,
-  takeProfits: [
-    {
-      price: 1.0895,
-      label: "TP1",
-      riskReward: 1.0,
-      explanation: "Nearest resistance — take partial profit and move SL to break-even.",
-    },
-    {
-      price: 1.0945,
-      label: "TP2",
-      riskReward: 2.0,
-      explanation: "Major supply zone — second target for the remaining position.",
-    },
-  ],
-  riskReward: 2.0,
-  confidence: 78,
-  strategy: "Consensus — All Strategies",
-  summary:
-    "Price is holding above a strong demand zone with clear higher highs and higher lows. Momentum favours continuation toward the next supply area.",
-  keyLevels: {
-    support: [1.0795, 1.0760],
-    resistance: [1.0895, 1.0945],
-  },
-  riskDisclosure:
-    "Legnoova AI-generated analysis is for informational purposes only and does not constitute financial advice.",
-};
+export interface SignalRecord {
+  id: string;
+  pair: string;
+  symbol: string;
+  timeframe: string;
+  direction: "buy" | "sell";
+  entryPrice: number;
+  stopLoss: number;
+  takeProfits: TakeProfit[];
+  riskReward: number;
+  confidence: number;
+  strategy: string;
+  summary: string;
+  keyFindings?: KeyFinding[];
+  strategyChecklist?: StrategyChecklistItem[];
+  keyLevels?: { support: number[]; resistance: number[] };
+  strategyAssessments?: StrategyAssessment[];
+  signalStatus: SignalStatus;
+  tookIt: TookIt;
+  published?: boolean;
+  createdAt: string | null;
+}
