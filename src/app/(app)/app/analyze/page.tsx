@@ -33,6 +33,59 @@ function normalizeMime(type: string): string {
   return type;
 }
 
+const MAX_DIMENSION = 1600;
+
+function prepareImage(file: File): Promise<{ base64: string; mimeType: string }> {
+  return new Promise((resolve, reject) => {
+    const inputMime = normalizeMime(file.type);
+    const isGif = inputMime === "image/gif";
+    const url = URL.createObjectURL(file);
+    const image = document.createElement("img");
+
+    image.onload = () => {
+      try {
+        const scale = Math.min(
+          1,
+          MAX_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight)
+        );
+        const width = Math.max(1, Math.round(image.naturalWidth * scale));
+        const height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          throw new Error("Canvas is not supported in this browser.");
+        }
+        ctx.drawImage(image, 0, 0, width, height);
+
+        // GIF becomes a static frame (Gemini rejects animated images);
+        // everything else keeps its format, just downscaled.
+        const outputMime = isGif ? "image/jpeg" : inputMime;
+        const dataUrl = canvas.toDataURL(
+          outputMime === "image/png" ? "image/png" : "image/jpeg",
+          0.9
+        );
+        resolve({
+          base64: String(dataUrl.split(",")[1] || ""),
+          mimeType: outputMime === "image/png" ? "image/png" : "image/jpeg",
+        });
+      } catch (err) {
+        reject(err);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Could not read the image file."));
+    };
+
+    image.src = url;
+  });
+}
+
 export default function AnalyzePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -49,7 +102,7 @@ export default function AnalyzePage() {
 
   const strategy = getStrategy(strategyId);
 
-  const handleFile = useCallback((file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     if (!ACCEPTED_TYPES.includes(file.type)) {
       toast.error("Unsupported file type. Use PNG, JPEG, WEBP or GIF.");
       return;
@@ -59,15 +112,17 @@ export default function AnalyzePage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = String(e.target?.result || "").split(",")[1] || "";
-      setImageBase64(base64);
-      setMimeType(normalizeMime(file.type));
+    try {
+      const prepared = await prepareImage(file);
+      setImageBase64(prepared.base64);
+      setMimeType(prepared.mimeType);
       setPreviewUrl(URL.createObjectURL(file));
       setResult(null);
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Could not read the image file."
+      );
+    }
   }, []);
 
   const onDrop = useCallback(

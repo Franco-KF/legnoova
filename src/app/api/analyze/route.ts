@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth/auth";
-import { analyzeChart } from "@/lib/gemini";
+import { analyzeChart, normalizeAnalysisError } from "@/lib/gemini";
 import { dbConnect } from "@/lib/mongodb";
 import { Analysis } from "@/models/Analysis";
 import { User } from "@/models/User";
@@ -170,9 +170,11 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Analyze error:", error);
     const message =
-      error instanceof Error && error.message === "GEMINI_API_KEY is not configured"
-        ? "Legnoova AI service is not configured yet"
-        : "Analysis failed. Please ensure the chart is clear and try again.";
+      normalizeAnalysisError(error) ??
+      (error instanceof Error &&
+      /Mongo|mongoose|ECONNREFUSED|ServerSelection|DATABASE/i.test(error.message)
+        ? "Database temporarily unavailable. Please try again in a minute."
+        : "Analysis failed. Please ensure the chart is clear and try again.");
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

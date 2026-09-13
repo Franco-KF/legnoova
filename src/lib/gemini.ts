@@ -35,6 +35,42 @@ function getModel(): GenerativeModel {
   return cachedModel;
 }
 
+export const GEMINI_IMAGE_ERROR =
+  "The chart image couldn't be read. Use a clear, sharp screenshot of a single chart (PNG or JPEG) and try again.";
+export const GEMINI_BLOCKED_ERROR =
+  "The AI response was blocked by content filters. Try a plain chart screenshot without extra overlays or logos.";
+export const GEMINI_BUSY_ERROR =
+  "Legnoova AI is briefly overloaded. Please wait a minute and try again.";
+export const GEMINI_UNREADABLE_ERROR =
+  "The AI returned an unreadable analysis. Please try again.";
+
+export function normalizeAnalysisError(error: unknown): string | null {
+  if (error instanceof Error && error.message === "GEMINI_API_KEY is not configured") {
+    return "Legnoova AI service is not configured yet.";
+  }
+  if (!(error instanceof Error)) return null;
+  if (
+    [
+      GEMINI_IMAGE_ERROR,
+      GEMINI_BLOCKED_ERROR,
+      GEMINI_BUSY_ERROR,
+      GEMINI_UNREADABLE_ERROR,
+    ].includes(error.message)
+  ) {
+    return error.message;
+  }
+  if (/model.*(not found|invalid|doesn't exist|not supported)|found no model/i.test(error.message)) {
+    return "The AI model is not available on this API key or region. Check your Gemini setup.";
+  }
+  if (/permission|billing|forbidden|\b403\b/i.test(error.message)) {
+    return "The AI service key is out of quota or lacks billing access. Check your Gemini API setup.";
+  }
+  if (/network|fetch failed|ENOTFOUND|ECONNRESET|undici/i.test(error.message)) {
+    return "Network error reaching the AI service. Please try again.";
+  }
+  return null;
+}
+
 export interface AnalyzeChartOptions {
   imageBase64: string;
   mimeType: string;
@@ -73,6 +109,23 @@ function toTp(
 function stripCodeFence(text: string): string {
   const trimmed = text.trim();
   return trimmed.replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+}
+
+function parseJsonWithRecovery(raw: string): Analysis {
+  const cleaned = stripCodeFence(raw);
+  try {
+    return JSON.parse(cleaned) as Analysis;
+  } catch {
+    // The model sometimes wraps JSON in prose or extra braces. Fall back to
+    // extracting the first balanced {...} block before giving up.
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start !== -1 && end > start) {
+      const candidate = cleaned.slice(start, end + 1);
+      return JSON.parse(candidate) as Analysis;
+    }
+    throw new Error(GEMINI_UNREADABLE_ERROR);
+  }
 }
 
 const CHECKLIST_STATUSES: ChecklistStatus[] = ["confirmed", "partial", "failed"];
@@ -133,8 +186,7 @@ function parseKeyFindings(raw: unknown): KeyFinding[] {
 }
 
 function parseAnalysis(raw: string, strategyId: string): Analysis {
-  const cleaned = stripCodeFence(raw);
-  const parsed = JSON.parse(cleaned) as Analysis;
+  const parsed = parseJsonWithRecovery(raw);
 
   const hasSymbol = !!parsed.symbol && ![ "unknown", "n/a", "", "null" ].includes(String(parsed.symbol).toLowerCase());
   const symbol = hasSymbol ? parsed.symbol : parsed.pair || "PAIR?";
@@ -335,11 +387,36 @@ Return ONLY a valid JSON object, no markdown, matching this exact shape:
     },
   };
 
-  const result = await model.generateContent([
-    prompt,
-    imagePart,
-  ]);
+  let result;
+  try {
+    result = await model.generateContent([prompt, imagePart]);
+  } catch (err) {
+    const status = (err as { status?: number })?.status;
+    const message = err instanceof Error ? err.message : "";
+    if (status === 429 || /QUOTA|RESOURCE_EXHAUSTED|RATE.LIMIT/i.test(message)) {
+      throw new Error(GEMINI_BUSY_ERROR);
+    }
+    if (status === 400 || /image/i.test(message)) {
+      throw new Error(GEMINI_IMAGE_ERROR);
+    }
+    throw err;
+  }
 
-  const text = result.response.text();
+  let text = "";
+  try {
+    text = result.response.text();
+  } catch {
+    const finish = result.response?.candidates?.[0]?.finishReason;
+    const reason = finish ? String(finish) : "empty";
+    if (/SAFETY|BLOCK/.test(reason)) {
+      throw new Error(GEMINI_BLOCKED_ERROR);
+    }
+    throw new Error(GEMINI_UNREADABLE_ERROR);
+  }
+
+  if (!text.trim()) {
+    throw new Error(GEMINI_BLOCKED_ERROR);
+  }
+
   return parseAnalysis(text, options.strategy);
 }

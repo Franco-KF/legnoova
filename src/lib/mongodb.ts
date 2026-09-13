@@ -28,13 +28,17 @@ export async function dbConnect() {
     return cached.conn;
   }
 
+  if (!MONGODB_URI) {
+    throw new Error("MONGODB_URI is not configured");
+  }
+
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
     };
 
     cached.promise = mongoose
-      .connect(MONGODB_URI!, opts)
+      .connect(MONGODB_URI, opts)
       .then((mongoose) => {
         return mongoose;
       });
