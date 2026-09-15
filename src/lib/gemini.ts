@@ -43,6 +43,8 @@ export const GEMINI_BUSY_ERROR =
   "Legnoova AI is briefly overloaded. Please wait a minute and try again.";
 export const GEMINI_UNREADABLE_ERROR =
   "The AI returned an unreadable analysis. Please try again.";
+export const GEMINI_KEY_ERROR =
+  "The AI service key is invalid. Update GEMINI_API_KEY in your environment and try again.";
 
 export function normalizeAnalysisError(error: unknown): string | null {
   if (error instanceof Error && error.message === "GEMINI_API_KEY is not configured") {
@@ -55,9 +57,13 @@ export function normalizeAnalysisError(error: unknown): string | null {
       GEMINI_BLOCKED_ERROR,
       GEMINI_BUSY_ERROR,
       GEMINI_UNREADABLE_ERROR,
+      GEMINI_KEY_ERROR,
     ].includes(error.message)
   ) {
     return error.message;
+  }
+  if (/API_KEY_INVALID|API key not valid|key.*invalid/i.test(error.message)) {
+    return GEMINI_KEY_ERROR;
   }
   if (/model.*(not found|invalid|doesn't exist|not supported)|found no model/i.test(error.message)) {
     return "The AI model is not available on this API key or region. Check your Gemini setup.";
@@ -396,7 +402,10 @@ Return ONLY a valid JSON object, no markdown, matching this exact shape:
     if (status === 429 || /QUOTA|RESOURCE_EXHAUSTED|RATE.LIMIT/i.test(message)) {
       throw new Error(GEMINI_BUSY_ERROR);
     }
-    if (status === 400 || /image/i.test(message)) {
+    if (/API_KEY_INVALID|API key not valid|key.*invalid/i.test(message)) {
+      throw new Error(GEMINI_KEY_ERROR);
+    }
+    if (/image/i.test(message)) {
       throw new Error(GEMINI_IMAGE_ERROR);
     }
     throw err;

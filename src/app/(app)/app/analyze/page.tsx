@@ -226,17 +226,29 @@ export default function AnalyzePage() {
           Chart Analysis
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Upload a chart screenshot, pick your strategy and Legnoova AI reads the
-          market through that exact lens — structure, zones and risk-aware
-          entry, stop-loss and dynamic take-profit targets.
+          Pick a chart, choose your strategy lens and timeframe — Legnoova AI
+          returns a structured signal with entry, stop-loss and take-profit
+          targets.
         </p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
         {/* LEFT — Upload + strategy + options */}
         <div className="space-y-5">
-          {/* Upload zone */}
-          <div
+          {/* Step 1 — Choose chart */}
+          <div className="glass-panel p-5">
+            <div className="mb-4 flex items-center gap-2.5">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/15 text-[11px] font-bold text-emerald-400 ring-1 ring-emerald-500/30">
+                1
+              </span>
+              <h2 className="font-heading text-sm font-semibold">
+                Choose chart
+              </h2>
+              <span className="ml-auto text-[11px] text-muted-foreground">
+                PNG · JPEG · WEBP · GIF
+              </span>
+            </div>
+            <div
             role="button"
             tabIndex={0}
             onClick={() => fileInputRef.current?.click()}
@@ -305,30 +317,31 @@ export default function AnalyzePage() {
                 </p>
               </div>
             )}
+            </div>
           </div>
 
-          {/* Strategy picker */}
+          {/* Step 2 — Choose strategy */}
           <div className="glass-panel p-5">
-            <div className="mb-4 flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 text-emerald-400" />
-                <h2 className="font-heading text-sm font-semibold">
-                  Strategy
-                </h2>
-              </div>
-              <span className="text-[11px] text-muted-foreground">
-                Legnoova AI analyses through your chosen lens
+            <div className="mb-4 flex items-center gap-2.5">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/15 text-[11px] font-bold text-emerald-400 ring-1 ring-emerald-500/30">
+                2
+              </span>
+              <h2 className="font-heading text-sm font-semibold">
+                Choose strategy
+              </h2>
+              <span className="ml-auto text-[11px] text-muted-foreground">
+                {strategy.label}
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-4 gap-2">
               {STRATEGIES.map((s) => (
                 <button
                   key={s.id}
                   type="button"
                   onClick={() => setStrategyId(s.id)}
                   className={cn(
-                    "rounded-xl border p-2.5 text-left transition-all",
+                    "flex flex-col items-center gap-1 rounded-xl border px-1 py-2 text-center transition-all",
                     strategyId === s.id
                       ? "border-emerald-400/60 bg-emerald-500/10 shadow-glow-emerald"
                       : "border-white/[0.08] bg-white/[0.02] hover:border-white/[0.2] hover:bg-white/[0.04]"
@@ -336,7 +349,7 @@ export default function AnalyzePage() {
                 >
                   <span
                     className={cn(
-                      "inline-block rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold tracking-wide",
+                      "inline-block rounded-md px-1.5 py-0.5 font-mono text-[10px] font-bold",
                       strategyId === s.id
                         ? "bg-emerald-500/20 text-emerald-300"
                         : "bg-white/[0.06] text-muted-foreground"
@@ -344,43 +357,25 @@ export default function AnalyzePage() {
                   >
                     {s.short}
                   </span>
-                  <p className="mt-1.5 text-xs font-semibold leading-tight">
+                  <span className="text-[11px] font-semibold leading-tight">
                     {s.label}
-                  </p>
-                  <p className="mt-0.5 text-[11px] leading-tight text-muted-foreground">
-                    {s.tagline}
-                  </p>
+                  </span>
                 </button>
               ))}
             </div>
-
-            {/* Dynamic focus strip — changes with the selected strategy */}
-            <div
-              key={strategy.id}
-              className="animate-fade-in-up mt-4 rounded-xl border border-white/[0.06] bg-white/[0.02] p-4"
-            >
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {strategy.description}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {strategy.checklist.map((point) => (
-                  <span
-                    key={point}
-                    className="rounded-full border border-white/[0.08] bg-white/[0.03] px-2.5 py-1 text-[11px] text-muted-foreground"
-                  >
-                    {point}
-                  </span>
-                ))}
-              </div>
-            </div>
           </div>
 
-          {/* Timeframe + symbol */}
-          <div className="glass-panel space-y-4 p-5">
+          {/* Step 3 — Set timeframe */}
+          <div className="glass-panel p-5">
+            <div className="mb-4 flex items-center gap-2.5">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/15 text-[11px] font-bold text-emerald-400 ring-1 ring-emerald-500/30">
+                3
+              </span>
+              <h2 className="font-heading text-sm font-semibold">
+                Set timeframe
+              </h2>
+            </div>
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted-foreground">
-                Chart timeframe
-              </label>
               <div className="flex flex-wrap gap-2">
                 {TIMEFRAMES.map((tf) => (
                   <button
@@ -433,12 +428,12 @@ export default function AnalyzePage() {
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Analysing with {strategy.label}…
+                Analysing…
               </>
             ) : (
               <>
                 <Sparkles className="h-4 w-4" />
-                {canAnalyze ? `Analyse with ${strategy.label}` : "Upload a chart to analyze"}
+                {canAnalyze ? "Analyse chart" : "Upload a chart first"}
               </>
             )}
           </button>
