@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
@@ -10,7 +10,21 @@ import { AuthDivider } from "@/components/auth/auth-divider";
 import { PasswordInput } from "@/components/auth/password-input";
 
 export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  );
+}
+
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const planParam = searchParams.get("plan");
+  const plan = planParam === "analyze" || planParam === "broker" ? planParam : null;
+  const postAuthUrl = plan
+    ? `/app/billing/checkout?plan=${plan}`
+    : "/app";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -76,7 +90,7 @@ export default function RegisterPage() {
       if (signInResult?.error) {
         router.push("/login");
       } else {
-        router.push("/app");
+        router.push(postAuthUrl);
         router.refresh();
       }
     } catch {
@@ -102,7 +116,7 @@ export default function RegisterPage() {
         </div>
       )}
 
-      <GoogleSignInButton callbackUrl="/app" />
+      <GoogleSignInButton callbackUrl={postAuthUrl} />
 
       <AuthDivider />
 

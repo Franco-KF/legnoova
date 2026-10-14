@@ -1,10 +1,9 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PLANS, FREE_ANALYSIS_LIMIT } from "@/config/plans";
-import { startCheckout } from "@/lib/paddle-client";
-import { Check, CreditCard, Loader2, Plus, ShieldCheck, Star } from "lucide-react";
+import { Check, CreditCard, Plus, ShieldCheck, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -13,7 +12,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { PaymentMethodForm } from "@/components/billing/payment-method-form";
 
@@ -48,9 +46,9 @@ export default function BillingPage() {
 }
 
 function BillingContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [account, setAccount] = useState<AccountData | null>(null);
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
 
   const refresh = useCallback(() => {
@@ -78,18 +76,8 @@ function BillingContent() {
     }
   }, [searchParams, refresh]);
 
-  const handleCheckout = async (planId: "analyze" | "broker") => {
-    setLoadingPlan(planId);
-    try {
-      await startCheckout(planId);
-      refresh();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Checkout failed. Please try again."
-      );
-    } finally {
-      setLoadingPlan(null);
-    }
+  const handleCheckout = (planId: "analyze" | "broker") => {
+    router.push(`/app/billing/checkout?plan=${planId}`);
   };
 
   const currentPlan = account?.plan ?? null;
@@ -168,7 +156,7 @@ function BillingContent() {
               </ul>
               <button
                 type="button"
-                disabled={isCurrent || loadingPlan === plan.id}
+                disabled={isCurrent}
                 onClick={() => handleCheckout(plan.id)}
                 className={cn(
                   "mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60",
@@ -177,10 +165,7 @@ function BillingContent() {
                     : "border border-white/[0.12] bg-white/[0.02] hover:bg-white/[0.06]"
                 )}
               >
-                {loadingPlan === plan.id && (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                )}
-                {isCurrent ? "Current plan" : loadingPlan === plan.id ? "Opening checkout…" : plan.cta}
+                {isCurrent ? "Current plan" : plan.cta}
               </button>
             </div>
           );
@@ -196,18 +181,15 @@ function BillingContent() {
               Cards on file for your subscription.
             </p>
           </div>
+          <button
+            type="button"
+            onClick={() => setCardDialogOpen(true)}
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.02] px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-white/[0.06]"
+          >
+            <Plus className="h-4 w-4" />
+            Add card
+          </button>
           <Dialog open={cardDialogOpen} onOpenChange={setCardDialogOpen}>
-            <DialogTrigger
-              render={
-                <button
-                  type="button"
-                  className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.02] px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-white/[0.06]"
-                />
-              }
-            >
-              <Plus className="h-4 w-4" />
-              Add card
-            </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
                 <DialogTitle>Add a payment method</DialogTitle>
@@ -230,7 +212,7 @@ function BillingContent() {
 
       <p className="mt-8 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground/60">
         <ShieldCheck className="h-3.5 w-3.5" />
-        Payments are processed securely by Paddle. Cancel anytime.
+        Secure checkout. Cancel anytime.
       </p>
     </div>
   );

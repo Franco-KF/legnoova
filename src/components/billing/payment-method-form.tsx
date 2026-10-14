@@ -54,9 +54,13 @@ function formatCvc(value: string): string {
  */
 export function PaymentMethodForm({
   className,
+  submitLabel = "Add card",
+  successMessage = "Card added (demo)",
   onDone,
 }: {
   className?: string;
+  submitLabel?: string;
+  successMessage?: string;
   onDone?: () => void;
 }) {
   const [cardNumber, setCardNumber] = useState("");
@@ -86,7 +90,7 @@ export function PaymentMethodForm({
     setSubmitting(true);
     // Mockup only — nothing is sent anywhere. No fetch, no persistence.
     setTimeout(() => {
-      toast.success("Card added (demo)", {
+      toast.success(successMessage, {
         description: "Test mode — no card details were stored or transmitted.",
       });
       reset();
@@ -172,7 +176,7 @@ export function PaymentMethodForm({
         ) : (
           <Lock className="h-4 w-4" />
         )}
-        {submitting ? "Adding card…" : "Add card"}
+        {submitting ? "Processing…" : submitLabel}
       </Button>
     </form>
   );
