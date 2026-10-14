@@ -44,18 +44,28 @@ function formatCvc(value: string): string {
   return value.replace(/\D/g, "").slice(0, 4);
 }
 
+function parseExpiry(expiry: string): { month: number; year: number } | null {
+  const match = /^(\d{2})\/(\d{2})$/.exec(expiry);
+  if (!match) return null;
+  const month = Number(match[1]);
+  const year = 2000 + Number(match[2]);
+  if (month < 1 || month > 12) return null;
+  return { month, year };
+}
+
 /**
- * UI-only payment method form (mockup).
+ * Payment method form.
  *
- * This is a presentational prototype of the "add a card" experience. It does
- * NOT collect, transmit, or store card data: on submit it only shows a toast
- * and clears. Real card capture must be handled by a PCI-compliant processor
- * (hosted fields / tokenization) so raw numbers and CVC never reach our code.
+ * Security: the full card number and CVC are used only for local formatting
+ * and are NEVER sent to the server. On submit we transmit only the card brand,
+ * last four digits, expiry and cardholder name — the same non-sensitive data
+ * real PCI-compliant platforms store. To actually charge a card, integrate a
+ * processor's hosted fields and store its token.
  */
 export function PaymentMethodForm({
   className,
   submitLabel = "Add card",
-  successMessage = "Card added (demo)",
+  successMessage = "Card saved",
   onDone,
 }: {
   className?: string;
@@ -68,12 +78,15 @@ export function PaymentMethodForm({
   const [expiry, setExpiry] = useState("");
   const [cvc, setCvc] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<{ expiry?: string; card?: string }>({});
 
-  const brand = detectBrand(cardNumber.replace(/\D/g, ""));
+  const digits = cardNumber.replace(/\D/g, "");
+  const brand = detectBrand(digits);
+  const parsedExpiry = parseExpiry(expiry);
   const canSubmit =
-    cardNumber.replace(/\D/g, "").length >= 12 &&
+    digits.length >= 12 &&
     name.trim().length >= 2 &&
-    expiry.length === 5 &&
+    parsedExpiry !== null &&
     cvc.length >= 3;
 
   const reset = () => {
@@ -81,22 +94,67 @@ export function PaymentMethodForm({
     setName("");
     setExpiry("");
     setCvc("");
+    setErrors({});
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validate = (): boolean => {
+    const next: typeof errors = {};
+
+    if (digits.length < 12) {
+      next.card = "Enter a valid card number";
+    }
+
+    if (expiry.length === 5) {
+      if (!parsedExpiry) {
+        next.expiry = "Invalid month";
+      } else {
+        const now = new Date();
+        const end = new Date(parsedExpiry.year, parsedExpiry.month, 1);
+        if (end <= now) next.expiry = "Card has expired";
+      }
+    }
+
+    setErrors(next);
+    return Object.keys(next).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit || submitting) return;
+    if (submitting) return;
+    if (!validate()) return;
 
     setSubmitting(true);
-    // Mockup only — nothing is sent anywhere. No fetch, no persistence.
-    setTimeout(() => {
+    try {
+      // Only non-sensitive metadata leaves the browser.
+      const res = await fetch("/api/billing/payment-methods", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          brand,
+          last4: digits.slice(-4),
+          expMonth: parsedExpiry!.month,
+          expYear: parsedExpiry!.year,
+          name: name.trim(),
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.error ?? "Could not save card. Please try again.");
+      }
+
       toast.success(successMessage, {
-        description: "Test mode — no card details were stored or transmitted.",
+        description: "Only the card brand, last 4 digits and expiry were saved.",
       });
       reset();
-      setSubmitting(false);
       onDone?.();
-    }, 600);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong."
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -105,10 +163,11 @@ export function PaymentMethodForm({
       className={cn("space-y-5", className)}
       autoComplete="off"
     >
-      <div className="flex items-center gap-2 rounded-lg border border-amber-500/30 bg-amber-500/[0.06] px-3 py-2 text-xs text-amber-300/90">
+      <div className="flex items-center gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.06] px-3 py-2 text-xs text-emerald-300/90">
         <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
         <span>
-          Test mode — card details are <strong>not</strong> stored or transmitted.
+          Your full card number and CVC are <strong>never</strong> sent or
+          stored. Only the brand, last 4 digits and expiry are saved.
         </span>
       </div>
 
@@ -121,6 +180,7 @@ export function PaymentMethodForm({
             inputMode="numeric"
             placeholder="4242 4242 4242 4242"
             value={cardNumber}
+            aria-invalid={!!errors.card}
             onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
             className="h-10 pl-9 pr-24 font-mono tracking-wider"
           />
@@ -128,6 +188,9 @@ export function PaymentMethodForm({
             {BRAND_LABELS[brand]}
           </span>
         </div>
+        {errors.card && (
+          <p className="text-xs text-red-400">{errors.card}</p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -149,9 +212,13 @@ export function PaymentMethodForm({
             inputMode="numeric"
             placeholder="MM/YY"
             value={expiry}
+            aria-invalid={!!errors.expiry}
             onChange={(e) => setExpiry(formatExpiry(e.target.value))}
             className="h-10 font-mono"
           />
+          {errors.expiry && (
+            <p className="text-xs text-red-400">{errors.expiry}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="card-cvc">CVC</Label>
@@ -176,7 +243,7 @@ export function PaymentMethodForm({
         ) : (
           <Lock className="h-4 w-4" />
         )}
-        {submitting ? "Processing…" : submitLabel}
+        {submitting ? "Saving…" : submitLabel}
       </Button>
     </form>
   );

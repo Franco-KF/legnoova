@@ -53,6 +53,23 @@ function CheckoutContent() {
   const tax = 0;
   const total = plan.price + tax;
 
+  const complete = async () => {
+    try {
+      const res = await fetch("/api/billing/test-activate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId: plan.id }),
+      });
+      if (res.ok) {
+        router.push("/app/billing?checkout=success");
+      } else {
+        router.push("/app/billing?activated=manual");
+      }
+    } catch {
+      router.push("/app/billing?activated=manual");
+    }
+  };
+
   return (
     <div className="mx-auto max-w-5xl">
       <Link
@@ -72,6 +89,15 @@ function CheckoutContent() {
             Complete your purchase to activate {plan.name}.
           </p>
         </div>
+      </div>
+
+      <div className="mb-6 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/[0.06] px-4 py-3 text-xs text-amber-300/90">
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
+        <span>
+          <strong>Test mode.</strong> No real charge is processed. Completing
+          checkout saves the card&apos;s brand, last 4 digits and expiry, and
+          activates the plan for testing only.
+        </span>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr] lg:gap-8">
@@ -164,8 +190,8 @@ function CheckoutContent() {
             </p>
             <PaymentMethodForm
               submitLabel={`Pay $${total.toFixed(2)}`}
-              successMessage="Demo payment submitted"
-              onDone={() => router.push("/app/billing?checkout=success")}
+              successMessage="Payment method saved"
+              onDone={complete}
             />
           </div>
         </div>
