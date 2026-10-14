@@ -4,9 +4,18 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PLANS, FREE_ANALYSIS_LIMIT } from "@/config/plans";
 import { startCheckout } from "@/lib/paddle-client";
-import { Check, CreditCard, Loader2, ShieldCheck, Star } from "lucide-react";
+import { Check, CreditCard, Loader2, Plus, ShieldCheck, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { PaymentMethodForm } from "@/components/billing/payment-method-form";
 
 interface AccountData {
   plan: string | null;
@@ -42,6 +51,7 @@ function BillingContent() {
   const searchParams = useSearchParams();
   const [account, setAccount] = useState<AccountData | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [cardDialogOpen, setCardDialogOpen] = useState(false);
 
   const refresh = useCallback(() => {
     void fetchAccount().then((user) => {
@@ -175,6 +185,47 @@ function BillingContent() {
             </div>
           );
         })}
+      </div>
+
+      {/* Payment methods */}
+      <div className="mt-10">
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <div>
+            <h2 className="font-heading text-lg font-semibold">Payment methods</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Cards on file for your subscription.
+            </p>
+          </div>
+          <Dialog open={cardDialogOpen} onOpenChange={setCardDialogOpen}>
+            <DialogTrigger
+              render={
+                <button
+                  type="button"
+                  className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.02] px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-white/[0.06]"
+                />
+              }
+            >
+              <Plus className="h-4 w-4" />
+              Add card
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Add a payment method</DialogTitle>
+                <DialogDescription>
+                  Enter your card details below.
+                </DialogDescription>
+              </DialogHeader>
+              <PaymentMethodForm onDone={() => setCardDialogOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        <div className="rounded-2xl border border-dashed border-white/[0.1] bg-white/[0.02] px-6 py-10 text-center">
+          <CreditCard className="mx-auto h-6 w-6 text-muted-foreground/60" />
+          <p className="mt-3 text-sm text-muted-foreground">
+            No payment methods on file yet.
+          </p>
+        </div>
       </div>
 
       <p className="mt-8 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground/60">
