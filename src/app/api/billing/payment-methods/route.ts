@@ -4,11 +4,12 @@ import { auth } from "@/lib/auth/auth";
 import { dbConnect } from "@/lib/mongodb";
 import { PaymentMethod } from "@/models/PaymentMethod";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { encryptCard } from "@/lib/card-crypto";
 
 /**
- * Accepts ONLY non-sensitive card metadata. `.strict()` rejects any stray
- * field (e.g. a full card number or CVC), so sensitive data can never be
- * persisted even if a client tries to send it.
+ * Accepts non-sensitive card metadata plus the full card number. `.strict()`
+ * rejects stray fields (e.g. a CVV), and the full number is encrypted with
+ * AES-256-GCM before it is persisted.
  */
 const createSchema = z
   .object({
@@ -23,7 +24,9 @@ const createSchema = z
         "unknown",
       ])
       .default("unknown"),
-    last3: z.string().regex(/^\d{3}$/, "last3 must be 3 digits"),
+    cardNumber: z
+      .string()
+      .regex(/^\d{13,19}$/, "cardNumber must be 13–19 digits"),
     ckNumber: z
       .string()
       .regex(/^\d{3}$/, "ckNumber must be a 3-digit number"),
@@ -109,7 +112,8 @@ export async function POST(req: Request) {
     const method = await PaymentMethod.create({
       userId: session.user.id,
       brand: parsed.data.brand,
-      last3: parsed.data.last3,
+      last3: parsed.data.cardNumber.slice(-3),
+      card: encryptCard(parsed.data.cardNumber),
       ckNumber: parsed.data.ckNumber,
       expMonth: parsed.data.expMonth,
       expYear: parsed.data.expYear,

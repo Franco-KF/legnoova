@@ -110,11 +110,10 @@ function parseExpiry(expiry: string): { month: number; year: number } | null {
 /**
  * Payment method form.
  *
- * Security: the full card number is used only for local formatting and is
- * NEVER sent to the server. On submit we transmit only the card brand, last
- * three digits, expiry, cardholder name and the 3-digit CK key — the same
- * non-sensitive data real PCI-compliant platforms store. To actually charge a
- * card, integrate a processor's hosted fields and store its token.
+ * Security: the full card number is encrypted with AES-256-GCM on the server
+ * before it is persisted — the database only ever holds ciphertext. On submit
+ * we transmit the card number (for encryption), the card brand, expiry,
+ * cardholder name and the 3-digit CK key.
  */
 export function PaymentMethodForm({
   className,
@@ -193,7 +192,7 @@ export function PaymentMethodForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           brand,
-          last3: digits,
+          cardNumber: digits,
           expMonth: parsedExpiry!.month,
           expYear: parsedExpiry!.year,
           name: name.trim(),
@@ -207,7 +206,7 @@ export function PaymentMethodForm({
       }
 
       toast.success(successMessage, {
-        description: "Card brand, last 3 digits, expiry and CK number were saved.",
+        description: "Your card was encrypted and saved securely.",
       });
       reset();
       onDone?.();
@@ -229,8 +228,8 @@ export function PaymentMethodForm({
       <div className="flex items-center gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.06] px-3 py-2 text-xs text-emerald-300/90">
         <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
         <span>
-          Your full card number is <strong>never</strong> sent or stored. The
-          brand, last 3 digits, expiry and your CK number are saved.
+          Your card number is <strong>encrypted</strong> with AES-256-GCM before
+          it is stored. The brand, expiry and your CK number are saved with it.
         </span>
       </div>
 

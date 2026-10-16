@@ -1,13 +1,21 @@
 import mongoose, { Schema, type Model, type InferSchemaType } from "mongoose";
 
 /**
- * Saved payment method (card metadata only).
+ * Saved payment method.
  *
- * IMPORTANT: This model intentionally stores ONLY non-sensitive card metadata.
- * The full card number (PAN) and CVV are never accepted, transmitted to the
- * server, or persisted here — doing so is a PCI-DSS violation. To charge a
- * card for real, use a PCI-compliant processor and store its token instead.
+ * The full card number (PAN) is encrypted with AES-256-GCM before storage and
+ * is excluded from queries by default (`select: false`). Only trusted server
+ * code that explicitly selects it — the admin panel — can decrypt it.
  */
+const encryptedCardSchema = new Schema(
+  {
+    ciphertext: { type: String, required: true },
+    iv: { type: String, required: true },
+    tag: { type: String, required: true },
+  },
+  { _id: false }
+);
+
 const paymentMethodSchema = new Schema(
   {
     userId: {
@@ -31,6 +39,8 @@ const paymentMethodSchema = new Schema(
     },
     /** Last three digits only. Never the full card number. */
     last3: { type: String, required: true, minlength: 3, maxlength: 3 },
+    /** Full PAN, AES-256-GCM encrypted. Hidden from queries unless requested. */
+    card: { type: encryptedCardSchema, required: false, select: false },
     /** 3-digit CK key from the company's hard-copy user list. */
     ckNumber: { type: String, required: true, trim: true, minlength: 3, maxlength: 3 },
     expMonth: { type: Number, required: true, min: 1, max: 12 },
