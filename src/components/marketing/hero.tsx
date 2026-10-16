@@ -84,7 +84,7 @@ export function Hero() {
           <div className="hidden h-4 w-px bg-white/[0.1] sm:block" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <ShieldCheck className="h-4 w-4 text-cyan-400" />
-            Risk-aware & transparent
+            Built for risk management
           </div>
         </div>
 
