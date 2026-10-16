@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Loader2,
 } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
 
 interface SignalStats {
   totalSignals: number;
@@ -61,16 +62,12 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      {/* Header */}
-      <div className="mb-10">
-        <p className="text-sm text-muted-foreground">{greeting},</p>
-        <h1 className="mt-1 font-heading text-2xl font-bold sm:text-3xl">
-          Welcome back, {name}
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Here is what Legnoova AI is currently calling across your charts.
-        </p>
-      </div>
+      <PageHeader
+        className="mb-10"
+        eyebrow={greeting}
+        title={`Welcome back, ${name}`}
+        description="Here is what Legnoova AI is currently calling across your charts."
+      />
 
       {/* Primary CTA */}
       <Link

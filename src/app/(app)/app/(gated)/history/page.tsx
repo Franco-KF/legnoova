@@ -10,6 +10,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/layout/page-header";
 
 interface HistoryItem {
   id: string;
@@ -65,15 +66,11 @@ export default function HistoryPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="mb-8">
-        <p className="text-sm text-muted-foreground">Dashboard</p>
-        <h1 className="mt-1 font-heading text-2xl font-bold sm:text-3xl">
-          Analysis History
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Every chart you&apos;ve analysed, stored for review.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Dashboard"
+        title="Analysis History"
+        description="Every chart you've analysed, stored for review."
+      />
 
       {loading ? (
         <div className="flex flex-col items-center justify-center gap-3 py-24 text-muted-foreground">

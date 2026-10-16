@@ -1,30 +1,61 @@
 import Link from "next/link";
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, Lock } from "lucide-react";
 import type { Plan } from "@/config/plans";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 interface PricingCardProps {
   plan: Plan;
+  /** Where the CTA points. Defaults to the public register flow. */
+  href?: string;
+  /** Override the button label. */
+  ctaLabel?: string;
+  /** Marks the plan the user is already on. */
+  current?: boolean;
+  /** Renders a non-interactive "coming soon" state. */
+  disabled?: boolean;
 }
 
-export function PricingCard({ plan }: PricingCardProps) {
+export function PricingCard({
+  plan,
+  href,
+  ctaLabel,
+  current = false,
+  disabled = false,
+}: PricingCardProps) {
+  const defaultHref =
+    plan.price === 0 ? "/register" : `/register?plan=${plan.id}`;
+  const target = href ?? defaultHref;
+  const label = current ? "Current plan" : ctaLabel ?? plan.cta;
+  const inactive = current || disabled;
+
   return (
     <div
       className={cn(
         "relative flex flex-col rounded-2xl border p-8 transition-all duration-300",
-        plan.highlight
-          ? "border-emerald-500/40 bg-gradient-to-b from-emerald-500/[0.08] to-transparent shadow-glow-emerald lg:-translate-y-4"
-          : "border-white/[0.06] bg-white/[0.02] hover:border-white/[0.14]"
+        current
+          ? "border-emerald-500/60 bg-gradient-to-b from-emerald-500/[0.12] to-transparent shadow-glow-emerald"
+          : plan.highlight
+            ? "border-emerald-500/40 bg-gradient-to-b from-emerald-500/[0.08] to-transparent shadow-glow-emerald lg:-translate-y-4"
+            : "border-white/[0.06] bg-white/[0.02] hover:border-white/[0.14]"
       )}
     >
-      {plan.highlight && (
+      {current ? (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-          <span className="flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-emerald-950 shadow-glow-emerald">
-            <Sparkles className="h-3 w-3" />
-            Most Popular
+          <span className="flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500 px-3 py-1 text-xs font-semibold text-emerald-950 shadow-glow-emerald">
+            <Check className="h-3 w-3" />
+            Your plan
           </span>
         </div>
+      ) : (
+        plan.highlight && (
+          <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+            <span className="flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-emerald-950 shadow-glow-emerald">
+              <Sparkles className="h-3 w-3" />
+              Most Popular
+            </span>
+          </div>
+        )
       )}
 
       <h3 className="font-heading text-lg font-semibold">{plan.name}</h3>
@@ -44,7 +75,7 @@ export function PricingCard({ plan }: PricingCardProps) {
               <span
                 className={cn(
                   "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full",
-                  plan.highlight
+                  plan.highlight || current
                     ? "bg-emerald-500/20 text-emerald-400"
                     : "bg-white/[0.06] text-muted-foreground"
                 )}
@@ -57,13 +88,30 @@ export function PricingCard({ plan }: PricingCardProps) {
         </ul>
       </div>
 
-      <Button
-        render={<Link href={plan.price === 0 ? "/register" : "/register?plan=" + plan.id} />}
-        variant={plan.highlight ? "default" : "outline"}
-        className="mt-8 h-11 w-full rounded-xl"
-      >
-        {plan.cta}
-      </Button>
+      {inactive ? (
+        <Button
+          type="button"
+          disabled
+          variant={current ? "default" : plan.highlight ? "default" : "outline"}
+          className="mt-8 h-11 w-full rounded-xl"
+        >
+          {disabled && !current ? (
+            <>
+              <Lock className="h-4 w-4" /> {label}
+            </>
+          ) : (
+            label
+          )}
+        </Button>
+      ) : (
+        <Button
+          render={<Link href={target} />}
+          variant={plan.highlight ? "default" : "outline"}
+          className="mt-8 h-11 w-full rounded-xl"
+        >
+          {label}
+        </Button>
+      )}
     </div>
   );
 }

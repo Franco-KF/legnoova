@@ -6,6 +6,7 @@ import Link from "next/link";
 import { SignalCard } from "@/components/signals/signal-card";
 import type { SignalRecord, SignalStatus, TookIt } from "@/lib/analysis/types";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/layout/page-header";
 
 type Tab = "mine" | "market";
 type Filter = "all" | "active" | "profit" | "stopped";
@@ -117,15 +118,12 @@ export default function SignalsPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="mb-6">
-        <p className="text-sm text-muted-foreground">Signal Desk</p>
-        <h1 className="mt-1 font-heading text-2xl font-bold sm:text-3xl">Signals</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Every directional call Legnoova AI published from your charts — entry,
-          stop-loss, targets and the evidence behind each level. Take a trade,
-          then log the outcome so your track record builds.
-        </p>
-      </div>
+      <PageHeader
+        className="mb-6"
+        eyebrow="Signal Desk"
+        title="Signals"
+        description="Every directional call Legnoova AI published from your charts — entry, stop-loss, targets and the evidence behind each level. Take a trade, then log the outcome so your track record builds."
+      />
 
       {/* Tabs */}
       <div className="mb-5 flex flex-wrap items-center gap-2">

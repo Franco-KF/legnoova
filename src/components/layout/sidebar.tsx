@@ -16,8 +16,11 @@ import {
   ChevronLeft,
   Menu,
   X,
+  Sparkles,
+  Check,
 } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
+import { FREE_ANALYSIS_LIMIT, PLAN_BADGES } from "@/config/plans";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -26,6 +29,7 @@ const navItems = [
   { href: "/app/analyze", label: "Analyze", icon: LineChart },
   { href: "/app/history", label: "History", icon: History },
   { href: "/app/watchlist", label: "Watchlist", icon: Star },
+  { href: "/app/pricing", label: "Plans", icon: Sparkles },
   { href: "/app/billing", label: "Billing", icon: CreditCard },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
@@ -41,6 +45,7 @@ interface SidebarContentProps {
   showCollapse: boolean;
   compact: boolean;
   signalsThisMonth: number | null;
+  plan: string | null;
 }
 
 function SidebarContent({
@@ -54,6 +59,7 @@ function SidebarContent({
   showCollapse,
   compact,
   signalsThisMonth,
+  plan,
 }: SidebarContentProps) {
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href) && pathname !== "/app";
@@ -118,7 +124,7 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* Usage meter */}
+      {/* Usage meter + plan */}
       {!compact && (
         <div className="mx-3 mb-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
           <div className="flex items-center justify-between text-xs">
@@ -131,10 +137,28 @@ function SidebarContent({
             <div
               className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400"
               style={{
-                width: `${Math.min(100, ((signalsThisMonth || 0) / 10) * 100)}%`,
+                width: `${Math.min(
+                  100,
+                  ((signalsThisMonth || 0) / FREE_ANALYSIS_LIMIT) * 100
+                )}%`,
               }}
             />
           </div>
+          {plan ? (
+            <div className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-emerald-400">
+              <Check className="h-3 w-3" />
+              {PLAN_BADGES[plan as keyof typeof PLAN_BADGES] ?? plan}
+            </div>
+          ) : (
+            <Link
+              href="/app/pricing"
+              onClick={onNavigate}
+              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-500 px-2 py-1.5 text-xs font-semibold text-emerald-950 transition-colors hover:bg-emerald-400"
+            >
+              <Sparkles className="h-3 w-3" />
+              Upgrade plan
+            </Link>
+          )}
         </div>
       )}
 
@@ -178,6 +202,7 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [signalsThisMonth, setSignalsThisMonth] = useState<number | null>(null);
+  const [plan, setPlan] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -197,6 +222,23 @@ export function Sidebar() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch("/api/account");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (active) setPlan(data.user?.plan ?? null);
+      } catch {
+        /* keep the badge silent on failure */
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
 
   const user = session?.user;
   const name = user?.name || "";
@@ -231,6 +273,7 @@ export function Sidebar() {
           showCollapse
           compact={collapsed}
           signalsThisMonth={signalsThisMonth}
+          plan={plan}
         />
       </aside>
 
@@ -263,6 +306,7 @@ export function Sidebar() {
               showCollapse={false}
               compact={false}
               signalsThisMonth={signalsThisMonth}
+              plan={plan}
             />
           </aside>
         </div>

@@ -5,7 +5,7 @@ import { User } from "@/models/User";
 
 /**
  * Paywall: only users with an active paid plan can reach these routes.
- * Users without a plan are sent to Billing to choose one.
+ * Users without a plan are sent to the professional pricing page to choose one.
  */
 export default async function GatedLayout({
   children,
@@ -21,7 +21,7 @@ export default async function GatedLayout({
   const user = await User.findById(session.user.id).select("plan planStatus");
 
   if (!user?.plan) {
-    redirect("/app/billing?upgrade=required");
+    redirect("/app/pricing?upgrade=required");
   }
 
   return <>{children}</>;

@@ -23,6 +23,7 @@ import {
   type TookIt,
 } from "@/lib/analysis/types";
 import { SignalCard } from "@/components/signals/signal-card";
+import { PageHeader } from "@/components/layout/page-header";
 import { cn } from "@/lib/utils";
 
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
@@ -220,17 +221,11 @@ export default function AnalyzePage() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <div className="mb-8">
-        <p className="text-sm text-muted-foreground">Analyse Panel</p>
-        <h1 className="mt-1 font-heading text-2xl font-bold sm:text-3xl">
-          Chart Analysis
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Pick a chart, choose your strategy lens and timeframe — Legnoova AI
-          returns a structured signal with entry, stop-loss and take-profit
-          targets.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Analyse Panel"
+        title="Chart Analysis"
+        description="Pick a chart, choose your strategy lens and timeframe — Legnoova AI returns a structured signal with entry, stop-loss and take-profit targets."
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
         {/* LEFT — Upload + strategy + options */}

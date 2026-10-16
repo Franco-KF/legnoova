@@ -1,10 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { Loader2, User as UserIcon, Check, Mail, BellRing } from "lucide-react";
+import {
+  Loader2,
+  User as UserIcon,
+  Check,
+  Mail,
+  BellRing,
+  CreditCard,
+  Sparkles,
+  ArrowRight,
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/layout/page-header";
+import { PLAN_BADGES } from "@/config/plans";
 
 export default function SettingsPage() {
   const { data: session, update } = useSession();
@@ -15,6 +27,9 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [savingAlerts, setSavingAlerts] = useState(false);
   const [initialized, setInitialized] = useState(false);
+  const [plan, setPlan] = useState<string | null>(null);
+  const [planStatus, setPlanStatus] = useState<string | null>(null);
+  const [periodEnd, setPeriodEnd] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -25,6 +40,9 @@ export default function SettingsPage() {
         if (active && res.ok && data.user) {
           setAlerts(data.user.signalEmailAlerts !== false);
           setAlertsLoaded(true);
+          setPlan(data.user.plan ?? null);
+          setPlanStatus(data.user.planStatus ?? null);
+          setPeriodEnd(data.user.planCurrentPeriodEnd ?? null);
         }
       } catch {
         /* keep default on failure */
@@ -94,13 +112,11 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="mb-8">
-        <p className="text-sm text-muted-foreground">Dashboard</p>
-        <h1 className="mt-1 font-heading text-2xl font-bold sm:text-3xl">Settings</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Manage your profile and account preferences.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Dashboard"
+        title="Settings"
+        description="Manage your profile and account preferences."
+      />
 
       <div className="glass-panel overflow-hidden">
         <div className="flex items-center gap-4 border-b border-white/[0.06] p-6">
@@ -159,6 +175,55 @@ export default function SettingsPage() {
               Email cannot be changed here.
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Subscription */}
+      <div className="glass-panel mt-6 overflow-hidden">
+        <div className="flex items-center gap-4 border-b border-white/[0.06] p-6">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/15 ring-1 ring-emerald-500/30">
+            <CreditCard className="h-5 w-5 text-emerald-400" />
+          </div>
+          <div>
+            <p className="font-heading text-lg font-semibold">Subscription</p>
+            <p className="text-sm text-muted-foreground">
+              Your plan and billing details.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-4 p-6">
+          <div>
+            <p className="text-sm font-medium">
+              {plan
+                ? (PLAN_BADGES[plan as keyof typeof PLAN_BADGES] ?? plan)
+                : "Free tier"}
+            </p>
+            <p className="text-xs capitalize text-muted-foreground">
+              {plan
+                ? `${planStatus ?? "active"}${
+                    periodEnd
+                      ? ` · renews ${new Date(periodEnd).toLocaleDateString()}`
+                      : ""
+                  }`
+                : "No active subscription"}
+            </p>
+          </div>
+          {plan ? (
+            <Link
+              href="/app/billing"
+              className="inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.02] px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-white/[0.06]"
+            >
+              Manage billing <ArrowRight className="h-4 w-4" />
+            </Link>
+          ) : (
+            <Link
+              href="/app/pricing"
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-400"
+            >
+              <Sparkles className="h-4 w-4" />
+              Upgrade
+            </Link>
+          )}
         </div>
       </div>
 

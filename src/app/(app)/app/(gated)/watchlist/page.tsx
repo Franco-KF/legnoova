@@ -12,6 +12,7 @@ import {
   BellRing,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/layout/page-header";
 import { toast } from "sonner";
 
 interface WatchlistEntry {
@@ -106,27 +107,25 @@ export default function WatchlistPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="mb-8 flex items-end justify-between gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground">Dashboard</p>
-          <h1 className="mt-1 font-heading text-2xl font-bold sm:text-3xl">Watchlist</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Setups you&apos;re tracking across the market.
-          </p>
-        </div>
-        <button
-          onClick={addLatestSignal}
-          disabled={adding}
-          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {adding ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <BellRing className="h-4 w-4" />
-          )}{" "}
-          Add latest signal
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="Dashboard"
+        title="Watchlist"
+        description="Setups you're tracking across the market."
+        actions={
+          <button
+            onClick={addLatestSignal}
+            disabled={adding}
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {adding ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <BellRing className="h-4 w-4" />
+            )}{" "}
+            Add latest signal
+          </button>
+        }
+      />
 
       {loading ? (
         <div className="flex flex-col items-center justify-center gap-3 py-24 text-muted-foreground">

@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PLANS, FREE_ANALYSIS_LIMIT } from "@/config/plans";
 import {
@@ -9,6 +10,7 @@ import {
   Loader2,
   Plus,
   ShieldCheck,
+  Sparkles,
   Star,
   Trash2,
 } from "lucide-react";
@@ -22,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PaymentMethodForm } from "@/components/billing/payment-method-form";
+import { PageHeader } from "@/components/layout/page-header";
 
 interface AccountData {
   plan: string | null;
@@ -180,13 +183,20 @@ function BillingContent() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <div className="mb-8">
-        <p className="text-sm text-muted-foreground">Dashboard</p>
-        <h1 className="mt-1 font-heading text-2xl font-bold sm:text-3xl">Billing</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Manage your subscription and usage plan.
-        </p>
-      </div>
+      <PageHeader
+        eyebrow="Dashboard"
+        title="Billing"
+        description="Manage your subscription, plans and payment methods."
+        actions={
+          <Link
+            href="/app/pricing"
+            className="inline-flex items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.02] px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-white/[0.06]"
+          >
+            <Sparkles className="h-4 w-4 text-emerald-400" />
+            View plans
+          </Link>
+        }
+      />
 
       {/* Current plan */}
       <div className="mb-8 flex items-center gap-4 rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/[0.08] to-transparent p-6">

@@ -60,6 +60,15 @@ export const PLANS: Plan[] = [
   },
 ];
 
+export function getPlan(id: string | null | undefined): Plan | undefined {
+  return PLANS.find((p) => p.id === id);
+}
+
+export const PLAN_BADGES: Record<PlanId, string> = {
+  analyze: "Everything",
+  broker: "Everything + Broker",
+};
+
 export const STRATEGY_WEIGHTS = {
   "price-action": 20,
   "market-structure": 20,

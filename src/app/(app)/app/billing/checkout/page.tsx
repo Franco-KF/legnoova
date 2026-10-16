@@ -38,13 +38,13 @@ function CheckoutContent() {
       <div className="mx-auto max-w-lg py-24 text-center">
         <p className="font-heading text-lg font-semibold">Plan not found</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Pick a plan from the billing page to continue.
+          Pick a plan from the plans page to continue.
         </p>
         <Link
-          href="/app/billing"
+          href="/app/pricing"
           className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-400"
         >
-          <ArrowLeft className="h-4 w-4" /> Back to billing
+          <ArrowLeft className="h-4 w-4" /> Back to plans
         </Link>
       </div>
     );
@@ -73,10 +73,10 @@ function CheckoutContent() {
   return (
     <div className="mx-auto max-w-5xl">
       <Link
-        href="/app/billing"
+        href="/app/pricing"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
-        <ArrowLeft className="h-4 w-4" /> Back to billing
+        <ArrowLeft className="h-4 w-4" /> Back to plans
       </Link>
 
       <div className="mb-8 flex items-center gap-2">
