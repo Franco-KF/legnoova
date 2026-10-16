@@ -138,6 +138,19 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     console.error("PaymentMethod POST error:", error);
+    const message = error instanceof Error ? error.message : "";
+    if (
+      message.includes("CARD_ENCRYPTION_KEY") ||
+      message.includes("AUTH_SECRET")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Card encryption is not configured on the server. Set CARD_ENCRYPTION_KEY (or AUTH_SECRET) in the production environment.",
+        },
+        { status: 503 }
+      );
+    }
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
   }
 }

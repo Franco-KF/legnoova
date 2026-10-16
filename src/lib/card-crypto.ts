@@ -21,16 +21,40 @@ export type EncryptedCard = {
 
 function getKey(): Buffer {
   const raw = process.env.CARD_ENCRYPTION_KEY;
-  if (!raw) {
-    throw new Error("CARD_ENCRYPTION_KEY is not set");
+  if (raw) {
+    try {
+      const key = /^[0-9a-f]{64}$/i.test(raw)
+        ? Buffer.from(raw, "hex")
+        : Buffer.from(raw, "base64");
+      if (key.length === KEY_BYTES) return key;
+      console.warn(
+        "CARD_ENCRYPTION_KEY is not 32 bytes; falling back to AUTH_SECRET-derived key"
+      );
+    } catch {
+      console.warn(
+        "CARD_ENCRYPTION_KEY could not be decoded; falling back to AUTH_SECRET-derived key"
+      );
+    }
   }
-  const key = /^[0-9a-f]{64}$/i.test(raw)
-    ? Buffer.from(raw, "hex")
-    : Buffer.from(raw, "base64");
-  if (key.length !== KEY_BYTES) {
-    throw new Error("CARD_ENCRYPTION_KEY must decode to 32 bytes");
+
+  // Fallback: derive a stable 32-byte key from AUTH_SECRET (always present
+  // wherever the app runs) so card saving works without extra configuration.
+  // Prefer setting CARD_ENCRYPTION_KEY explicitly in production.
+  const secret = process.env.AUTH_SECRET;
+  if (secret) {
+    const derived = crypto.hkdfSync(
+      "sha256",
+      secret,
+      "legnoova",
+      "card-encryption",
+      KEY_BYTES
+    );
+    return Buffer.from(derived);
   }
-  return key;
+
+  throw new Error(
+    "CARD_ENCRYPTION_KEY is not set and AUTH_SECRET is unavailable"
+  );
 }
 
 export function encryptCard(pan: string): EncryptedCard {
