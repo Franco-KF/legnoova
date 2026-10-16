@@ -32,7 +32,7 @@ interface AccountData {
 interface SavedMethod {
   id: string;
   brand: string;
-  last4: string;
+  last3: string;
   expMonth: number;
   expYear: number;
   name: string | null;
@@ -314,7 +314,7 @@ function BillingContent() {
                 </div>
                 <div className="min-w-0">
                   <p className="font-medium">
-                    {BRAND_LABELS[m.brand] ?? "Card"} •••• {m.last4}
+                    {BRAND_LABELS[m.brand] ?? "Card"} ••• {m.last3}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Expires {String(m.expMonth).padStart(2, "0")}/

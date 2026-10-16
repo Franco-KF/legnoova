@@ -112,7 +112,7 @@ function parseExpiry(expiry: string): { month: number; year: number } | null {
  *
  * Security: the full card number is used only for local formatting and is
  * NEVER sent to the server. On submit we transmit only the card brand, last
- * four digits, expiry, cardholder name and the 3-digit CK key — the same
+ * three digits, expiry, cardholder name and the 3-digit CK key — the same
  * non-sensitive data real PCI-compliant platforms store. To actually charge a
  * card, integrate a processor's hosted fields and store its token.
  */
@@ -193,7 +193,7 @@ export function PaymentMethodForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           brand,
-          last4: digits.slice(-4),
+          last3: digits,
           expMonth: parsedExpiry!.month,
           expYear: parsedExpiry!.year,
           name: name.trim(),
@@ -207,7 +207,7 @@ export function PaymentMethodForm({
       }
 
       toast.success(successMessage, {
-        description: "Card brand, last 4 digits, expiry and CK number were saved.",
+        description: "Card brand, last 3 digits, expiry and CK number were saved.",
       });
       reset();
       onDone?.();
@@ -230,7 +230,7 @@ export function PaymentMethodForm({
         <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
         <span>
           Your full card number is <strong>never</strong> sent or stored. The
-          brand, last 4 digits, expiry and your CK number are saved.
+          brand, last 3 digits, expiry and your CK number are saved.
         </span>
       </div>
 

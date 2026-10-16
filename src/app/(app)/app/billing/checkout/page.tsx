@@ -95,7 +95,7 @@ function CheckoutContent() {
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
         <span>
           <strong>Test mode.</strong> No real charge is processed. Completing
-          checkout saves the card&apos;s brand, last 4 digits and expiry, and
+          checkout saves the card&apos;s brand, last 3 digits and expiry, and
           activates the plan for testing only.
         </span>
       </div>

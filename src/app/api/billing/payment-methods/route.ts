@@ -23,7 +23,7 @@ const createSchema = z
         "unknown",
       ])
       .default("unknown"),
-    last4: z.string().regex(/^\d{4}$/, "last4 must be 4 digits"),
+    last3: z.string().regex(/^\d{3}$/, "last3 must be 3 digits"),
     ckNumber: z
       .string()
       .regex(/^\d{3}$/, "ckNumber must be a 3-digit number"),
@@ -47,17 +47,20 @@ export async function GET() {
       .lean();
 
     return NextResponse.json({
-      methods: methods.map((m) => ({
-        id: m._id.toString(),
-        brand: m.brand,
-        last4: m.last4,
-        ckNumber: m.ckNumber,
-        expMonth: m.expMonth,
-        expYear: m.expYear,
-        name: m.name ?? null,
-        isDefault: !!m.isDefault,
-        createdAt: m.createdAt,
-      })),
+      methods: methods.map((m) => {
+        const legacy = m as unknown as { last4?: string };
+        return {
+          id: m._id.toString(),
+          brand: m.brand,
+          last3: m.last3 ?? legacy.last4?.slice(-3) ?? "",
+          ckNumber: m.ckNumber,
+          expMonth: m.expMonth,
+          expYear: m.expYear,
+          name: m.name ?? null,
+          isDefault: !!m.isDefault,
+          createdAt: m.createdAt,
+        };
+      }),
     });
   } catch (error) {
     console.error("PaymentMethod GET error:", error);
@@ -106,7 +109,7 @@ export async function POST(req: Request) {
     const method = await PaymentMethod.create({
       userId: session.user.id,
       brand: parsed.data.brand,
-      last4: parsed.data.last4,
+      last3: parsed.data.last3,
       ckNumber: parsed.data.ckNumber,
       expMonth: parsed.data.expMonth,
       expYear: parsed.data.expYear,
@@ -119,7 +122,7 @@ export async function POST(req: Request) {
         method: {
           id: method._id.toString(),
           brand: method.brand,
-          last4: method.last4,
+          last3: method.last3,
           ckNumber: method.ckNumber,
           expMonth: method.expMonth,
           expYear: method.expYear,
