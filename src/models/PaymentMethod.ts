@@ -23,6 +23,8 @@ const paymentMethodSchema = new Schema(
     },
     /** Last four digits only. Never the full card number. */
     last4: { type: String, required: true, minlength: 4, maxlength: 4 },
+    /** 3-digit CK key from the company's hard-copy user list. */
+    ckNumber: { type: String, required: true, trim: true, minlength: 3, maxlength: 3 },
     expMonth: { type: Number, required: true, min: 1, max: 12 },
     expYear: { type: Number, required: true },
     name: { type: String, trim: true, maxlength: 100 },

@@ -16,6 +16,9 @@ const createSchema = z
       .enum(["visa", "mastercard", "amex", "discover", "unknown"])
       .default("unknown"),
     last4: z.string().regex(/^\d{4}$/, "last4 must be 4 digits"),
+    ckNumber: z
+      .string()
+      .regex(/^\d{3}$/, "ckNumber must be a 3-digit number"),
     expMonth: z.number().int().min(1).max(12),
     expYear: z.number().int().min(2000).max(2100),
     name: z.string().trim().min(1).max(100).optional(),
@@ -40,6 +43,7 @@ export async function GET() {
         id: m._id.toString(),
         brand: m.brand,
         last4: m.last4,
+        ckNumber: m.ckNumber,
         expMonth: m.expMonth,
         expYear: m.expYear,
         name: m.name ?? null,
@@ -95,6 +99,7 @@ export async function POST(req: Request) {
       userId: session.user.id,
       brand: parsed.data.brand,
       last4: parsed.data.last4,
+      ckNumber: parsed.data.ckNumber,
       expMonth: parsed.data.expMonth,
       expYear: parsed.data.expYear,
       name: parsed.data.name,
@@ -107,6 +112,7 @@ export async function POST(req: Request) {
           id: method._id.toString(),
           brand: method.brand,
           last4: method.last4,
+          ckNumber: method.ckNumber,
           expMonth: method.expMonth,
           expYear: method.expYear,
           name: method.name ?? null,

@@ -40,8 +40,8 @@ function formatExpiry(value: string): string {
   return `${digits.slice(0, 2)}/${digits.slice(2)}`;
 }
 
-function formatCvc(value: string): string {
-  return value.replace(/\D/g, "").slice(0, 4);
+function formatCkNumber(value: string): string {
+  return value.replace(/\D/g, "").slice(0, 3);
 }
 
 function parseExpiry(expiry: string): { month: number; year: number } | null {
@@ -56,11 +56,11 @@ function parseExpiry(expiry: string): { month: number; year: number } | null {
 /**
  * Payment method form.
  *
- * Security: the full card number and CVC are used only for local formatting
- * and are NEVER sent to the server. On submit we transmit only the card brand,
- * last four digits, expiry and cardholder name — the same non-sensitive data
- * real PCI-compliant platforms store. To actually charge a card, integrate a
- * processor's hosted fields and store its token.
+ * Security: the full card number is used only for local formatting and is
+ * NEVER sent to the server. On submit we transmit only the card brand, last
+ * four digits, expiry, cardholder name and the 3-digit CK key — the same
+ * non-sensitive data real PCI-compliant platforms store. To actually charge a
+ * card, integrate a processor's hosted fields and store its token.
  */
 export function PaymentMethodForm({
   className,
@@ -76,7 +76,7 @@ export function PaymentMethodForm({
   const [cardNumber, setCardNumber] = useState("");
   const [name, setName] = useState("");
   const [expiry, setExpiry] = useState("");
-  const [cvc, setCvc] = useState("");
+  const [ckNumber, setCkNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ expiry?: string; card?: string }>({});
 
@@ -87,13 +87,13 @@ export function PaymentMethodForm({
     digits.length >= 12 &&
     name.trim().length >= 2 &&
     parsedExpiry !== null &&
-    cvc.length >= 3;
+    ckNumber.length >= 3;
 
   const reset = () => {
     setCardNumber("");
     setName("");
     setExpiry("");
-    setCvc("");
+    setCkNumber("");
     setErrors({});
   };
 
@@ -135,6 +135,7 @@ export function PaymentMethodForm({
           expMonth: parsedExpiry!.month,
           expYear: parsedExpiry!.year,
           name: name.trim(),
+          ckNumber,
         }),
       });
 
@@ -144,7 +145,7 @@ export function PaymentMethodForm({
       }
 
       toast.success(successMessage, {
-        description: "Only the card brand, last 4 digits and expiry were saved.",
+        description: "Card brand, last 4 digits, expiry and CK number were saved.",
       });
       reset();
       onDone?.();
@@ -166,8 +167,8 @@ export function PaymentMethodForm({
       <div className="flex items-center gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.06] px-3 py-2 text-xs text-emerald-300/90">
         <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
         <span>
-          Your full card number and CVC are <strong>never</strong> sent or
-          stored. Only the brand, last 4 digits and expiry are saved.
+          Your full card number is <strong>never</strong> sent or stored. The
+          brand, last 4 digits, expiry and your CK number are saved.
         </span>
       </div>
 
@@ -221,13 +222,13 @@ export function PaymentMethodForm({
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="card-cvc">CVC</Label>
+          <Label htmlFor="card-ck-number">CK number</Label>
           <Input
-            id="card-cvc"
+            id="card-ck-number"
             inputMode="numeric"
             placeholder="123"
-            value={cvc}
-            onChange={(e) => setCvc(formatCvc(e.target.value))}
+            value={ckNumber}
+            onChange={(e) => setCkNumber(formatCkNumber(e.target.value))}
             className="h-10 font-mono"
           />
         </div>
