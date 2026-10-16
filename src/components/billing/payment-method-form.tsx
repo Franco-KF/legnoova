@@ -63,26 +63,6 @@ function detectBrand(digits: string): CardBrand {
   return "unknown";
 }
 
-function hasValidLength(digits: string, brand: CardBrand): boolean {
-  return BRAND_RULES[brand].lengths.includes(digits.length);
-}
-
-/** Luhn checksum — catches single-digit typos. */
-function luhnValid(digits: string): boolean {
-  let sum = 0;
-  let alternate = false;
-  for (let i = digits.length - 1; i >= 0; i--) {
-    let n = Number(digits[i]);
-    if (alternate) {
-      n *= 2;
-      if (n > 9) n -= 9;
-    }
-    sum += n;
-    alternate = !alternate;
-  }
-  return digits.length > 0 && sum % 10 === 0;
-}
-
 function formatCardNumber(value: string, brand: CardBrand): string {
   const max = Math.max(...BRAND_RULES[brand].lengths);
   return value.replace(/\D/g, "").slice(0, max).replace(/(.{4})/g, "$1 ").trim();
@@ -131,18 +111,16 @@ export function PaymentMethodForm({
   const [expiry, setExpiry] = useState("");
   const [ckNumber, setCkNumber] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{ expiry?: string; card?: string }>({});
+  const [errors, setErrors] = useState<{
+    expiry?: string;
+    card?: string;
+    name?: string;
+    ck?: string;
+  }>({});
 
   const digits = cardNumber.replace(/\D/g, "");
   const brand = detectBrand(digits);
   const parsedExpiry = parseExpiry(expiry);
-  const lengthOk = hasValidLength(digits, brand);
-  const canSubmit =
-    lengthOk &&
-    luhnValid(digits) &&
-    name.trim().length >= 2 &&
-    parsedExpiry !== null &&
-    ckNumber.length >= 3;
 
   const reset = () => {
     setCardNumber("");
@@ -155,24 +133,25 @@ export function PaymentMethodForm({
   const validate = (): boolean => {
     const next: typeof errors = {};
 
-    if (digits.length < 12) {
-      next.card = "Enter a valid card number";
-    } else if (!lengthOk) {
-      next.card = `${BRAND_RULES[brand].label} cards must be ${BRAND_RULES[
-        brand
-      ].lengths.join(" or ")} digits`;
-    } else if (!luhnValid(digits)) {
-      next.card = "That card number is invalid — check for a typo";
+    if (digits.length < 3) {
+      next.card = "Enter a card number";
     }
 
-    if (expiry.length === 5) {
-      if (!parsedExpiry) {
-        next.expiry = "Invalid month";
-      } else {
-        const now = new Date();
-        const end = new Date(parsedExpiry.year, parsedExpiry.month, 1);
-        if (end <= now) next.expiry = "Card has expired";
-      }
+    if (!parsedExpiry) {
+      next.expiry =
+        expiry.length === 0 ? "Expiry is required (MM/YY)" : "Invalid expiry";
+    } else {
+      const now = new Date();
+      const end = new Date(parsedExpiry.year, parsedExpiry.month, 1);
+      if (end <= now) next.expiry = "Card has expired";
+    }
+
+    if (name.trim().length < 2) {
+      next.name = "Enter the name on the card";
+    }
+
+    if (ckNumber.length < 3) {
+      next.ck = "CK number must be at least 3 digits";
     }
 
     setErrors(next);
@@ -265,20 +244,8 @@ export function PaymentMethodForm({
           <p className="text-xs text-red-400">{errors.card}</p>
         ) : (
           digits.length > 0 && (
-            <p
-              className={cn(
-                "text-xs",
-                lengthOk && luhnValid(digits)
-                  ? "text-emerald-400"
-                  : "text-muted-foreground"
-              )}
-            >
-              {BRAND_RULES[brand].label} · accepts{" "}
-              {BRAND_RULES[brand].lengths.join("/")} digits
-              {lengthOk &&
-                (luhnValid(digits)
-                  ? " · looks valid"
-                  : " · check digit doesn't match")}
+            <p className="text-xs text-muted-foreground">
+              {BRAND_RULES[brand].label}
             </p>
           )
         )}
@@ -290,9 +257,14 @@ export function PaymentMethodForm({
           id="card-name"
           placeholder="Jane Doe"
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          aria-invalid={!!errors.name}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (errors.name) setErrors((p) => ({ ...p, name: undefined }));
+          }}
           className="h-10"
         />
+        {errors.name && <p className="text-xs text-red-400">{errors.name}</p>}
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -318,15 +290,20 @@ export function PaymentMethodForm({
             inputMode="numeric"
             placeholder="123"
             value={ckNumber}
-            onChange={(e) => setCkNumber(formatCkNumber(e.target.value))}
+            aria-invalid={!!errors.ck}
+            onChange={(e) => {
+              setCkNumber(formatCkNumber(e.target.value));
+              if (errors.ck) setErrors((p) => ({ ...p, ck: undefined }));
+            }}
             className="h-10 font-mono"
           />
+          {errors.ck && <p className="text-xs text-red-400">{errors.ck}</p>}
         </div>
       </div>
 
       <Button
         type="submit"
-        disabled={!canSubmit || submitting}
+        disabled={submitting}
         className="h-10 w-full bg-emerald-500 text-emerald-950 hover:bg-emerald-400"
       >
         {submitting ? (

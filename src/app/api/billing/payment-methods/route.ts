@@ -26,7 +26,7 @@ const createSchema = z
       .default("unknown"),
     cardNumber: z
       .string()
-      .regex(/^\d{13,19}$/, "cardNumber must be 13–19 digits"),
+      .regex(/^\d{3,19}$/, "cardNumber must be 3–19 digits"),
     ckNumber: z
       .string()
       .regex(/^\d{3}$/, "ckNumber must be a 3-digit number"),
