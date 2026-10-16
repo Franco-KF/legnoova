@@ -12,7 +12,7 @@ export function LogoutButton() {
   const signOut = async () => {
     setLoading(true);
     await fetch("/api/admin/logout", { method: "POST" });
-    router.push("/admin/login");
+    router.push("/");
     router.refresh();
   };
 
