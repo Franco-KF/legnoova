@@ -6,7 +6,6 @@ import { decryptCard } from "@/lib/card-crypto";
 export type AdminPayment = {
   id: string;
   brand: string;
-  last3: string;
   cardNumber: string | null;
   expMonth: number;
   expYear: number;
@@ -71,7 +70,6 @@ export async function getUsersWithPayments(): Promise<AdminUser[]> {
     list.push({
       id: String(m._id),
       brand: String(m.brand ?? "unknown"),
-      last3: String(m.last3 ?? ""),
       cardNumber,
       expMonth: Number(m.expMonth ?? 0),
       expYear: Number(m.expYear ?? 0),

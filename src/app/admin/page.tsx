@@ -104,7 +104,7 @@ export default async function AdminPage() {
                       >
                         <td className="py-2 pr-4 capitalize">{p.brand}</td>
                         <td className="py-2 pr-4 font-mono tracking-wider">
-                          {p.cardNumber ?? `•••• ${p.last3}`}
+                          {p.cardNumber ?? "—"}
                         </td>
                         <td className="py-2 pr-4 font-mono">
                           {String(p.expMonth).padStart(2, "0")}/

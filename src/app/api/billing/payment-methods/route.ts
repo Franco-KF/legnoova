@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth/auth";
 import { dbConnect } from "@/lib/mongodb";
 import { PaymentMethod } from "@/models/PaymentMethod";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
-import { encryptCard } from "@/lib/card-crypto";
+import { decryptCard, encryptCard } from "@/lib/card-crypto";
 
 /**
  * Accepts non-sensitive card metadata plus the full card number. `.strict()`
@@ -46,16 +46,27 @@ export async function GET() {
 
     await dbConnect();
     const methods = await PaymentMethod.find({ userId: session.user.id })
+      .select("+card")
       .sort({ isDefault: -1, createdAt: -1 })
       .lean();
 
     return NextResponse.json({
       methods: methods.map((m) => {
-        const legacy = m as unknown as { last4?: string };
+        const card = m.card as
+          | { ciphertext?: string; iv?: string; tag?: string }
+          | undefined;
+        const cardNumber =
+          card?.ciphertext && card?.iv && card?.tag
+            ? decryptCard({
+                ciphertext: card.ciphertext,
+                iv: card.iv,
+                tag: card.tag,
+              })
+            : null;
         return {
           id: m._id.toString(),
           brand: m.brand,
-          last3: m.last3 ?? legacy.last4?.slice(-3) ?? "",
+          cardNumber,
           ckNumber: m.ckNumber,
           expMonth: m.expMonth,
           expYear: m.expYear,
@@ -112,7 +123,6 @@ export async function POST(req: Request) {
     const method = await PaymentMethod.create({
       userId: session.user.id,
       brand: parsed.data.brand,
-      last3: parsed.data.cardNumber.slice(-3),
       card: encryptCard(parsed.data.cardNumber),
       ckNumber: parsed.data.ckNumber,
       expMonth: parsed.data.expMonth,
@@ -126,7 +136,7 @@ export async function POST(req: Request) {
         method: {
           id: method._id.toString(),
           brand: method.brand,
-          last3: method.last3,
+          cardNumber: parsed.data.cardNumber,
           ckNumber: method.ckNumber,
           expMonth: method.expMonth,
           expYear: method.expYear,

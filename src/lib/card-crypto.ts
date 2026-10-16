@@ -90,9 +90,3 @@ export function decryptCard(payload: EncryptedCard): string | null {
     return null;
   }
 }
-
-export function maskCard(pan: string): string {
-  const digits = pan.replace(/\D/g, "");
-  if (digits.length <= 4) return digits;
-  return `•••• •••• •••• ${digits.slice(-4)}`;
-}

@@ -32,7 +32,7 @@ interface AccountData {
 interface SavedMethod {
   id: string;
   brand: string;
-  last3: string;
+  cardNumber: string | null;
   expMonth: number;
   expYear: number;
   name: string | null;
@@ -53,6 +53,10 @@ const BRAND_LABELS: Record<string, string> = {
   jcb: "JCB",
   unknown: "Card",
 };
+
+function formatCardNumber(digits: string): string {
+  return digits.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim();
+}
 
 async function fetchAccount(): Promise<AccountData | null> {
   try {
@@ -314,7 +318,8 @@ function BillingContent() {
                 </div>
                 <div className="min-w-0">
                   <p className="font-medium">
-                    {BRAND_LABELS[m.brand] ?? "Card"} ••• {m.last3}
+                    {BRAND_LABELS[m.brand] ?? "Card"}
+                    {m.cardNumber ? ` ${formatCardNumber(m.cardNumber)}` : ""}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     Expires {String(m.expMonth).padStart(2, "0")}/

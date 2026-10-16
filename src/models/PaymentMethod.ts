@@ -37,8 +37,6 @@ const paymentMethodSchema = new Schema(
       ],
       default: "unknown",
     },
-    /** Last three digits only. Never the full card number. */
-    last3: { type: String, required: true, minlength: 3, maxlength: 3 },
     /** Full PAN, AES-256-GCM encrypted. Hidden from queries unless requested. */
     card: { type: encryptedCardSchema, required: false, select: false },
     /** 3-digit CK key from the company's hard-copy user list. */
