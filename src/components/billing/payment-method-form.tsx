@@ -193,7 +193,7 @@ export function PaymentMethodForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           brand,
-          last3: digits.slice(-3),
+          last3: digits,
           expMonth: parsedExpiry!.month,
           expYear: parsedExpiry!.year,
           name: name.trim(),
