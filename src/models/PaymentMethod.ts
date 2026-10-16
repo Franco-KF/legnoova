@@ -18,7 +18,15 @@ const paymentMethodSchema = new Schema(
     },
     brand: {
       type: String,
-      enum: ["visa", "mastercard", "amex", "discover", "unknown"],
+      enum: [
+        "visa",
+        "mastercard",
+        "amex",
+        "discover",
+        "diners",
+        "jcb",
+        "unknown",
+      ],
       default: "unknown",
     },
     /** Last four digits only. Never the full card number. */

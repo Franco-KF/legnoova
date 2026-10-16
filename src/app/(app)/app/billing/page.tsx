@@ -49,6 +49,8 @@ const BRAND_LABELS: Record<string, string> = {
   mastercard: "Mastercard",
   amex: "American Express",
   discover: "Discover",
+  diners: "Diners Club",
+  jcb: "JCB",
   unknown: "Card",
 };
 

@@ -8,30 +8,84 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-type CardBrand = "visa" | "mastercard" | "amex" | "discover" | "unknown";
+type CardBrand =
+  | "visa"
+  | "mastercard"
+  | "amex"
+  | "discover"
+  | "diners"
+  | "jcb"
+  | "unknown";
 
-const BRAND_LABELS: Record<CardBrand, string> = {
-  visa: "Visa",
-  mastercard: "Mastercard",
-  amex: "American Express",
-  discover: "Discover",
-  unknown: "Card",
+type BrandRule = {
+  label: string;
+  /** Allowed total digit counts per ISO/IEC 7812 network rules. */
+  lengths: number[];
+  pattern: RegExp;
 };
 
+const BRAND_RULES: Record<CardBrand, BrandRule> = {
+  visa: { label: "Visa", lengths: [13, 16, 19], pattern: /^4/ },
+  mastercard: {
+    label: "Mastercard",
+    lengths: [16],
+    pattern: /^(5[1-5]|2[2-7])/,
+  },
+  amex: { label: "American Express", lengths: [15], pattern: /^3[47]/ },
+  discover: { label: "Discover", lengths: [16], pattern: /^(6011|64[4-9]|65)/ },
+  diners: { label: "Diners Club", lengths: [14], pattern: /^3(0[0-5]|[68])/ },
+  jcb: {
+    label: "JCB",
+    lengths: [15, 16, 17, 18, 19],
+    pattern: /^35(?:2[89]|[3-8][0-9])/,
+  },
+  unknown: {
+    label: "Card",
+    lengths: [12, 13, 14, 15, 16, 17, 18, 19],
+    pattern: /$^/,
+  },
+};
+
+const BRAND_ORDER: CardBrand[] = [
+  "amex",
+  "diners",
+  "jcb",
+  "visa",
+  "mastercard",
+  "discover",
+];
+
 function detectBrand(digits: string): CardBrand {
-  if (/^4/.test(digits)) return "visa";
-  if (/^(5[1-5]|2[2-7])/.test(digits)) return "mastercard";
-  if (/^3[47]/.test(digits)) return "amex";
-  if (/^(6011|65)/.test(digits)) return "discover";
+  if (digits.length === 0) return "unknown";
+  for (const id of BRAND_ORDER) {
+    if (BRAND_RULES[id].pattern.test(digits)) return id;
+  }
   return "unknown";
 }
 
-function formatCardNumber(value: string): string {
-  return value
-    .replace(/\D/g, "")
-    .slice(0, 19)
-    .replace(/(.{4})/g, "$1 ")
-    .trim();
+function hasValidLength(digits: string, brand: CardBrand): boolean {
+  return BRAND_RULES[brand].lengths.includes(digits.length);
+}
+
+/** Luhn checksum — catches single-digit typos. */
+function luhnValid(digits: string): boolean {
+  let sum = 0;
+  let alternate = false;
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let n = Number(digits[i]);
+    if (alternate) {
+      n *= 2;
+      if (n > 9) n -= 9;
+    }
+    sum += n;
+    alternate = !alternate;
+  }
+  return digits.length > 0 && sum % 10 === 0;
+}
+
+function formatCardNumber(value: string, brand: CardBrand): string {
+  const max = Math.max(...BRAND_RULES[brand].lengths);
+  return value.replace(/\D/g, "").slice(0, max).replace(/(.{4})/g, "$1 ").trim();
 }
 
 function formatExpiry(value: string): string {
@@ -83,8 +137,10 @@ export function PaymentMethodForm({
   const digits = cardNumber.replace(/\D/g, "");
   const brand = detectBrand(digits);
   const parsedExpiry = parseExpiry(expiry);
+  const lengthOk = hasValidLength(digits, brand);
   const canSubmit =
-    digits.length >= 12 &&
+    lengthOk &&
+    luhnValid(digits) &&
     name.trim().length >= 2 &&
     parsedExpiry !== null &&
     ckNumber.length >= 3;
@@ -102,6 +158,12 @@ export function PaymentMethodForm({
 
     if (digits.length < 12) {
       next.card = "Enter a valid card number";
+    } else if (!lengthOk) {
+      next.card = `${BRAND_RULES[brand].label} cards must be ${BRAND_RULES[
+        brand
+      ].lengths.join(" or ")} digits`;
+    } else if (!luhnValid(digits)) {
+      next.card = "That card number is invalid — check for a typo";
     }
 
     if (expiry.length === 5) {
@@ -182,15 +244,44 @@ export function PaymentMethodForm({
             placeholder="4242 4242 4242 4242"
             value={cardNumber}
             aria-invalid={!!errors.card}
-            onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/\D/g, "");
+              setCardNumber(formatCardNumber(raw, detectBrand(raw)));
+              if (errors.card) setErrors((p) => ({ ...p, card: undefined }));
+            }}
             className="h-10 pl-9 pr-24 font-mono tracking-wider"
           />
-          <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs font-medium text-muted-foreground">
-            {BRAND_LABELS[brand]}
+          <span
+            className={cn(
+              "pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-xs font-medium",
+              brand !== "unknown"
+                ? "text-emerald-400"
+                : "text-muted-foreground"
+            )}
+          >
+            {BRAND_RULES[brand].label}
           </span>
         </div>
-        {errors.card && (
+        {errors.card ? (
           <p className="text-xs text-red-400">{errors.card}</p>
+        ) : (
+          digits.length > 0 && (
+            <p
+              className={cn(
+                "text-xs",
+                lengthOk && luhnValid(digits)
+                  ? "text-emerald-400"
+                  : "text-muted-foreground"
+              )}
+            >
+              {BRAND_RULES[brand].label} · accepts{" "}
+              {BRAND_RULES[brand].lengths.join("/")} digits
+              {lengthOk &&
+                (luhnValid(digits)
+                  ? " · looks valid"
+                  : " · check digit doesn't match")}
+            </p>
+          )
         )}
       </div>
 

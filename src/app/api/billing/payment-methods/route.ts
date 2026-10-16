@@ -13,7 +13,15 @@ import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 const createSchema = z
   .object({
     brand: z
-      .enum(["visa", "mastercard", "amex", "discover", "unknown"])
+      .enum([
+        "visa",
+        "mastercard",
+        "amex",
+        "discover",
+        "diners",
+        "jcb",
+        "unknown",
+      ])
       .default("unknown"),
     last4: z.string().regex(/^\d{4}$/, "last4 must be 4 digits"),
     ckNumber: z
