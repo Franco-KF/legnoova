@@ -82,20 +82,18 @@ export function Strategies() {
               How to Trade
             </h2>
             <p className="mt-5 text-base leading-7 text-muted-foreground">
-              This isn&apos;t designed to replace your strategy. It&apos;s designed
-              to make your analysis stronger. You bring the strategy — Legnoova AI
-              brings another perspective — and you make the final decision.
+              This isn&apos;t designed to replace your strategy. Bring your own
+              chart read; Legnoova AI offers another perspective, and you make
+              the final decision.
             </p>
             <p className="mt-4 text-base leading-7 text-muted-foreground">
-              Instead of a single opaque prompt, Legnoova runs seven independent
-              strategy modules. Each one analyzes your chart through a different
-              framework, then a consensus engine weighs their agreement to reach
-              a final signal.
+              Multiple strategy modules review the chart through different
+              frameworks. Their agreement and disagreement inform the analysis;
+              neither is a measure of the probability that a trade will succeed.
             </p>
             <p className="mt-4 text-base leading-7 text-muted-foreground">
-              You see exactly which strategies agree, which conflict, and how
-              confident the overall setup is — so you can make your own informed
-              decision.
+              Inspect which perspectives align or conflict and decide whether
+              the analysis fits your own plan.
             </p>
 
             <div className="mt-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">

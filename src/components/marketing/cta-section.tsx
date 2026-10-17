@@ -24,9 +24,8 @@ export function CTASection() {
             Upload the Chart.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Let Legnoova AI turn your chart into a structured signal — entry,
-            stop-loss, targets and the reasoning behind each level. One upload,
-            then make your decision.
+            Get a structured second opinion with potential levels and visible
+            reasoning. Use it as one input, then make your own decision.
           </p>
 
           <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">

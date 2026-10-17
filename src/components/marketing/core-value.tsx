@@ -4,10 +4,9 @@ const legnoovaBreakdown = [
   { label: "Trend", value: "Bullish (aligned with higher timeframes)" },
   { label: "Market Structure", value: "Higher highs + higher lows" },
   { label: "Key Level", value: "1.0810 – 1.0825" },
-  { label: "Potential Entry", value: "1.0815 – 1.0830" },
-  { label: "Stop Loss", value: "1.0790" },
-  { label: "Take Profit", value: "1.0850 / 1.0890" },
-  { label: "Confidence", value: "78% consensus" },
+  { label: "Potential Entry", value: "Illustrative range" },
+  { label: "Stop Loss", value: "Illustrative level" },
+  { label: "Potential Targets", value: "Illustrative levels" },
 ];
 
 export function CoreValue() {
@@ -24,8 +23,8 @@ export function CoreValue() {
             Understand Why.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Most signal platforms tell you what to do. Legnoova shows you the
-            reasoning — so you can trust it, question it, and learn from it.
+            Legnoova presents a potential analysis and its supporting evidence.
+            Review it critically; it is not a guarantee or a substitute for your judgment.
           </p>
         </div>
 
@@ -76,8 +75,8 @@ export function CoreValue() {
               </h3>
             </div>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              A full breakdown with entries, exits, and the reasoning behind
-              every number.
+              A structured analysis with potential levels and the chart evidence
+              behind them.
             </p>
             <div className="mt-6 rounded-xl border border-white/[0.06] bg-black/30 p-5">
               <p className="text-[10px] uppercase tracking-wider text-emerald-400/60">
@@ -99,8 +98,8 @@ export function CoreValue() {
                 ))}
               </div>
               <p className="mt-5 border-t border-white/[0.06] pt-4 text-xs leading-5 text-emerald-300/80">
-                + Legnoova AI explains the reasoning behind the analysis — so you can
-                decide for yourself if it makes sense.
+                Illustrative values only. AI analysis may be inaccurate; verify
+                levels independently before making any trading decision.
               </p>
             </div>
           </div>

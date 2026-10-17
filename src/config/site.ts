@@ -4,7 +4,7 @@ export const siteConfig = {
   tagline: "AI forex signals that show their work — entry, stop-loss, targets and the evidence behind each call.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://legnoova.com",
   description:
-    "Get a Legnoova AI forex signal with entry, stop-loss, take-profit targets and the evidence behind each call. Upload your chart, get a structured AI signal, track your hit rate — a transparent AI signal provider for Forex traders.",
+    "Upload a forex chart for a structured AI analysis with potential entry, stop-loss and take-profit levels plus the reasoning behind them. A transparent second opinion for traders—not a promise of trading results.",
   keywords: [
     "AI forex signals",
     "forex signal provider",

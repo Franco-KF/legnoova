@@ -16,8 +16,8 @@ export function Pricing() {
             That Shows Its Work
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Every signal ships with entry, stop-loss, targets and the evidence
-            behind them — no blindly-followed calls.
+            Every analysis includes potential levels and the reasoning behind
+            them. Review the plan before deciding whether to act.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { Hero } from "@/components/marketing/hero";
 import { ProductExplanation } from "@/components/marketing/product-explanation";
-import { HowItWorks } from "@/components/marketing/how-it-works";
 import { CoreValue } from "@/components/marketing/core-value";
 import { Features } from "@/components/marketing/features";
 import { Strategies } from "@/components/marketing/strategies";
-import { UseCase } from "@/components/marketing/use-case";
 import { TrustPrinciples } from "@/components/marketing/trust-principles";
 import { Pricing } from "@/components/marketing/pricing";
 import { FAQ } from "@/components/marketing/faq";
@@ -111,11 +109,9 @@ export default function Home() {
       <JsonLd data={softwareSchema} />
       <Hero />
       <ProductExplanation />
-      <HowItWorks />
       <CoreValue />
       <Features />
       <Strategies />
-      <UseCase />
       <TrustPrinciples />
       <Pricing />
       <FAQ />

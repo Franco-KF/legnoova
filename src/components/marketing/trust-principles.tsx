@@ -22,7 +22,7 @@ const principles = [
     icon: ScanLine,
     title: "No hidden numbers",
     description:
-      "Confidence, risk-to-reward and key levels are stated up front — never vague, never padded to look certain.",
+      "The analysis makes its stated levels and rationale visible. Treat estimates as uncertain, not as promises of an outcome.",
     accent: "text-cyan-400",
     tint: "bg-cyan-500/10",
   },
@@ -49,9 +49,8 @@ export function TrustPrinciples() {
             They Need More Honesty.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Most signal tools sell certainty. Legnoova is built on the opposite
-            idea — transparent reasoning, honest answers, and the freedom to
-            disagree with it.
+            Transparent reasoning matters—but AI can misread a chart. Legnoova is an
+            informational second opinion, and the final decision remains yours.
           </p>
         </div>
 

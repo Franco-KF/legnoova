@@ -15,7 +15,7 @@ const features = [
     icon: FileImage,
     title: "Legnoova AI Signal Analysis",
     description:
-      "Upload a chart and get a structured signal — direction with confidence, entry, stop-loss and dynamic targets — grounded in what's actually visible on it.",
+      "Upload a chart and get a structured analysis with a potential direction, entry, stop-loss and targets based on what is visible.",
     accent: "text-emerald-400",
     border: "hover:border-emerald-500/30",
     tint: "bg-emerald-500/10",
@@ -24,7 +24,7 @@ const features = [
     icon: TrendingUp,
     title: "Trend Detection",
     description:
-      "Know whether the market is bullish, bearish, or ranging before you lean on a direction — every signal states the bias up front.",
+      "See the detected market bias—bullish, bearish or ranging—as one part of the chart analysis.",
     accent: "text-teal-400",
     border: "hover:border-teal-500/30",
     tint: "bg-teal-500/10",
@@ -33,7 +33,7 @@ const features = [
     icon: Layers,
     title: "Market Structure",
     description:
-      "Important highs, lows, breaks and potential changes in market structure — read institutionally, like a pro trader.",
+      "Review notable highs, lows and potential changes in market structure identified on the chart.",
     accent: "text-cyan-400",
     border: "hover:border-cyan-500/30",
     tint: "bg-cyan-500/10",
@@ -42,7 +42,7 @@ const features = [
     icon: Grip,
     title: "Support & Resistance",
     description:
-      "The key price levels where the market is most likely to react — so your entries sit at the right place, not mid-range.",
+      "See potential support and resistance zones identified in the chart, with context for your own review.",
     accent: "text-amber-400",
     border: "hover:border-amber-500/30",
     tint: "bg-amber-500/10",
@@ -51,7 +51,7 @@ const features = [
     icon: Target,
     title: "Entry, TP & SL in Every Signal",
     description:
-      "Each signal ships with a precise entry, stop-loss, take-profit targets (TP1–TP3) and risk:reward — not vague guesses.",
+      "Review potential entry, stop-loss and take-profit levels. These are estimates, not guaranteed execution prices or outcomes.",
     accent: "text-violet-400",
     border: "hover:border-violet-500/30",
     tint: "bg-violet-500/10",
@@ -60,7 +60,7 @@ const features = [
     icon: Clock3,
     title: "Multi-Timeframe Thinking",
     description:
-      "Analyze higher and lower timeframes to read the bigger picture before zooming into an entry.",
+      "Consider the broader trend alongside the detail of the chart you provide.",
     accent: "text-rose-400",
     border: "hover:border-rose-500/30",
     tint: "bg-rose-500/10",
@@ -78,7 +78,7 @@ const features = [
     icon: ClipboardList,
     title: "Journal & Hit-Rate Tracking",
     description:
-      "Log whether you took each signal and what happened — TP hit or stopped — and watch your hit rate vs Legnoova AI build up.",
+      "Record your decisions and outcomes in a journal so you can review your own history over time.",
     accent: "text-teal-400",
     border: "hover:border-teal-500/30",
     tint: "bg-teal-500/10",

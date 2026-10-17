@@ -11,23 +11,23 @@ const steps = [
   {
     icon: Eye,
     step: "02",
-    title: "Get a Legnoova AI signal",
+    title: "Review the analysis",
     description:
-      "Legnoova AI reads the same chart you're looking at and returns its own honest read — as a structured signal with entry, stop-loss, take-profit targets and the evidence behind it.",
+      "See a potential direction, entry, stop-loss, targets and the chart evidence behind the analysis.",
   },
   {
     icon: GitCompareArrows,
     step: "03",
-    title: "Compare it with your own strategy",
+    title: "Decide for yourself",
     description:
-      "Lay Legnoova AI's view next to yours. Agreement is confirmation; disagreement is a reason to dig deeper.",
+      "Compare the second opinion with your own plan. Agreement is not a guarantee; disagreement is a prompt to review.",
   },
   {
     icon: ShieldCheck,
     step: "04",
-    title: "Trade with more clarity",
+    title: "Choose your next step",
     description:
-      "Walk into the trade with a pressure-tested setup — not an impulse.",
+      "Use the analysis as one input—or wait when the chart does not present a clear setup.",
   },
 ];
 
@@ -47,13 +47,12 @@ export function ProductExplanation() {
             </span>
           </h2>
           <p className="mt-4 text-muted-foreground">
-            You already spend time reading charts, spotting trends, drawing
-            support and resistance, and planning entries. Legnoova helps you
-            pressure-test that analysis before putting your money at risk.
+            Bring the chart you are already studying. Legnoova provides another
+            perspective with visible reasoning—not a promise of trading results.
           </p>
         </div>
 
-        <div className="mt-16 grid gap-5 md:grid-cols-4">
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {steps.map((s, i) => (
             <div
               key={s.step}

@@ -22,7 +22,7 @@ export function HeroMockAnalysis() {
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/70" />
             </div>
             <span className="ml-3 font-mono text-xs text-muted-foreground">
-              Legnoova Analysis Terminal
+              Sample chart analysis
             </span>
           </div>
           <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1">
@@ -193,7 +193,7 @@ export function HeroMockAnalysis() {
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-1.5 text-muted-foreground">
                   <CircleDot className="h-3.5 w-3.5 text-emerald-400" />
-                  Consensus Confidence
+                  Strategy agreement (illustrative)
                 </span>
                 <span className="font-mono font-semibold text-emerald-400">
                   78%
@@ -225,11 +225,11 @@ export function HeroMockAnalysis() {
                   1.0770
                 </p>
               </div>
-              <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3">
-                <p className="text-[10px] uppercase tracking-wider text-red-400/70">
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+                <p className="text-[10px] uppercase tracking-wider text-emerald-400/70">
                   Take Profit 1
                 </p>
-                <p className="mt-1 font-mono text-sm font-semibold text-red-300">
+                <p className="mt-1 font-mono text-sm font-semibold text-emerald-300">
                   1.0850
                 </p>
               </div>
