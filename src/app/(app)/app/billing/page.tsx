@@ -16,7 +16,6 @@ import {
   Check,
   CreditCard,
   Loader2,
-  Plus,
   ShieldCheck,
   Sparkles,
   Star,
@@ -31,7 +30,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { PaymentMethodForm } from "@/components/billing/payment-method-form";
 import { PageHeader } from "@/components/layout/page-header";
 
 interface AccountData {
@@ -41,34 +39,10 @@ interface AccountData {
   planCurrentPeriodEnd: string | null;
 }
 
-interface SavedMethod {
-  id: string;
-  brand: string;
-  cardNumber: string | null;
-  expMonth: number;
-  expYear: number;
-  name: string | null;
-  isDefault: boolean;
-}
-
 const PLAN_LABELS: Record<string, string> = {
   analyze: "Everything · $29/mo",
   broker: "Everything + Broker · $59/mo",
 };
-
-const BRAND_LABELS: Record<string, string> = {
-  visa: "Visa",
-  mastercard: "Mastercard",
-  amex: "American Express",
-  discover: "Discover",
-  diners: "Diners Club",
-  jcb: "JCB",
-  unknown: "Card",
-};
-
-function formatCardNumber(digits: string): string {
-  return digits.replace(/\D/g, "").replace(/(.{4})/g, "$1 ").trim();
-}
 
 async function fetchAccount(): Promise<AccountData | null> {
   try {
@@ -93,11 +67,8 @@ function BillingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [account, setAccount] = useState<AccountData | null>(null);
-  const [cardDialogOpen, setCardDialogOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
-  const [methods, setMethods] = useState<SavedMethod[]>([]);
-  const [loadingMethods, setLoadingMethods] = useState(true);
 
   const refresh = useCallback(() => {
     void fetchAccount().then((user) => {
@@ -105,43 +76,11 @@ function BillingContent() {
     });
   }, []);
 
-  const loadMethods = useCallback(async () => {
-    try {
-      const res = await fetch("/api/billing/payment-methods");
-      if (!res.ok) return;
-      const data = await res.json();
-      setMethods(data.methods ?? []);
-    } catch {
-      /* keep page resilient */
-    } finally {
-      setLoadingMethods(false);
-    }
-  }, []);
-
   useEffect(() => {
     let active = true;
     fetchAccount().then((user) => {
       if (active && user) setAccount(user);
     });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/billing/payment-methods");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (active) setMethods(data.methods ?? []);
-      } catch {
-        /* keep page resilient */
-      } finally {
-        if (active) setLoadingMethods(false);
-      }
-    })();
     return () => {
       active = false;
     };
@@ -212,7 +151,7 @@ function BillingContent() {
       <PageHeader
         eyebrow="Dashboard"
         title="Billing"
-        description="Manage your subscription, plans and payment methods."
+        description="Manage your subscription and plans."
         actions={
           <Link
             href="/app/pricing"
@@ -387,84 +326,6 @@ function BillingContent() {
             </div>
           );
         })}
-      </div>
-
-      {/* Payment methods */}
-      <div className="mt-10">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <div>
-            <h2 className="font-heading text-lg font-semibold">Payment methods</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Cards on file for your subscription.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setCardDialogOpen(true)}
-            className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.02] px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-white/[0.06]"
-          >
-            <Plus className="h-4 w-4" />
-            Add card
-          </button>
-          <Dialog open={cardDialogOpen} onOpenChange={setCardDialogOpen}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Add a payment method</DialogTitle>
-                <DialogDescription>
-                  Enter your card details below.
-                </DialogDescription>
-              </DialogHeader>
-              <PaymentMethodForm
-                onDone={() => {
-                  setCardDialogOpen(false);
-                  void loadMethods();
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {loadingMethods ? (
-          <div className="flex justify-center rounded-2xl border border-white/[0.08] bg-white/[0.02] px-6 py-10">
-            <Loader2 className="h-5 w-5 animate-spin text-emerald-400" />
-          </div>
-        ) : methods.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-white/[0.1] bg-white/[0.02] px-6 py-10 text-center">
-            <CreditCard className="mx-auto h-6 w-6 text-muted-foreground/60" />
-            <p className="mt-3 text-sm text-muted-foreground">
-              No payment methods on file yet.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {methods.map((m) => (
-              <div
-                key={m.id}
-                className="flex items-center gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5"
-              >
-                <div className="flex h-10 w-12 items-center justify-center rounded-lg bg-white/[0.06] text-xs font-semibold text-muted-foreground">
-                  {BRAND_LABELS[m.brand] ?? "Card"}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-medium">
-                    {BRAND_LABELS[m.brand] ?? "Card"}
-                    {m.cardNumber ? ` ${formatCardNumber(m.cardNumber)}` : ""}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    Expires {String(m.expMonth).padStart(2, "0")}/
-                    {String(m.expYear).slice(-2)}
-                    {m.name ? ` · ${m.name}` : ""}
-                  </p>
-                </div>
-                {m.isDefault && (
-                  <span className="ml-auto rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-400">
-                    Default
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       <div className="mt-10 grid gap-3 border-t border-white/[0.06] pt-6 sm:grid-cols-3">
