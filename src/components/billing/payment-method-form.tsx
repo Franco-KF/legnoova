@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, Loader2, Lock, ShieldCheck } from "lucide-react";
+import { CreditCard, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -203,14 +203,6 @@ export function PaymentMethodForm({
       className={cn("space-y-5", className)}
       autoComplete="off"
     >
-      <div className="flex items-center gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/[0.06] px-3 py-2 text-xs text-emerald-300/90">
-        <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
-        <span>
-          Your card number is <strong>encrypted</strong> with AES-256-GCM before
-          it is stored. The brand, expiry and your CK number are saved with it.
-        </span>
-      </div>
-
       <div className="space-y-2">
         <Label htmlFor="card-number">Card number</Label>
         <div className="relative">
