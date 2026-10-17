@@ -37,24 +37,6 @@ export const PAYMENT_FAILED_COPY = {
   description: "Your card was not charged. Please try again.",
 } as const;
 
-/** Shown after a successful checkout that starts the free trial. */
-export const TRIAL_STARTED_COPY = {
-  title: "Your free trial has started!",
-  description: `No charge today. We'll remind you before your ${TRIAL_DAYS}-day trial ends.`,
-} as const;
-
-/** Shown after a payment method is saved successfully. */
-export const CARD_SAVED_COPY = {
-  title: "Card saved",
-  description: "Your card is now on file.",
-} as const;
-
-/** Shown when a payment method could not be saved. */
-export const CARD_SAVE_FAILED_COPY = {
-  title: "Couldn't save your card",
-  description: "Please check your details and try again.",
-} as const;
-
 /** Card-on-file requirements are processor-driven; keep it in one place. */
 export const TRIAL_REQUIRES_CARD = true;
 

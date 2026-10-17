@@ -8,7 +8,6 @@ import {
   MONEY_BACK_DAYS,
   PAYMENT_FAILED_COPY,
   TRIAL_DAYS,
-  TRIAL_STARTED_COPY,
   daysRemaining,
 } from "@/config/billing";
 import {
@@ -151,8 +150,8 @@ function BillingContent() {
 
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
-      toast.success(TRIAL_STARTED_COPY.title, {
-        description: TRIAL_STARTED_COPY.description,
+      toast.error(PAYMENT_FAILED_COPY.title, {
+        description: PAYMENT_FAILED_COPY.description,
       });
       const t = setTimeout(refresh, 5000);
       return () => clearTimeout(t);

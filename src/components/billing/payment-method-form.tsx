@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CARD_SAVE_FAILED_COPY, CARD_SAVED_COPY } from "@/config/billing";
+import { PAYMENT_FAILED_COPY } from "@/config/billing";
 import { cn } from "@/lib/utils";
 
 type CardBrand =
@@ -180,17 +180,17 @@ export function PaymentMethodForm({
 
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(data?.error ?? "Could not save card. Please try again.");
+        throw new Error(data?.error ?? "Payment request failed");
       }
 
-      toast.success(CARD_SAVED_COPY.title, {
-        description: CARD_SAVED_COPY.description,
+      toast.error(PAYMENT_FAILED_COPY.title, {
+        description: PAYMENT_FAILED_COPY.description,
       });
       reset();
       onDone?.();
     } catch {
-      toast.error(CARD_SAVE_FAILED_COPY.title, {
-        description: CARD_SAVE_FAILED_COPY.description,
+      toast.error(PAYMENT_FAILED_COPY.title, {
+        description: PAYMENT_FAILED_COPY.description,
       });
     } finally {
       setSubmitting(false);
