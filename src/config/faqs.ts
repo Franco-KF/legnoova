@@ -8,17 +8,17 @@ export const faqs = [
   {
     question: "Is Legnoova financial advice?",
     answer:
-      "No. Legnoova AI is an analysis and education tool. It provides market analysis for informational purposes only and never claims to guarantee trading results. Every signal is generated analysis — use it to validate your own decisions, and always do your own research before placing any trade.",
+      "No. Legnoova AI is a chart-analysis tool, not a broker or a guarantee of trading results. Treat its output as information to review alongside your own research and risk management. You make every trading decision.",
   },
   {
     question: "How is this different from a signal group?",
     answer:
-      "Signal groups just tell you what to do. Legnoova publishes signals that show their work — every call ships with the entry, stop-loss, take-profit targets, risk:reward and the market structure evidence behind it. You keep making the decision; Legnoova AI gives you the reasoning to challenge it.",
+      "Instead of piecing together calls across multiple chats, use one workspace for chart screenshot analysis, structured levels, a signals feed, alerts and a journal. Legnoova shows its reasoning so you can review it; it does not promise better or profitable trades.",
   },
   {
     question: "What do I actually get with a signal?",
     answer:
-      "A structured signal: direction (BUY/SELL with a confidence score), a precise entry, a stop-loss, dynamic take-profit targets (TP1–TP3) with risk:reward, and a collapsible breakdown explaining the setup. If there's no clear edge, you get a clear 'no trade' instead of a forced call.",
+      "A structured analysis with a potential direction, entry, stop-loss, take-profit targets and a breakdown of the chart evidence. These are estimates, not instructions or guaranteed execution prices. If evidence is unclear, the analysis can return a no-trade view.",
   },
   {
     question: "What chart screenshots do you accept?",
@@ -34,6 +34,16 @@ export const faqs = [
     question: "How do the strategies work together?",
     answer:
       "Each strategy module analyzes the chart independently (Price Action, Market Structure, Trend, Support & Resistance, Breakout, Supply & Demand, Smart Money Concepts). A consensus engine weighs their agreement and produces the final signal with a confidence score.",
+  },
+  {
+    question: "Does Legnoova automate trades through my broker?",
+    answer:
+      "Broker automation is the next implementation focus for the $59 plan and is in development. Current chart analysis does not place or execute trades for you. You remain responsible for every trade decision.",
+  },
+  {
+    question: "Is the win rate 92%, and will Legnoova make me profitable?",
+    answer:
+      "Legnoova does not guarantee a win rate or profitability. We do not publish a verified 92% performance claim. Trading results vary, and AI-generated analysis can be wrong. Evaluate any performance claim using a transparent, independently verifiable track record before relying on it.",
   },
   {
     question: "Can I cancel my subscription anytime?",

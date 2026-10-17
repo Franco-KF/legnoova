@@ -40,15 +40,17 @@ export function ProductExplanation() {
             The Second Opinion
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            You Don&apos;t Need Another Signal Group.
+            Stop Chasing Calls Across Groups.
             <br className="hidden sm:block" />
             <span className="text-gradient-accent bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-              You Need a Second Opinion.
+              Bring Your Chart Into One Workflow.
             </span>
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Bring the chart you are already studying. Legnoova provides another
-            perspective with visible reasoning—not a promise of trading results.
+            Upload a screenshot from your charting platform. Get a structured
+            second opinion with levels and evidence, without piecing together
+            disconnected group messages. Analysis supports your judgment; it
+            cannot guarantee a result.
           </p>
         </div>
 

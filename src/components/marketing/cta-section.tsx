@@ -19,13 +19,13 @@ export function CTASection() {
           </div>
 
           <h2 className="mx-auto mt-6 max-w-2xl font-heading text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-            Before Your Next Trade...
+            Leave the Signal-Group Guesswork Behind.
             <br className="hidden sm:block" />
-            Upload the Chart.
+            Start With Your Chart.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Get a structured second opinion with potential levels and visible
-            reasoning. Use it as one input, then make your own decision.
+            Upload a screenshot and get a structured second opinion in one
+            workspace. Start with the analysis; decide for yourself what to do next.
           </p>
 
           <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">

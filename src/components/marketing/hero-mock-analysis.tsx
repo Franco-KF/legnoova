@@ -2,7 +2,6 @@
 
 import {
   ArrowUp,
-  CircleDot,
   TrendingUp,
 } from "lucide-react";
 
@@ -188,23 +187,8 @@ export function HeroMockAnalysis() {
               </div>
             </div>
 
-            {/* Confidence */}
-            <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-              <div className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <CircleDot className="h-3.5 w-3.5 text-emerald-400" />
-                  Strategy agreement (illustrative)
-                </span>
-                <span className="font-mono font-semibold text-emerald-400">
-                  78%
-                </span>
-              </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.08]">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400"
-                  style={{ width: "78%" }}
-                />
-              </div>
+            <div className="inline-flex self-start rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-[10px] text-muted-foreground">
+              Strategy perspectives · illustrative sample
             </div>
 
             {/* Setup levels */}
@@ -257,10 +241,10 @@ export function HeroMockAnalysis() {
             {/* Strategies */}
             <div className="space-y-1.5">
               {[
-                { name: "Price Action", sig: "BUY", conf: 82 },
-                { name: "Market Structure", sig: "BUY", conf: 75 },
-                { name: "Support & Resistance", sig: "BUY", conf: 70 },
-                { name: "Trend Following", sig: "WAIT", conf: 55 },
+                { name: "Price Action", sig: "BUY", conf: "Aligned" },
+                { name: "Market Structure", sig: "BUY", conf: "Aligned" },
+                { name: "Support & Resistance", sig: "BUY", conf: "Aligned" },
+                { name: "Trend Following", sig: "WAIT", conf: "Mixed" },
               ].map((s) => (
                 <div
                   key={s.name}
@@ -269,7 +253,7 @@ export function HeroMockAnalysis() {
                   <span className="text-xs text-muted-foreground">{s.name}</span>
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-[10px] text-muted-foreground">
-                      {s.conf}%
+                      {s.conf}
                     </span>
                     <span
                       className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${

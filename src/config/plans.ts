@@ -28,14 +28,14 @@ export const FREE_ANALYSIS_LIMIT = 10;
 export const PLANS: Plan[] = [
   {
     id: "analyze",
-    name: "Everything",
+    name: "Forex Trader Toolkit",
     price: 29,
     period: "/month",
-    tagline: "Pro-grade Legnoova AI signals with full reasoning behind every level",
+    tagline: "Chart analysis and the core forex trading services in one subscription",
     highlight: false,
     trialDays: TRIAL_DAYS,
     features: [
-      "Unlimited Legnoova AI chart analyses",
+      "Up to 1,000 Legnoova AI chart analyses per month",
       "Structured signals with entry, stop-loss & targets",
       "Signal journal & hit-rate tracking (You vs Legnoova AI)",
       "Live signals feed + market signals",
@@ -50,19 +50,17 @@ export const PLANS: Plan[] = [
   },
   {
     id: "broker",
-    name: "Everything + Broker",
+    name: "Toolkit + Broker Automation",
     price: 59,
     period: "/month",
-    tagline: "Signals plus direct broker connection for automated traders",
+    tagline: "Everything in the $29 plan, with broker automation in active development",
     highlight: true,
     trialDays: TRIAL_DAYS,
-    note: "Automated broker execution is launching soon.",
+    note: "Broker connection and automated execution are the next implementation focus.",
     features: [
       "Everything in the $29 plan",
-      "Broker connection support",
-      "Advanced automation & custom alerts",
-      "Priority broker integration",
-      "Dedicated support",
+      "Broker connection and automated execution (in development)",
+      "Automation settings and custom alerts (in development)",
     ],
     cta: `Start ${TRIAL_DAYS}-day free trial`,
     priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_BROKER,
@@ -74,8 +72,8 @@ export function getPlan(id: string | null | undefined): Plan | undefined {
 }
 
 export const PLAN_BADGES: Record<PlanId, string> = {
-  analyze: "Everything",
-  broker: "Everything + Broker",
+  analyze: "Forex Trader Toolkit",
+  broker: "Toolkit + Broker Automation",
 };
 
 export const STRATEGY_WEIGHTS = {

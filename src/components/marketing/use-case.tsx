@@ -19,30 +19,31 @@ export function UseCase() {
           {/* Left: narrative */}
           <div>
             <span className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
-              Before You Enter a Trade
+              One Tool, Different Experience Levels
             </span>
             <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-              Before You Enter a Trade...
+              Less Guessing for Beginners.
               <br className="hidden sm:block" />
               <span className="text-gradient-accent bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                Ask Legnoova AI.
+                A Second Look for Pros.
               </span>
             </h2>
             <p className="mt-5 text-base leading-7 text-muted-foreground">
-              Upload your chart and get another perspective on the things that
-              matter most. One more perspective could stop you from taking a
-              trade you shouldn&apos;t take.
+              New to forex? Start with a structured chart walkthrough instead
+              of trying to learn from scattered calls. Experienced trader? Use
+              it to compare a second read with your own setup.
             </p>
             <p className="mt-4 text-base leading-7 text-muted-foreground">
-              No setup. No manual inputs to configure. Just your chart — and a
-              second, independent read before you commit.
+              Either way, upload a screenshot, inspect the reasoning and make
+              your own call. It won&apos;t remove the need to learn, manage risk or
+              decide for yourself.
             </p>
 
             <div className="mt-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
               <div className="flex items-center gap-2">
                 <MessageCircleQuestion className="h-5 w-5 text-emerald-400" />
                 <span className="font-heading text-sm font-semibold">
-                  Just ask: “Does my analysis make sense?”
+                  One question to start: “What does this chart suggest?”
                 </span>
               </div>
             </div>
@@ -51,7 +52,7 @@ export function UseCase() {
           {/* Right: checklist */}
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8">
             <h3 className="font-heading text-lg font-semibold">
-              Get another perspective on:
+              A structured second look at:
             </h3>
             <ul className="mt-6 space-y-3.5">
               {checks.map((c) => (

@@ -12,12 +12,12 @@ export function Pricing() {
             Pricing
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            Your Next Trade Deserves<br className="hidden sm:block" /> a Signal
-            That Shows Its Work
+            Forex Tools for $29.<br className="hidden sm:block" /> Broker Automation for $59.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Every analysis includes potential levels and the reasoning behind
-            them. Review the plan before deciding whether to act.
+            The $29 plan includes chart analysis and the trader services. The
+            $59 plan adds broker automation when it launches. Both are monthly
+            subscriptions; neither promises trading results.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -38,6 +38,8 @@ export function Pricing() {
               key={plan.id}
               plan={plan}
               popular={plan.id === "analyze"}
+              disabled={plan.id === "broker"}
+              ctaLabel={plan.id === "broker" ? "Broker plan in development" : undefined}
               footnote={plan.note}
             />
           ))}

@@ -103,12 +103,11 @@ export function Features() {
             Features
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            Everything You Need for<br className="hidden sm:block" /> Smarter Chart
-            Analysis
+            One Place for Your<br className="hidden sm:block" /> Chart-Analysis Workflow
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Every feature exists for one reason: to help you validate your idea
-            before you risk your money.
+            Upload chart screenshots, review structured analysis, follow signals
+            and keep a record—without juggling separate groups and tools.
           </p>
         </div>
 

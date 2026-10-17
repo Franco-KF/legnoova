@@ -4,6 +4,7 @@ import { ProductExplanation } from "@/components/marketing/product-explanation";
 import { CoreValue } from "@/components/marketing/core-value";
 import { Features } from "@/components/marketing/features";
 import { Strategies } from "@/components/marketing/strategies";
+import { UseCase } from "@/components/marketing/use-case";
 import { TrustPrinciples } from "@/components/marketing/trust-principles";
 import { Pricing } from "@/components/marketing/pricing";
 import { FAQ } from "@/components/marketing/faq";
@@ -112,6 +113,7 @@ export default function Home() {
       <CoreValue />
       <Features />
       <Strategies />
+      <UseCase />
       <TrustPrinciples />
       <Pricing />
       <FAQ />

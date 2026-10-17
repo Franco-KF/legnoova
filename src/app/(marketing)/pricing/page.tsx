@@ -61,7 +61,7 @@ export default function PricingPage() {
       <JsonLd data={pricingSchema} />
       <SubpageHero
         eyebrow="Pricing"
-        title={<>Your Next Trade Deserves<br className="hidden sm:block" /> a Second Opinion</>}
+        title={<>Forex Tools for $29.<br className="hidden sm:block" /> Broker Automation for $59.</>}
         subtitle={`Try any plan free for ${TRIAL_DAYS} days — no charge until the trial ends. Then it's simple monthly billing, a ${MONEY_BACK_DAYS}-day money-back guarantee, and you can cancel anytime.`}
       />
       <section className="py-16">
@@ -72,6 +72,8 @@ export default function PricingPage() {
                 key={plan.id}
                 plan={plan}
                 popular={plan.id === "analyze"}
+                disabled={plan.id === "broker"}
+                ctaLabel={plan.id === "broker" ? "Broker plan in development" : undefined}
                 footnote={plan.note}
               />
             ))}
