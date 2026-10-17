@@ -9,8 +9,6 @@ export function Hero() {
     <section className="relative overflow-hidden">
       {/* Background layers */}
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="grid-bg-pattern mask-fade-bottom absolute inset-0 opacity-40" />
-
         {/* Radial glows */}
         <div className="absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full bg-gradient-to-br from-emerald-500/15 via-teal-500/5 to-transparent blur-3xl" />
         <div className="absolute right-[-200px] top-40 h-[400px] w-[400px] rounded-full bg-teal-400/10 blur-3xl" />

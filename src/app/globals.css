@@ -170,6 +170,24 @@
       linear-gradient(to bottom, oklch(1 0 0 / 0.03) 1px, transparent 1px);
     background-size: 40px 40px;
   }
+  .grid-bg-pattern-fine {
+    background-image:
+      linear-gradient(to right, oklch(1 0 0 / 0.035) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(1 0 0 / 0.035) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .mask-radial-top {
+    -webkit-mask-image: radial-gradient(
+      ellipse 70% 60% at 50% 0%,
+      #000 0%,
+      transparent 78%
+    );
+    mask-image: radial-gradient(
+      ellipse 70% 60% at 50% 0%,
+      #000 0%,
+      transparent 78%
+    );
+  }
   .mask-fade-bottom {
     -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
     mask-image: linear-gradient(to bottom, black 50%, transparent 100%);

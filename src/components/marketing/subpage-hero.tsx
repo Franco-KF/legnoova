@@ -10,7 +10,6 @@ export function SubpageHero({ eyebrow, title, subtitle }: SubpageHeroProps) {
   return (
     <section className="relative overflow-hidden border-b border-white/[0.06]">
       <div className="pointer-events-none absolute inset-0 -z-10">
-        <div className="grid-bg-pattern mask-fade-bottom absolute inset-0 opacity-40" />
         <div className="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-gradient-to-br from-emerald-500/15 via-teal-500/5 to-transparent blur-3xl" />
       </div>
       <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8">
