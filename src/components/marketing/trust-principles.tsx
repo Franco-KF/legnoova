@@ -4,32 +4,32 @@ import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
 const principles = [
   {
     icon: Ban,
-    title: "No forced signals",
+    title: "No made-up calls",
     description:
-      "If the chart isn't clear, you get an honest WAIT — never an invented setup just to keep you engaged.",
+      "If the chart is hard to read, Legnoova can say WAIT instead of pushing a trade.",
     accent: "text-emerald-400",
     tint: "bg-emerald-500/10",
   },
   {
     icon: Eye,
-    title: "No black boxes",
+    title: "See the why",
     description:
-      "Every signal shows its entry, stop-loss, targets and the reasoning behind each level, so you can see exactly how it was reached.",
+      "See the possible entry, stop and targets—and why they showed up in the analysis.",
     accent: "text-teal-400",
     tint: "bg-teal-500/10",
   },
   {
     icon: ScanLine,
-    title: "No hidden numbers",
+    title: "No promises",
     description:
-      "The analysis makes its stated levels and rationale visible. Treat estimates as uncertain, not as promises of an outcome.",
+      "AI can make mistakes. Price levels are estimates, not a promise that a trade will work.",
     accent: "text-cyan-400",
     tint: "bg-cyan-500/10",
   },
   {
     icon: Clock3,
-    title: "No lock-in",
-    description: `A ${TRIAL_DAYS}-day free trial, a ${MONEY_BACK_DAYS}-day money-back guarantee and cancel anytime — no hidden fees.`,
+    title: "Easy to try",
+    description: `Try it free for ${TRIAL_DAYS} days. Cancel anytime. The ${MONEY_BACK_DAYS}-day money-back guarantee also applies.`,
     accent: "text-amber-400",
     tint: "bg-amber-500/10",
   },
@@ -41,16 +41,16 @@ export function TrustPrinciples() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <span className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
-            Our Standard
+            Built on Trust
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            Traders Don&apos;t Need More Noise.
+            Less Noise. More Clarity.
             <br className="hidden sm:block" />
-            They Need More Honesty.
+            And No False Promises.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Transparent reasoning matters—but AI can misread a chart. Legnoova is an
-            informational second opinion, and the final decision remains yours.
+            Trading is hard enough. We show our working, admit when the chart is
+            unclear and leave the final call to you.
           </p>
         </div>
 

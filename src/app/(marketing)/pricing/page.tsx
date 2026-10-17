@@ -11,7 +11,7 @@ import { siteUrl } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: `Give your next trade a second opinion. Start with a ${TRIAL_DAYS}-day free trial, upgrade when you need more AI chart analyses, and enjoy a ${MONEY_BACK_DAYS}-day money-back guarantee. Cancel anytime — no hidden fees.`,
+  description: `Get clear chart reviews, signals and trading tools in one place. Try Legnoova free for ${TRIAL_DAYS} days. Cancel anytime.`,
   alternates: {
     canonical: `${siteUrl}/pricing`,
   },
@@ -62,7 +62,7 @@ export default function PricingPage() {
       <SubpageHero
         eyebrow="Pricing"
         title={<>Forex Tools for $29.<br className="hidden sm:block" /> Broker Automation for $59.</>}
-        subtitle={`Try any plan free for ${TRIAL_DAYS} days — no charge until the trial ends. Then it's simple monthly billing, a ${MONEY_BACK_DAYS}-day money-back guarantee, and you can cancel anytime.`}
+        subtitle={`Try a plan free for ${TRIAL_DAYS} days. Add a payment method to start. Cancel before the trial ends to avoid a charge. Cancel anytime after that, too.`}
       />
       <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -81,9 +81,9 @@ export default function PricingPage() {
 
           <div className="mx-auto mt-10 grid max-w-3xl gap-3 sm:grid-cols-3">
             {[
-              { icon: CalendarDays, label: `Free for ${TRIAL_DAYS} days, cancel before it ends` },
+              { icon: CalendarDays, label: `${TRIAL_DAYS} days free, then monthly billing` },
               { icon: BadgeCheck, label: `${MONEY_BACK_DAYS}-day money-back guarantee` },
-              { icon: ShieldCheck, label: "Auto-renews monthly · cancel anytime" },
+              { icon: ShieldCheck, label: "Pay monthly · cancel anytime" },
             ].map(({ icon: Icon, label }) => (
               <div
                 key={label}

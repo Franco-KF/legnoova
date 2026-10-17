@@ -12,12 +12,12 @@ export function Pricing() {
             Pricing
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            Forex Tools for $29.<br className="hidden sm:block" /> Broker Automation for $59.
+            Get Your Forex Tools for $29.<br className="hidden sm:block" /> Add Broker Tools for $59.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            The $29 plan includes chart analysis and the trader services. The
-            $59 plan adds broker automation when it launches. Both are monthly
-            subscriptions; neither promises trading results.
+            Get chart reviews, signals and trading tools for $29 a month. Want
+            broker automation too? It is part of the $59 plan and is in
+            development now. No plan can promise a profit.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

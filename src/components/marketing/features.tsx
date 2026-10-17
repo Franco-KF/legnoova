@@ -8,89 +8,99 @@ import {
   History,
   BellRing,
   ClipboardList,
+  Zap,
 } from "lucide-react";
 
 const features = [
   {
     icon: FileImage,
-    title: "Legnoova AI Signal Analysis",
+    title: "A Second Look at Your Chart",
     description:
-      "Upload a chart and get a structured analysis with a potential direction, entry, stop-loss and targets based on what is visible.",
+      "Upload a chart screenshot. See the possible direction, entry, stop and targets in one clear review.",
     accent: "text-emerald-400",
     border: "hover:border-emerald-500/30",
     tint: "bg-emerald-500/10",
   },
   {
     icon: TrendingUp,
-    title: "Trend Detection",
+    title: "Spot the Trend",
     description:
-      "See the detected market bias—bullish, bearish or ranging—as one part of the chart analysis.",
+      "See if the chart looks to be moving up, moving down, or going sideways.",
     accent: "text-teal-400",
     border: "hover:border-teal-500/30",
     tint: "bg-teal-500/10",
   },
   {
     icon: Layers,
-    title: "Market Structure",
+    title: "Read Price Swings",
     description:
-      "Review notable highs, lows and potential changes in market structure identified on the chart.",
+      "See the highs and lows that may matter—and when the pattern could be changing.",
     accent: "text-cyan-400",
     border: "hover:border-cyan-500/30",
     tint: "bg-cyan-500/10",
   },
   {
     icon: Grip,
-    title: "Support & Resistance",
+    title: "Find Key Price Areas",
     description:
-      "See potential support and resistance zones identified in the chart, with context for your own review.",
+      "See places where price may slow down or turn. Check these areas against your own chart.",
     accent: "text-amber-400",
     border: "hover:border-amber-500/30",
     tint: "bg-amber-500/10",
   },
   {
     icon: Target,
-    title: "Entry, TP & SL in Every Signal",
+    title: "Possible Entry, Stop & Targets",
     description:
-      "Review potential entry, stop-loss and take-profit levels. These are estimates, not guaranteed execution prices or outcomes.",
+      "Get possible levels to consider. They are estimates—not promises or exact prices.",
     accent: "text-violet-400",
     border: "hover:border-violet-500/30",
     tint: "bg-violet-500/10",
   },
   {
     icon: Clock3,
-    title: "Multi-Timeframe Thinking",
+    title: "See the Bigger Picture",
     description:
-      "Consider the broader trend alongside the detail of the chart you provide.",
+      "Look at the wider trend as well as the detail in your chart.",
     accent: "text-rose-400",
     border: "hover:border-rose-500/30",
     tint: "bg-rose-500/10",
   },
   {
     icon: BellRing,
-    title: "Signal Feed & Email Alerts",
+    title: "Signals & Email Alerts",
     description:
-      "Every signal lands in your feed, and you can get an email the moment Legnoova AI publishes a call on a pair you watch.",
+      "Keep up with new signals in your feed, or get an email about the pairs you follow.",
     accent: "text-cyan-400",
     border: "hover:border-cyan-500/30",
     tint: "bg-cyan-500/10",
   },
   {
     icon: ClipboardList,
-    title: "Journal & Hit-Rate Tracking",
+    title: "A Journal of Your Trades",
     description:
-      "Record your decisions and outcomes in a journal so you can review your own history over time.",
+      "Save your choices and results. Look back to see what is working for you—and what is not.",
     accent: "text-teal-400",
     border: "hover:border-teal-500/30",
     tint: "bg-teal-500/10",
   },
   {
     icon: History,
-    title: "Full Signal History",
+    title: "Your Past Signals",
     description:
-      "Keep every signal organized so you can review past calls, spot patterns and learn from each decision.",
+      "Find old signals, spot patterns and learn from the choices you have made.",
     accent: "text-emerald-400",
     border: "hover:border-emerald-500/30",
     tint: "bg-emerald-500/10",
+  },
+  {
+    icon: Zap,
+    title: "Broker Automation Plan · $59",
+    description:
+      "Want your workflow to do more? The $59 plan is built to add broker links and automated trades. We are building this now; trade execution is not live yet.",
+    accent: "text-amber-400",
+    border: "hover:border-amber-500/30",
+    tint: "bg-amber-500/10",
   },
 ];
 
@@ -103,11 +113,11 @@ export function Features() {
             Features
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            One Place for Your<br className="hidden sm:block" /> Chart-Analysis Workflow
+            Everything You Need to Read a Chart
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Upload chart screenshots, review structured analysis, follow signals
-            and keep a record—without juggling separate groups and tools.
+            Spend less time searching chats. Check your chart, follow signals
+            and track your plan. Add broker automation when it is ready.
           </p>
         </div>
 

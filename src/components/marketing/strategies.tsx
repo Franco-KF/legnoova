@@ -13,7 +13,7 @@ const strategies = [
     icon: Shapes,
     name: "Price Action",
     weight: "20",
-    description: "Reading candlestick patterns and raw price behavior.",
+    description: "What the candles and price moves may be telling you.",
     accent: "text-emerald-400",
     bar: "bg-emerald-400",
   },
@@ -21,7 +21,7 @@ const strategies = [
     icon: Layers,
     name: "Market Structure",
     weight: "20",
-    description: "Higher highs, lower lows, break of structure.",
+    description: "How price highs and lows are forming over time.",
     accent: "text-teal-400",
     bar: "bg-teal-400",
   },
@@ -29,7 +29,7 @@ const strategies = [
     icon: TrendingUp,
     name: "Trend Following",
     weight: "15",
-    description: "Identifying and aligning with directional momentum.",
+    description: "Whether price seems to have a clear direction.",
     accent: "text-cyan-400",
     bar: "bg-cyan-400",
   },
@@ -37,7 +37,7 @@ const strategies = [
     icon: BetweenHorizonalStart,
     name: "Support & Resistance",
     weight: "15",
-    description: "Locating key price levels where reactions occur.",
+    description: "Price areas where the market has turned before.",
     accent: "text-amber-400",
     bar: "bg-amber-400",
   },
@@ -45,7 +45,7 @@ const strategies = [
     icon: Zap,
     name: "Breakout",
     weight: "10",
-    description: "Detecting consolidations and range expansions.",
+    description: "When price may be leaving a quiet range.",
     accent: "text-violet-400",
     bar: "bg-violet-400",
   },
@@ -53,7 +53,7 @@ const strategies = [
     icon: BarChart3,
     name: "Supply & Demand",
     weight: "10",
-    description: "Zones where institutional order flow imbalances sit.",
+    description: "Areas where buying or selling pressure may be strong.",
     accent: "text-rose-400",
     bar: "bg-rose-400",
   },
@@ -61,7 +61,7 @@ const strategies = [
     icon: Landmark,
     name: "Smart Money Concepts",
     weight: "10",
-    description: "Order blocks, fair value gaps and liquidity sweeps.",
+    description: "Popular ways traders look for key areas and price moves.",
     accent: "text-lime-400",
     bar: "bg-lime-400",
   },
@@ -75,31 +75,28 @@ export function Strategies() {
           {/* Left: intro */}
           <div>
             <span className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
-              Built for Real Traders
+              Made for Every Trader
             </span>
             <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-              Built for Traders Who<br className="hidden sm:block" /> Already Know
-              How to Trade
+              New to Trading? Or Already Have a Plan?
             </h2>
             <p className="mt-5 text-base leading-7 text-muted-foreground">
-              This isn&apos;t designed to replace your strategy. Bring your own
-              chart read; Legnoova AI offers another perspective, and you make
-              the final decision.
+              Start with the basics or check a setup you already believe in.
+              Legnoova gives you another view. You stay in charge.
             </p>
             <p className="mt-4 text-base leading-7 text-muted-foreground">
-              Multiple strategy modules review the chart through different
-              frameworks. Their agreement and disagreement inform the analysis;
-              neither is a measure of the probability that a trade will succeed.
+              Legnoova looks at your chart in several ways, such as price moves,
+              trends and key levels. These views can help you ask better
+              questions—but they cannot predict a winning trade.
             </p>
             <p className="mt-4 text-base leading-7 text-muted-foreground">
-              Inspect which perspectives align or conflict and decide whether
-              the analysis fits your own plan.
+              See where the views agree or differ, then decide what fits your plan.
             </p>
 
             <div className="mt-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>Default Weights</span>
-                <span>Price Action &amp; Structure lead</span>
+                <span>What Legnoova looks at</span>
+                <span>Price moves and key levels</span>
               </div>
               <div className="mt-3 flex h-2 overflow-hidden rounded-full bg-white/[0.06]">
                 {strategies.map((s) => (

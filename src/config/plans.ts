@@ -28,35 +28,35 @@ export const FREE_ANALYSIS_LIMIT = 10;
 export const PLANS: Plan[] = [
   {
     id: "analyze",
-    name: "Forex Trader Toolkit",
+    name: "Forex Essentials",
     price: 29,
     period: "/month",
-    tagline: "Chart analysis and the core forex trading services in one subscription",
+    tagline: "Chart reviews, signals and tools—all in one place",
     highlight: false,
     trialDays: TRIAL_DAYS,
     features: [
       "Up to 1,000 Legnoova AI chart analyses per month",
-      "Structured signals with entry, stop-loss & targets",
-      "Signal journal & hit-rate tracking (You vs Legnoova AI)",
-      "Live signals feed + market signals",
-      "Email alerts when signals match your watchlist",
-      "All 7 trading strategies incl. Smart Money Concepts",
-      "Multi-timeframe analysis",
-      "Full analysis history & unlimited watchlists",
-      "Priority processing",
+      "Clear signal with possible entry, stop and targets",
+      "Trade journal to track your choices and results",
+      "Live signals and market updates",
+      "Email alerts for the pairs you follow",
+      "Seven ways to read the chart",
+      "Compare short- and long-term views",
+      "Past chart reviews and watchlists",
+      "Faster chart reviews",
     ],
     cta: `Start ${TRIAL_DAYS}-day free trial`,
     priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_ANALYZE,
   },
   {
     id: "broker",
-    name: "Toolkit + Broker Automation",
+    name: "Forex Essentials + Broker Tools",
     price: 59,
     period: "/month",
-    tagline: "Everything in the $29 plan, with broker automation in active development",
+    tagline: "Everything in the $29 plan, plus broker automation in development",
     highlight: true,
     trialDays: TRIAL_DAYS,
-    note: "Broker connection and automated execution are the next implementation focus.",
+    note: "Broker tools are the next part of the product we are building.",
     features: [
       "Everything in the $29 plan",
       "Broker connection and automated execution (in development)",
@@ -72,8 +72,8 @@ export function getPlan(id: string | null | undefined): Plan | undefined {
 }
 
 export const PLAN_BADGES: Record<PlanId, string> = {
-  analyze: "Forex Trader Toolkit",
-  broker: "Toolkit + Broker Automation",
+  analyze: "Forex Essentials",
+  broker: "Forex Essentials + Broker Tools",
 };
 
 export const STRATEGY_WEIGHTS = {

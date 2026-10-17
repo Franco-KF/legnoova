@@ -21,7 +21,7 @@ export function Hero() {
           <div className="flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/[0.07] px-4 py-1.5">
             <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
             <span className="text-sm text-emerald-300/90">
-              Chart analysis · Strategy perspectives · One workspace
+              Chart analysis today · Broker automation in development
             </span>
             <span className="hidden h-3.5 w-px bg-emerald-500/30 sm:block" />
             <span className="hidden text-sm font-semibold text-emerald-300 sm:block">
@@ -34,9 +34,9 @@ export function Hero() {
         <h1
           className="animate-fade-in-up animation-delay-100 mx-auto mt-7 max-w-4xl text-center font-heading text-4xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl"
         >
-          Less signal-group noise.{" "}
+          Tired of guessing from group signals?{" "}
           <span className="text-gradient-accent bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-            More clarity on your chart.
+            Get a clearer look at your next trade.
           </span>
         </h1>
 
@@ -44,10 +44,9 @@ export function Hero() {
         <p
           className="animate-fade-in-up animation-delay-200 mx-auto mt-6 max-w-2xl text-center text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl"
         >
-          Stop jumping between Telegram calls and scattered forex groups for
-          another opinion. Upload a chart screenshot and get structured analysis,
-          potential levels and visible reasoning in one place—then make your own
-          decision.
+          Stop chasing calls across Telegram and forex groups. Share a chart
+          screenshot and get a clear second look at the trend, possible entry,
+          stop and targets—all in one place. Then choose your next move.
         </p>
 
         {/* CTA buttons */}
@@ -57,7 +56,7 @@ export function Hero() {
             size="lg"
             className="group h-12 w-full gap-2 rounded-xl px-8 text-base shadow-glow-emerald transition-all hover:scale-[1.02] sm:w-auto"
           >
-            Analyze a Chart Screenshot
+            Check My Chart
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Button>
           <Button
@@ -77,12 +76,12 @@ export function Hero() {
         >
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <ShieldCheck className="h-4 w-4 text-emerald-400" />
-            Built for beginners and experienced traders
+            Start simple · Go deeper when you are ready
           </div>
           <div className="hidden h-4 w-px bg-white/[0.1] sm:block" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Sparkles className="h-4 w-4 text-teal-400" />
-            One subscription · Analysis, feed & journal
+            Plans from $29 · Broker plan $59
           </div>
           <div className="hidden h-4 w-px bg-white/[0.1] sm:block" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">

@@ -1,12 +1,12 @@
 import { X, Check, MessageSquareText } from "lucide-react";
 
 const legnoovaBreakdown = [
-  { label: "Trend", value: "Bullish (aligned with higher timeframes)" },
-  { label: "Market Structure", value: "Higher highs + higher lows" },
-  { label: "Key Level", value: "1.0810 – 1.0825" },
-  { label: "Potential Entry", value: "Illustrative range" },
-  { label: "Stop Loss", value: "Illustrative level" },
-  { label: "Potential Targets", value: "Illustrative levels" },
+  { label: "Direction", value: "Moving up (sample)" },
+  { label: "Price pattern", value: "Higher highs (sample)" },
+  { label: "Key price area", value: "Sample range" },
+  { label: "Possible entry", value: "Sample range" },
+  { label: "Possible stop", value: "Sample level" },
+  { label: "Possible targets", value: "Sample levels" },
 ];
 
 export function CoreValue() {
@@ -20,11 +20,11 @@ export function CoreValue() {
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
             Don&apos;t Just Follow Signals.
             <br className="hidden sm:block" />
-            Understand Why.
+            See the reason behind the call.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Legnoova presents a potential analysis and its supporting evidence.
-            Review it critically; it is not a guarantee or a substitute for your judgment.
+            Get more than a BUY or SELL message. See what the chart may be
+            showing—and decide if the idea makes sense to you.
           </p>
         </div>
 
@@ -36,23 +36,21 @@ export function CoreValue() {
                 <X className="h-4 w-4 text-red-400" />
               </span>
               <h3 className="font-heading text-lg font-semibold">
-                Typical Signal Services
+                Group Signal
               </h3>
             </div>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              A message pops up in your group. No context, no reasoning, no way
-              to verify it.
+              One short message, little context, and a big decision left to you.
             </p>
             <div className="mt-6 rounded-xl border border-white/[0.06] bg-black/30 p-5">
               <p className="text-[10px] uppercase tracking-wider text-red-400/60">
-                You receive
+                A message says
               </p>
               <p className="mt-3 font-mono text-2xl font-bold tracking-wide text-red-300">
                 BUY EUR/USD
               </p>
               <p className="mt-2 text-xs text-muted-foreground">
-                ...and that&apos;s it. Follow blindly or skip it — there&apos;s no way
-                to know why.
+                But what is the reason? Where could the idea be wrong?
               </p>
             </div>
           </div>
@@ -71,12 +69,11 @@ export function CoreValue() {
                 <Check className="h-4 w-4 text-emerald-400" />
               </span>
               <h3 className="font-heading text-lg font-semibold">
-                Legnoova Analysis
+                Your Legnoova Review
               </h3>
             </div>
             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-              A structured analysis with potential levels and the chart evidence
-              behind them.
+              A simple chart review with possible levels and the reasons behind them.
             </p>
             <div className="mt-6 rounded-xl border border-white/[0.06] bg-black/30 p-5">
               <p className="text-[10px] uppercase tracking-wider text-emerald-400/60">
@@ -98,8 +95,7 @@ export function CoreValue() {
                 ))}
               </div>
               <p className="mt-5 border-t border-white/[0.06] pt-4 text-xs leading-5 text-emerald-300/80">
-                Illustrative values only. AI analysis may be inaccurate; verify
-                levels independently before making any trading decision.
+                Sample only. AI can get it wrong. Check the chart and decide for yourself.
               </p>
             </div>
           </div>

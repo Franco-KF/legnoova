@@ -176,7 +176,7 @@ export function HeroMockAnalysis() {
                   </span>
                 </div>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Market Bias: Bullish
+                  Chart view: Moving up
                 </p>
               </div>
               <div className="flex items-center gap-2 rounded-xl bg-emerald-500/15 px-4 py-2 ring-1 ring-emerald-500/40">
@@ -188,7 +188,7 @@ export function HeroMockAnalysis() {
             </div>
 
             <div className="inline-flex self-start rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1 text-[10px] text-muted-foreground">
-              Strategy perspectives · illustrative sample
+              Different chart checks · sample only
             </div>
 
             {/* Setup levels */}

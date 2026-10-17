@@ -11,23 +11,23 @@ const steps = [
   {
     icon: Eye,
     step: "02",
-    title: "Review the analysis",
+    title: "See the key levels",
     description:
-      "See a potential direction, entry, stop-loss, targets and the chart evidence behind the analysis.",
+      "See the possible trend, entry, stop and targets—with a plain-language reason for each.",
   },
   {
     icon: GitCompareArrows,
     step: "03",
     title: "Decide for yourself",
     description:
-      "Compare the second opinion with your own plan. Agreement is not a guarantee; disagreement is a prompt to review.",
+      "See where the analysis matches your plan—and where it does not. The choice is always yours.",
   },
   {
     icon: ShieldCheck,
     step: "04",
     title: "Choose your next step",
     description:
-      "Use the analysis as one input—or wait when the chart does not present a clear setup.",
+      "Use it as a guide, or wait if the chart is unclear. No pressure to take a trade.",
   },
 ];
 
@@ -37,20 +37,19 @@ export function ProductExplanation() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-3xl text-center">
           <span className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
-            The Second Opinion
+            A Better Way to Check Your Chart
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
             Stop Chasing Calls Across Groups.
             <br className="hidden sm:block" />
             <span className="text-gradient-accent bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-              Bring Your Chart Into One Workflow.
+              Get the full picture in one place.
             </span>
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Upload a screenshot from your charting platform. Get a structured
-            second opinion with levels and evidence, without piecing together
-            disconnected group messages. Analysis supports your judgment; it
-            cannot guarantee a result.
+            Upload a chart screenshot. Get a clear second look, with possible
+            trade levels and the reasons behind them. No more piecing together
+            chat messages. You stay in control—no tool can promise a win.
           </p>
         </div>
 

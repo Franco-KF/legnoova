@@ -1,14 +1,14 @@
 import { Check, MessageCircleQuestion } from "lucide-react";
 
 const checks = [
-  { label: "Trend direction" },
-  { label: "Market structure" },
-  { label: "Key price levels" },
-  { label: "Potential entry zones" },
-  { label: "Stop Loss placement" },
-  { label: "Take Profit targets" },
-  { label: "Bullish vs bearish scenarios" },
-  { label: "Potential weaknesses in your setup" },
+  { label: "Is price moving up, down or sideways?" },
+  { label: "Where has price turned before?" },
+  { label: "What areas may matter next?" },
+  { label: "Where might a trade start?" },
+  { label: "Where could the idea be wrong?" },
+  { label: "Where might you take profit?" },
+  { label: "What if price moves the other way?" },
+  { label: "What should you check before you act?" },
 ];
 
 export function UseCase() {
@@ -19,31 +19,29 @@ export function UseCase() {
           {/* Left: narrative */}
           <div>
             <span className="text-sm font-semibold uppercase tracking-widest text-emerald-400">
-              One Tool, Different Experience Levels
+              Whether You Are New or Experienced
             </span>
             <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-              Less Guessing for Beginners.
+              Start With a Clearer View.
               <br className="hidden sm:block" />
               <span className="text-gradient-accent bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
-                A Second Look for Pros.
+                Check Your Next Move.
               </span>
             </h2>
             <p className="mt-5 text-base leading-7 text-muted-foreground">
-              New to forex? Start with a structured chart walkthrough instead
-              of trying to learn from scattered calls. Experienced trader? Use
-              it to compare a second read with your own setup.
+              New to forex? Get help making sense of your chart. Been trading
+              for years? Get another view before you act.
             </p>
             <p className="mt-4 text-base leading-7 text-muted-foreground">
-              Either way, upload a screenshot, inspect the reasoning and make
-              your own call. It won&apos;t remove the need to learn, manage risk or
-              decide for yourself.
+              Upload a screenshot, see what stands out and choose your next
+              step. Keep learning and managing risk—no tool can do that for you.
             </p>
 
             <div className="mt-8 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5">
               <div className="flex items-center gap-2">
                 <MessageCircleQuestion className="h-5 w-5 text-emerald-400" />
                 <span className="font-heading text-sm font-semibold">
-                  One question to start: “What does this chart suggest?”
+                  Start here: “What should I notice on this chart?”
                 </span>
               </div>
             </div>
@@ -52,7 +50,7 @@ export function UseCase() {
           {/* Right: checklist */}
           <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8">
             <h3 className="font-heading text-lg font-semibold">
-              A structured second look at:
+              Get help checking:
             </h3>
             <ul className="mt-6 space-y-3.5">
               {checks.map((c) => (
