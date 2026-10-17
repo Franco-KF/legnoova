@@ -253,12 +253,6 @@ export default function DashboardPage() {
           </div>
         </Link>
       </div>
-
-      {/* Disclaimer */}
-      <p className="mt-12 text-center text-xs text-muted-foreground/60">
-        Legnoova AI provides signals for informational purposes and does not
-        guarantee trading results. You stay in control of every trade.
-      </p>
     </div>
   );
 }

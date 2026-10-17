@@ -63,11 +63,6 @@ export function CTASection() {
               </span>
             ))}
           </div>
-
-          <p className="mt-6 text-xs text-muted-foreground/70">
-            Legnoova AI analysis is for informational and educational purposes only. It
-            does not guarantee profitable trades or eliminate market risk.
-          </p>
         </div>
       </div>
     </section>

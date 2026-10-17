@@ -564,16 +564,6 @@ export function SignalCard({ signal, onUpdate, market }: SignalCardProps) {
           </div>
         </div>
       )}
-
-      {/* Risk disclosure */}
-      <div className="flex items-start gap-2 border-t border-white/[0.06] px-5 py-3">
-        <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground/60" />
-        <p className="text-xs text-muted-foreground/60">
-          Legnoova AI generated analysis is for informational purposes only and
-          does not constitute financial advice. You stay in control of every
-          trade.
-        </p>
-      </div>
     </div>
   );
 }

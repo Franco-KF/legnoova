@@ -500,10 +500,6 @@ function NeutralResult({ analysis }: { analysis: Analysis }) {
           {analysis.summary}
         </p>
       )}
-      <p className="mt-4 text-xs text-muted-foreground/60">
-        Legnoova AI generated analysis is for informational purposes only and
-        does not constitute financial advice.
-      </p>
     </div>
   );
 }

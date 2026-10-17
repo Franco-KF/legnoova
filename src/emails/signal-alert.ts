@@ -60,7 +60,7 @@ export function signalAlertHtml(data: SignalAlertData) {
 
       <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px;margin-bottom:24px;">
         <p style="font-size:12px;color:#6b7280;margin:0 0 4px;">RISK-FIRST RULE</p>
-        <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.6;">Never risk more than a defined % of your account on a single trade. This signal is generated analysis, not financial advice — you stay in control of every entry.</p>
+        <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.6;">Never risk more than a defined % of your account on a single trade. Size your position deliberately — you stay in control of every entry.</p>
       </div>
 
       <div style="text-align:center;margin-bottom:24px;">
@@ -87,6 +87,5 @@ export function signalAlertText(data: SignalAlertData) {
     tps,
     `Best Risk:Reward: 1:${data.riskReward.toFixed(1)}`,
     ``,
-    `Legnoova AI generated analysis is for informational purposes only and does not constitute financial advice.`,
   ].join("\n");
 }

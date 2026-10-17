@@ -29,10 +29,6 @@ export function Footer() {
               {TRIAL_DAYS}-day free trial · {MONEY_BACK_DAYS}-day money-back
               guarantee · Cancel anytime
             </p>
-            <p className="mt-6 text-xs text-muted-foreground/70">
-              Trading involves risk. Legnoova provides informational analysis and
-              does not guarantee results.
-            </p>
           </div>
 
           <div>
@@ -72,12 +68,9 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/[0.06] pt-8 sm:flex-row">
+        <div className="mt-12 flex flex-col items-center justify-center gap-4 border-t border-white/[0.06] pt-8">
           <p className="text-xs text-muted-foreground/70">
             © {new Date().getFullYear()} Legnoova. All rights reserved.
-          </p>
-          <p className="text-xs text-muted-foreground/70">
-            Disclaimer: Not financial advice.
           </p>
         </div>
       </div>

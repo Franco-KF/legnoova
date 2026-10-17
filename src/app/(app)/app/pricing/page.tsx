@@ -137,11 +137,6 @@ export default async function UpgradePage({
           Back to dashboard <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       )}
-
-      <p className="mt-12 text-center text-xs text-muted-foreground/60">
-        Legnoova AI provides market analysis for informational purposes and does
-        not guarantee trading results. Always verify a setup before trading.
-      </p>
     </div>
   );
 }

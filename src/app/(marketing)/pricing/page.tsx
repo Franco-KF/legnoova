@@ -6,7 +6,7 @@ import { SubpageHero } from "@/components/marketing/subpage-hero";
 import { FAQ } from "@/components/marketing/faq";
 import { CTASection } from "@/components/marketing/cta-section";
 import { JsonLd } from "@/components/seo/json-ld";
-import { BadgeCheck, CalendarDays, ShieldAlert, ShieldCheck } from "lucide-react";
+import { BadgeCheck, CalendarDays, ShieldCheck } from "lucide-react";
 import { siteUrl } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -86,15 +86,6 @@ export default function PricingPage() {
                 {label}
               </div>
             ))}
-          </div>
-
-          <div className="mx-auto mt-8 flex max-w-3xl items-start gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 text-left">
-            <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
-            <p className="text-sm leading-6 text-muted-foreground">
-              Legnoova AI provides market analysis for informational
-              purposes and does not guarantee trading results. Always verify the
-              setup before placing a trade.
-            </p>
           </div>
         </div>
       </section>
