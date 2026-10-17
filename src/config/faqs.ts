@@ -1,4 +1,10 @@
+import { MONEY_BACK_DAYS, TRIAL_DAYS } from "./billing";
+
 export const faqs = [
+  {
+    question: "How does the free trial work?",
+    answer: `Every paid plan starts with a ${TRIAL_DAYS}-day free trial. You add a payment method to begin, but you are not charged during the trial. We'll remind you before it ends — cancel any time before then and you'll never be charged. If you do nothing, your subscription simply continues at the plan's monthly price.`,
+  },
   {
     question: "Is Legnoova financial advice?",
     answer:
@@ -32,7 +38,11 @@ export const faqs = [
   {
     question: "Can I cancel my subscription anytime?",
     answer:
-      "Yes. You can manage or cancel your subscription through your billing page. Your access continues until the end of the current billing period.",
+      "Yes — cancel whenever you like from your billing page, with no fees or penalties. Your access continues until the end of the period you've already paid for, and you can resubscribe at any time.",
+  },
+  {
+    question: "What is your money-back guarantee?",
+    answer: `If Legnoova isn't right for you, request a full refund within ${MONEY_BACK_DAYS} days of your first charge (the day your free trial ends) and we'll return it in full — no questions asked. After that window, subscriptions are non-refundable, but you can still cancel at any time to stop future charges.`,
   },
   {
     question: "Is my data private?",

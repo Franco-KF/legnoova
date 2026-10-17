@@ -6,12 +6,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   BadgeCheck,
+  CalendarDays,
   Check,
   Lock,
   RefreshCw,
   ShieldCheck,
 } from "lucide-react";
 import { PLANS } from "@/config/plans";
+import { MONEY_BACK_DAYS, TRIAL_DAYS, getTrialEnd } from "@/config/billing";
 import { PaymentMethodForm } from "@/components/billing/payment-method-form";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +25,14 @@ export default function CheckoutPage() {
   );
 }
 
+function formatDate(date: Date): string {
+  return date.toLocaleDateString(undefined, {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -32,6 +42,11 @@ function CheckoutContent() {
     () => PLANS.find((p) => p.id === planId) ?? null,
     [planId]
   );
+
+  const trialDays = plan?.trialDays ?? TRIAL_DAYS;
+
+  const trialEnd = useMemo(() => getTrialEnd(), []);
+  const firstCharge = useMemo(() => getTrialEnd(), []);
 
   if (!plan) {
     return (
@@ -51,7 +66,8 @@ function CheckoutContent() {
   }
 
   const tax = 0;
-  const total = plan.price + tax;
+  const totalDueToday = 0;
+  const renewalTotal = plan.price + tax;
 
   const complete = async () => {
     try {
@@ -86,17 +102,27 @@ function CheckoutContent() {
         <div>
           <h1 className="font-heading text-2xl font-bold sm:text-3xl">Checkout</h1>
           <p className="text-sm text-muted-foreground">
-            Complete your purchase to activate {plan.name}.
+            Start your {trialDays}-day free trial of {plan.name}.
           </p>
         </div>
+      </div>
+
+      <div className="mb-6 flex items-start gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-200/90">
+        <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+        <span>
+          <strong className="font-semibold">You won&apos;t be charged today.</strong>{" "}
+          Your free trial runs until {formatDate(trialEnd)}. We&apos;ll only
+          charge ${renewalTotal.toFixed(2)} on {formatDate(firstCharge)} — and
+          you can cancel anytime before then at no cost.
+        </span>
       </div>
 
       <div className="mb-6 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/[0.06] px-4 py-3 text-xs text-amber-300/90">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
         <span>
           <strong>Test mode.</strong> No real charge is processed. Completing
-          checkout saves the card&apos;s number, brand and expiry, and activates
-          the plan for testing only.
+          checkout saves the card&apos;s number, brand and expiry, and starts
+          the trial for testing only.
         </span>
       </div>
 
@@ -139,37 +165,49 @@ function CheckoutContent() {
             <div className="border-t border-white/[0.06] p-6">
               <dl className="space-y-2.5 text-sm">
                 <div className="flex items-center justify-between">
-                  <dt className="text-muted-foreground">Subtotal</dt>
+                  <dt className="text-muted-foreground">
+                    {plan.name} ({plan.period.replace("/", "per ")})
+                  </dt>
                   <dd className="font-medium">${plan.price.toFixed(2)}</dd>
+                </div>
+                <div className="flex items-center justify-between">
+                  <dt className="text-muted-foreground">{trialDays}-day free trial</dt>
+                  <dd className="font-medium text-emerald-400">
+                    −${plan.price.toFixed(2)}
+                  </dd>
                 </div>
                 <div className="flex items-center justify-between">
                   <dt className="text-muted-foreground">Tax</dt>
                   <dd className="font-medium">${tax.toFixed(2)}</dd>
                 </div>
                 <div className="mt-2 flex items-center justify-between border-t border-white/[0.06] pt-3">
-                  <dt className="font-semibold">Total due today</dt>
+                  <dt className="font-semibold">Due today</dt>
                   <dd className="font-heading text-lg font-bold text-emerald-400">
-                    ${total.toFixed(2)}
+                    ${totalDueToday.toFixed(2)}
                   </dd>
                 </div>
               </dl>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Billed monthly. Cancel anytime — no long-term contract.
+              <p className="mt-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-xs text-muted-foreground">
+                Then <strong className="text-foreground">${renewalTotal.toFixed(2)}/month</strong>{" "}
+                starting {formatDate(firstCharge)}. Auto-renews monthly. Cancel
+                anytime before {formatDate(trialEnd)} and you&apos;ll never be
+                charged.
               </p>
             </div>
           </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
             {[
-              { icon: ShieldCheck, label: "Secure checkout" },
-              { icon: RefreshCw, label: "Cancel anytime" },
-              { icon: BadgeCheck, label: "Instant activation" },
+              { icon: CalendarDays, label: `${trialDays}-day free trial` },
+              { icon: RefreshCw, label: "Cancel anytime, no fees" },
+              { icon: BadgeCheck, label: `${MONEY_BACK_DAYS}-day money-back guarantee` },
+              { icon: ShieldCheck, label: "Secure, encrypted checkout" },
             ].map(({ icon: Icon, label }) => (
               <div
                 key={label}
                 className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-xs text-muted-foreground"
               >
-                <Icon className="h-4 w-4 text-emerald-400" />
+                <Icon className="h-4 w-4 shrink-0 text-emerald-400" />
                 {label}
               </div>
             ))}
@@ -186,11 +224,12 @@ function CheckoutContent() {
           >
             <h2 className="font-heading text-lg font-semibold">Payment details</h2>
             <p className="mt-1 mb-5 text-sm text-muted-foreground">
-              Enter your card to activate your subscription.
+              Add a card to start your free trial. You won&apos;t be charged
+              until {formatDate(firstCharge)}.
             </p>
             <PaymentMethodForm
-              submitLabel={`Pay $${total.toFixed(2)}`}
-              successMessage="Payment method saved"
+              submitLabel={`Start free trial — $0 today`}
+              successMessage="Trial started"
               onDone={complete}
             />
           </div>

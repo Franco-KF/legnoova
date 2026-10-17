@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./logo";
+import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
 
 const footerLinks = {
   product: [
@@ -23,6 +24,10 @@ export function Footer() {
             <p className="mt-4 max-w-sm text-sm leading-6 text-muted-foreground">
               Legnoova AI — a second opinion for your forex analysis. Challenge your own
               chart reading before you risk money on a trade.
+            </p>
+            <p className="mt-4 text-xs font-medium text-emerald-400/90">
+              {TRIAL_DAYS}-day free trial · {MONEY_BACK_DAYS}-day money-back
+              guarantee · Cancel anytime
             </p>
             <p className="mt-6 text-xs text-muted-foreground/70">
               Trading involves risk. Legnoova provides informational analysis and

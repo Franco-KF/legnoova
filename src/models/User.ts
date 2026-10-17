@@ -1,7 +1,7 @@
 import mongoose, { Schema, type Document, type Model } from "mongoose";
 
 export type PlanId = "analyze" | "broker";
-export type PlanStatus = "active" | "past_due" | "canceled";
+export type PlanStatus = "active" | "trialing" | "past_due" | "canceled";
 
 export interface IUser extends Document {
   name: string;
@@ -13,6 +13,8 @@ export interface IUser extends Document {
   /** Active paid plan; null/undefined = free tier. */
   plan?: PlanId | null;
   planStatus?: PlanStatus | null;
+  /** End of the current free trial (null once the first charge is made). */
+  trialEndsAt?: Date | null;
   paddleCustomerId?: string;
   paddleSubscriptionId?: string;
   /** End of the currently paid period (Paddle current_period_end). */
@@ -30,7 +32,12 @@ const UserSchema = new Schema<IUser>(
     passwordHash: { type: String, select: false },
     signalEmailAlerts: { type: Boolean, default: true },
     plan: { type: String, enum: ["analyze", "broker"], default: null },
-    planStatus: { type: String, enum: ["active", "past_due", "canceled"], default: null },
+    planStatus: {
+      type: String,
+      enum: ["active", "trialing", "past_due", "canceled"],
+      default: null,
+    },
+    trialEndsAt: { type: Date, default: null },
     paddleCustomerId: { type: String, index: true },
     paddleSubscriptionId: { type: String, index: true },
     planCurrentPeriodEnd: { type: Date, default: null },

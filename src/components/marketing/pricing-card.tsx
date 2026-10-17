@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Check, Sparkles, Lock } from "lucide-react";
+import { CalendarDays, Check, ShieldCheck, Sparkles, Lock } from "lucide-react";
 import type { Plan } from "@/config/plans";
+import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -68,6 +69,11 @@ export function PricingCard({
         <span className="text-sm text-muted-foreground">{plan.period}</span>
       </div>
 
+      <p className="mt-3 inline-flex items-center gap-1.5 self-start rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+        <CalendarDays className="h-3.5 w-3.5" />
+        {TRIAL_DAYS}-day free trial
+      </p>
+
       <div className="mt-8 flex-1">
         <ul className="space-y-3.5">
           {plan.features.map((feature) => (
@@ -112,6 +118,11 @@ export function PricingCard({
           {label}
         </Button>
       )}
+
+      <p className="mt-3 flex items-center justify-center gap-1.5 text-center text-[11px] leading-4 text-muted-foreground">
+        <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-400/70" />
+        {MONEY_BACK_DAYS}-day money-back guarantee · Cancel anytime
+      </p>
     </div>
   );
 }

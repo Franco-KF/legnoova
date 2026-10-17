@@ -4,7 +4,10 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PLANS, FREE_ANALYSIS_LIMIT } from "@/config/plans";
+import { MONEY_BACK_DAYS, TRIAL_DAYS, daysRemaining } from "@/config/billing";
 import {
+  BadgeCheck,
+  CalendarDays,
   Check,
   CreditCard,
   Loader2,
@@ -13,6 +16,7 @@ import {
   Sparkles,
   Star,
   Trash2,
+  XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -29,6 +33,7 @@ import { PageHeader } from "@/components/layout/page-header";
 interface AccountData {
   plan: string | null;
   planStatus: string | null;
+  trialEndsAt: string | null;
   planCurrentPeriodEnd: string | null;
 }
 
@@ -85,6 +90,8 @@ function BillingContent() {
   const searchParams = useSearchParams();
   const [account, setAccount] = useState<AccountData | null>(null);
   const [cardDialogOpen, setCardDialogOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
   const [methods, setMethods] = useState<SavedMethod[]>([]);
   const [loadingMethods, setLoadingMethods] = useState(true);
 
@@ -138,7 +145,9 @@ function BillingContent() {
 
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
-      toast.success("Payment received! Your plan will activate momentarily.");
+      toast.success("Your free trial has started!", {
+        description: `No charge today. We'll remind you before your ${TRIAL_DAYS}-day trial ends.`,
+      });
       const t = setTimeout(refresh, 5000);
       return () => clearTimeout(t);
     }
@@ -171,14 +180,42 @@ function BillingContent() {
     }
   };
 
+  const cancelSubscription = async () => {
+    if (cancelling) return;
+    setCancelling(true);
+    try {
+      const res = await fetch("/api/billing/cancel", { method: "POST" });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(data?.error ?? "Could not cancel your subscription");
+      }
+      toast.success("Subscription canceled", {
+        description:
+          "You'll keep full access until the end of your current billing period.",
+      });
+      setCancelOpen(false);
+      refresh();
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong"
+      );
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   const currentPlan = account?.plan ?? null;
+  const onTrial = account?.planStatus === "trialing" && !!account?.trialEndsAt;
+  const trialDaysLeft = daysRemaining(account?.trialEndsAt);
   const planLabel = currentPlan
     ? PLAN_LABELS[currentPlan] ?? currentPlan
     : `Free tier · ${FREE_ANALYSIS_LIMIT} analyses/month`;
   const statusLabel = account?.planStatus
     ? account.planStatus === "active"
       ? "active"
-      : account.planStatus.replace("_", " ")
+      : account.planStatus === "trialing"
+        ? `${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left in trial`
+        : account.planStatus.replace("_", " ")
     : "upgrade to unlock unlimited";
 
   return (
@@ -198,6 +235,28 @@ function BillingContent() {
         }
       />
 
+      {/* Free trial banner */}
+      {onTrial && (
+        <div className="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/[0.1] to-transparent px-4 py-3.5">
+          <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
+          <div className="text-sm">
+            <p className="font-semibold text-emerald-300">
+              You&apos;re on your {TRIAL_DAYS}-day free trial
+            </p>
+            <p className="mt-0.5 text-muted-foreground">
+              {trialDaysLeft} day{trialDaysLeft === 1 ? "" : "s"} remaining. You
+              won&apos;t be charged until{" "}
+              {new Date(account!.trialEndsAt!).toLocaleDateString(undefined, {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+              . Cancel anytime before then and you pay nothing.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Current plan */}
       <div className="mb-8 flex items-center gap-4 rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/[0.08] to-transparent p-6">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/15 ring-1 ring-emerald-500/30">
@@ -210,7 +269,7 @@ function BillingContent() {
         <span
           className={cn(
             "ml-auto hidden rounded-full border px-3 py-1 text-xs sm:block",
-            currentPlan && account?.planStatus === "active"
+            currentPlan && (account?.planStatus === "active" || onTrial)
               ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-400"
               : "border-white/[0.1] bg-white/[0.03] text-muted-foreground"
           )}
@@ -218,6 +277,77 @@ function BillingContent() {
           {statusLabel}
         </span>
       </div>
+
+      {/* Subscription management */}
+      {currentPlan && (
+        <div className="mb-8 flex flex-col gap-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-medium">
+              {account?.planStatus === "canceled"
+                ? "Subscription canceled"
+                : "Manage your subscription"}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {account?.planStatus === "canceled"
+                ? "You'll keep full access until the end of the period you've paid for. You can resubscribe anytime."
+                : "Cancel anytime, no fees. You'll keep full access until the end of your current billing period."}
+            </p>
+          </div>
+          {account?.planStatus === "canceled" ? (
+            <Link
+              href="/app/pricing"
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-white/[0.12] bg-white/[0.02] px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-white/[0.06]"
+            >
+              <Sparkles className="h-4 w-4 text-emerald-400" />
+              Resubscribe
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setCancelOpen(true)}
+              className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-red-500/25 bg-red-500/[0.06] px-4 py-2.5 text-sm font-semibold text-red-300 transition-colors hover:bg-red-500/[0.12]"
+            >
+              <XCircle className="h-4 w-4" />
+              Cancel subscription
+            </button>
+          )}
+        </div>
+      )}
+
+      <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cancel your subscription?</DialogTitle>
+            <DialogDescription>
+              You&apos;ll keep full access until the end of your current billing
+              period. After that your account moves to the free tier — no hidden
+              fees, and you can resubscribe whenever you like.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-2 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setCancelOpen(false)}
+              className="inline-flex items-center justify-center rounded-xl border border-white/[0.12] bg-white/[0.02] px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-white/[0.06]"
+            >
+              Keep my plan
+            </button>
+            <button
+              type="button"
+              onClick={cancelSubscription}
+              disabled={cancelling}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-red-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {cancelling ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <XCircle className="h-4 w-4" />
+              )}
+              {cancelling ? "Canceling…" : "Yes, cancel"}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Plans */}
       <div className="grid gap-5 sm:grid-cols-2">
@@ -359,9 +489,25 @@ function BillingContent() {
         )}
       </div>
 
-      <p className="mt-8 flex items-center justify-center gap-1.5 text-center text-xs text-muted-foreground/60">
-        <ShieldCheck className="h-3.5 w-3.5" />
-        Secure checkout. Cancel anytime.
+      <div className="mt-10 grid gap-3 border-t border-white/[0.06] pt-6 sm:grid-cols-3">
+        {[
+          { icon: ShieldCheck, label: "Secure, encrypted checkout" },
+          { icon: CalendarDays, label: `${TRIAL_DAYS}-day free trial on every plan` },
+          { icon: BadgeCheck, label: `${MONEY_BACK_DAYS}-day money-back guarantee` },
+        ].map(({ icon: Icon, label }) => (
+          <div
+            key={label}
+            className="flex items-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 py-3 text-xs text-muted-foreground"
+          >
+            <Icon className="h-4 w-4 shrink-0 text-emerald-400" />
+            {label}
+          </div>
+        ))}
+      </div>
+      <p className="mt-4 text-center text-xs text-muted-foreground/60">
+        Cancel anytime from this page — your access runs to the end of the
+        billing period, and you can request a full refund within{" "}
+        {MONEY_BACK_DAYS} days of your first charge.
       </p>
     </div>
   );

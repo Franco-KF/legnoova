@@ -1,3 +1,5 @@
+import { TRIAL_DAYS } from "./billing";
+
 export type PlanId = "analyze" | "broker";
 
 export interface Plan {
@@ -9,6 +11,8 @@ export interface Plan {
   highlight: boolean;
   features: string[];
   cta: string;
+  /** Length of the free trial in days before the first charge. */
+  trialDays: number;
   /** Paddle price id (pri_...). Public identifier, resolved from env. */
   priceId?: string;
 }
@@ -27,6 +31,7 @@ export const PLANS: Plan[] = [
     period: "/month",
     tagline: "Pro-grade Legnoova AI signals with full reasoning behind every level",
     highlight: false,
+    trialDays: TRIAL_DAYS,
     features: [
       "Unlimited Legnoova AI chart analyses",
       "Structured signals with entry, stop-loss & targets",
@@ -38,7 +43,7 @@ export const PLANS: Plan[] = [
       "Full analysis history & unlimited watchlists",
       "Priority processing",
     ],
-    cta: "Start with $29/mo",
+    cta: `Start ${TRIAL_DAYS}-day free trial`,
     priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_ANALYZE,
   },
   {
@@ -48,6 +53,7 @@ export const PLANS: Plan[] = [
     period: "/month",
     tagline: "Signals plus direct broker connection for automated traders",
     highlight: true,
+    trialDays: TRIAL_DAYS,
     features: [
       "Everything in the $29 plan",
       "Broker connection support",
@@ -55,7 +61,7 @@ export const PLANS: Plan[] = [
       "Priority broker integration",
       "Dedicated support",
     ],
-    cta: "Upgrade to $59/mo",
+    cta: `Start ${TRIAL_DAYS}-day free trial`,
     priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_BROKER,
   },
 ];

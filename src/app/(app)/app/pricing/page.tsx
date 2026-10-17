@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import {
   ArrowRight,
   BadgeCheck,
+  CalendarDays,
   Check,
   CreditCard,
   Lock,
@@ -14,6 +15,7 @@ import { auth } from "@/lib/auth/auth";
 import { dbConnect } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { PLANS, PLAN_BADGES } from "@/config/plans";
+import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
 import { PricingCard } from "@/components/marketing/pricing-card";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -23,9 +25,10 @@ export const metadata: Metadata = {
 };
 
 const TRUST = [
+  { icon: CalendarDays, label: `${TRIAL_DAYS}-day free trial` },
   { icon: ShieldCheck, label: "Encrypted card storage" },
-  { icon: Lock, label: "Cancel anytime" },
-  { icon: BadgeCheck, label: "Instant activation" },
+  { icon: BadgeCheck, label: `${MONEY_BACK_DAYS}-day money-back guarantee` },
+  { icon: Lock, label: "Cancel anytime, no fees" },
 ];
 
 export default async function UpgradePage({
@@ -56,7 +59,9 @@ export default async function UpgradePage({
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
           <p>
             <strong className="font-semibold">Choose a plan to continue.</strong>{" "}
-            Your workspace unlocks the moment your subscription is active.
+            Start with a {TRIAL_DAYS}-day free trial — your workspace unlocks
+            the moment it begins, and you won&apos;t be charged until the trial
+            ends.
           </p>
         </div>
       )}
@@ -67,7 +72,7 @@ export default async function UpgradePage({
         description={
           hasPlan
             ? "You have full access. Manage your subscription or switch plans below."
-            : "Every plan unlocks the full Legnoova AI desk. Upgrade, cancel, or switch anytime."
+            : `Every plan starts with a ${TRIAL_DAYS}-day free trial. Upgrade, cancel, or switch anytime.`
         }
         actions={
           hasPlan ? (
@@ -112,7 +117,7 @@ export default async function UpgradePage({
         })}
       </div>
 
-      <div className="mt-8 grid gap-3 sm:grid-cols-3">
+      <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {TRUST.map(({ icon: Icon, label }) => (
           <div
             key={label}

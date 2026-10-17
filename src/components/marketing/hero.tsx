@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles, ShieldCheck, GitCompareArrows } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { TRIAL_DAYS } from "@/config/billing";
 import { HeroMockAnalysis } from "./hero-mock-analysis";
 
 export function Hero() {
@@ -22,7 +23,11 @@ export function Hero() {
           <div className="flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/[0.07] px-4 py-1.5">
             <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
             <span className="text-sm text-emerald-300/90">
-              Legnoova AI signals — with the reasoning behind every level
+              Legnoova AI signals with the reasoning behind every level
+            </span>
+            <span className="hidden h-3.5 w-px bg-emerald-500/30 sm:block" />
+            <span className="hidden text-sm font-semibold text-emerald-300 sm:block">
+              {TRIAL_DAYS}-day free trial
             </span>
           </div>
         </div>
@@ -84,7 +89,7 @@ export function Hero() {
           <div className="hidden h-4 w-px bg-white/[0.1] sm:block" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <ShieldCheck className="h-4 w-4 text-cyan-400" />
-            Built for risk management
+            {TRIAL_DAYS}-day free trial · Cancel anytime
           </div>
         </div>
 

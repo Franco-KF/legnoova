@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowRight, TrendingUp } from "lucide-react";
+import { ArrowRight, BadgeCheck, CalendarDays, ShieldCheck, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
 
 export function CTASection() {
   return (
@@ -45,6 +46,22 @@ export function CTASection() {
             >
               View Pricing
             </Button>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+            {[
+              { icon: CalendarDays, label: `${TRIAL_DAYS}-day free trial` },
+              { icon: BadgeCheck, label: `${MONEY_BACK_DAYS}-day money-back guarantee` },
+              { icon: ShieldCheck, label: "Cancel anytime" },
+            ].map(({ icon: Icon, label }) => (
+              <span
+                key={label}
+                className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground"
+              >
+                <Icon className="h-3.5 w-3.5 text-emerald-400" />
+                {label}
+              </span>
+            ))}
           </div>
 
           <p className="mt-6 text-xs text-muted-foreground/70">

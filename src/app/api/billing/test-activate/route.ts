@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth/auth";
 import { dbConnect } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { getTrialEnd } from "@/config/billing";
 
 /**
  * TEST-ONLY activation. Simulates a successful payment so the paywall can be
@@ -55,10 +56,17 @@ export async function POST(req: Request) {
     }
 
     user.plan = parsed.data.planId;
-    user.planStatus = "active";
+    user.planStatus = "trialing";
+    user.trialEndsAt = getTrialEnd();
     await user.save();
 
-    return NextResponse.json({ ok: true, plan: user.plan, testMode: true });
+    return NextResponse.json({
+      ok: true,
+      plan: user.plan,
+      status: user.planStatus,
+      trialEndsAt: user.trialEndsAt?.toISOString() ?? null,
+      testMode: true,
+    });
   } catch (error) {
     console.error("Test activate error:", error);
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 });

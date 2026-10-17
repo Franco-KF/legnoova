@@ -3,6 +3,7 @@ import { z } from "zod";
 import { auth } from "@/lib/auth/auth";
 import { isPaddleConfigured } from "@/lib/paddle";
 import { PLANS } from "@/config/plans";
+import { TRIAL_DAYS } from "@/config/billing";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const checkoutSchema = z.object({
@@ -49,12 +50,13 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       priceId: plan.priceId,
+      trialDays: plan.trialDays ?? TRIAL_DAYS,
       environment: process.env.NEXT_PUBLIC_PADDLE_ENV === "production"
         ? "production"
         : "sandbox",
       customer: { email: session.user.email },
       // Echoed back in webhook events so we can trust the buyer's identity.
-      customData: { userId: session.user.id },
+      customData: { userId: session.user.id, planId: plan.id },
     });
   } catch (error) {
     console.error("Checkout error:", error);

@@ -3,6 +3,7 @@ import { dbConnect } from "@/lib/mongodb";
 import { User, type PlanId } from "@/models/User";
 import { verifyPaddleSignature } from "@/lib/paddle";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { getTrialEnd } from "@/config/billing";
 
 interface PaddleEvent {
   event_type: string;
@@ -18,6 +19,9 @@ interface PaddleEvent {
     }>;
     custom_data?: Record<string, unknown> | null;
     current_period_end?: string | null;
+    current_billing_period?: { ends_at?: string | null } | null;
+    next_billed_at?: string | null;
+    trial_dates?: { ends_at?: string | null } | null;
     scheduled_change?: { action?: string } | null;
   };
 }
@@ -95,7 +99,15 @@ export async function POST(req: Request) {
         if (!user) break;
         user.plan = planFromEvent(evt) ?? user.plan ?? "analyze";
         user.planStatus = "active";
+        // The first real charge ends the trial.
+        user.trialEndsAt = null;
         if (evt.data.customer_id) user.paddleCustomerId = evt.data.customer_id;
+        const paidThrough =
+          evt.data.current_period_end ??
+          evt.data.current_billing_period?.ends_at ??
+          evt.data.next_billed_at ??
+          null;
+        if (paidThrough) user.planCurrentPeriodEnd = new Date(paidThrough);
         await user.save();
         break;
       }
@@ -108,12 +120,28 @@ export async function POST(req: Request) {
         const status = evt.data.status;
         user.paddleSubscriptionId = evt.data.id ?? user.paddleSubscriptionId;
         if (evt.data.customer_id) user.paddleCustomerId = evt.data.customer_id;
-        if (evt.data.current_period_end) {
-          user.planCurrentPeriodEnd = new Date(evt.data.current_period_end);
+        const periodEnd =
+          evt.data.current_period_end ??
+          evt.data.current_billing_period?.ends_at ??
+          evt.data.next_billed_at ??
+          null;
+        if (periodEnd) {
+          user.planCurrentPeriodEnd = new Date(periodEnd);
         }
-        if (status === "active" || status === "trialing") {
+        if (status === "trialing") {
+          // Prefer the processor-provided trial end; fall back to policy.
+          const trialEnd =
+            evt.data.trial_dates?.ends_at ??
+            evt.data.next_billed_at ??
+            evt.data.current_billing_period?.ends_at ??
+            getTrialEnd().toISOString();
+          user.plan = planFromEvent(evt) ?? user.plan ?? "analyze";
+          user.planStatus = "trialing";
+          user.trialEndsAt = new Date(trialEnd);
+        } else if (status === "active") {
           user.plan = planFromEvent(evt) ?? user.plan ?? "analyze";
           user.planStatus = "active";
+          user.trialEndsAt = null;
         } else if (status === "past_due" || status === "paused") {
           user.planStatus = "past_due";
         }
@@ -127,10 +155,11 @@ export async function POST(req: Request) {
         const periodEnd = evt.data.current_period_end
           ? new Date(evt.data.current_period_end)
           : new Date();
-        // Keep the plan until the end of the paid period, then downgrade.
+        // Keep the plan until the end of the paid period (or trial), then downgrade.
         if (periodEnd <= new Date()) {
           user.plan = null;
           user.planStatus = null;
+          user.trialEndsAt = null;
         } else {
           user.planStatus = "canceled";
           user.planCurrentPeriodEnd = periodEnd;

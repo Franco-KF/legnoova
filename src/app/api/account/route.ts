@@ -18,7 +18,7 @@ export async function GET() {
 
 await dbConnect();
     const user = await User.findById(session.user.id).select(
-      "name email image signalEmailAlerts plan planStatus planCurrentPeriodEnd"
+      "name email image signalEmailAlerts plan planStatus trialEndsAt planCurrentPeriodEnd"
     );
 
     if (!user) {
@@ -34,6 +34,7 @@ await dbConnect();
         signalEmailAlerts: !!user.signalEmailAlerts,
         plan: user.plan ?? null,
         planStatus: user.planStatus ?? null,
+        trialEndsAt: user.trialEndsAt?.toISOString() ?? null,
         planCurrentPeriodEnd: user.planCurrentPeriodEnd?.toISOString() ?? null,
       },
     });
