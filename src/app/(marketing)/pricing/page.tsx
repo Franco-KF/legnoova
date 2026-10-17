@@ -68,7 +68,12 @@ export default function PricingPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2 lg:gap-6">
             {PLANS.map((plan) => (
-              <PricingCard key={plan.id} plan={plan} />
+              <PricingCard
+                key={plan.id}
+                plan={plan}
+                popular={plan.id === "analyze"}
+                footnote={plan.note}
+              />
             ))}
           </div>
 

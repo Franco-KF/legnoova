@@ -55,7 +55,7 @@ const pipeline = [
     step: "3",
     title: "Independent Strategy Modules",
     description:
-      "Six strategy modules run in parallel — Price Action, Market Structure, Trend, Support & Resistance, Breakout, Supply & Demand. Each returns its own signal, confidence and reasoning.",
+      "Seven strategy modules run in parallel — Price Action, Market Structure, Trend, Support & Resistance, Breakout, Supply & Demand and Smart Money Concepts. Each returns its own signal, confidence and reasoning.",
   },
   {
     icon: Scale,
@@ -90,7 +90,7 @@ export default function HowItWorksPage() {
           name: "How It Works — Legnoova AI",
           url: `${siteUrl}/how-it-works`,
           description:
-            "From chart screenshot to structured insight: vision extraction, structured data, six independent strategy modules, consensus engine, risk validator and a final validated result.",
+            "From chart screenshot to structured insight: vision extraction, structured data, seven independent strategy modules, consensus engine, risk validator and a final validated result.",
         }}
       />
       <SubpageHero

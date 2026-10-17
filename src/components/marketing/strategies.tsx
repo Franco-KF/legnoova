@@ -5,6 +5,7 @@ import {
   BetweenHorizonalStart,
   Zap,
   BarChart3,
+  Landmark,
 } from "lucide-react";
 
 const strategies = [
@@ -43,7 +44,7 @@ const strategies = [
   {
     icon: Zap,
     name: "Breakout",
-    weight: "15",
+    weight: "10",
     description: "Detecting consolidations and range expansions.",
     accent: "text-violet-400",
     bar: "bg-violet-400",
@@ -51,10 +52,18 @@ const strategies = [
   {
     icon: BarChart3,
     name: "Supply & Demand",
-    weight: "15",
+    weight: "10",
     description: "Zones where institutional order flow imbalances sit.",
     accent: "text-rose-400",
     bar: "bg-rose-400",
+  },
+  {
+    icon: Landmark,
+    name: "Smart Money Concepts",
+    weight: "10",
+    description: "Order blocks, fair value gaps and liquidity sweeps.",
+    accent: "text-lime-400",
+    bar: "bg-lime-400",
   },
 ];
 
@@ -78,7 +87,7 @@ export function Strategies() {
               brings another perspective — and you make the final decision.
             </p>
             <p className="mt-4 text-base leading-7 text-muted-foreground">
-              Instead of a single opaque prompt, Legnoova runs six independent
+              Instead of a single opaque prompt, Legnoova runs seven independent
               strategy modules. Each one analyzes your chart through a different
               framework, then a consensus engine weighs their agreement to reach
               a final signal.

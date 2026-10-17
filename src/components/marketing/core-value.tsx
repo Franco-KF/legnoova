@@ -7,7 +7,7 @@ const legnoovaBreakdown = [
   { label: "Potential Entry", value: "1.0815 – 1.0830" },
   { label: "Stop Loss", value: "1.0790" },
   { label: "Take Profit", value: "1.0850 / 1.0890" },
-  { label: "Confidence", value: "Based on multiple technical factors" },
+  { label: "Confidence", value: "78% consensus" },
 ];
 
 export function CoreValue() {

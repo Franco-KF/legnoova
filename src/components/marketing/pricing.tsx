@@ -34,7 +34,12 @@ export function Pricing() {
 
         <div className="mt-16 grid max-w-4xl gap-8 md:grid-cols-2 lg:gap-6 mx-auto">
           {PLANS.map((plan) => (
-            <PricingCard key={plan.id} plan={plan} />
+            <PricingCard
+              key={plan.id}
+              plan={plan}
+              popular={plan.id === "analyze"}
+              footnote={plan.note}
+            />
           ))}
         </div>
 

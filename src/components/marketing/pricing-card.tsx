@@ -15,6 +15,10 @@ interface PricingCardProps {
   current?: boolean;
   /** Renders a non-interactive "coming soon" state. */
   disabled?: boolean;
+  /** Controls the "Most Popular" treatment. Defaults to the plan's highlight flag. */
+  popular?: boolean;
+  /** Optional small note rendered under the guarantee line. */
+  footnote?: string;
 }
 
 export function PricingCard({
@@ -23,12 +27,15 @@ export function PricingCard({
   ctaLabel,
   current = false,
   disabled = false,
+  popular,
+  footnote,
 }: PricingCardProps) {
   const defaultHref =
     plan.price === 0 ? "/register" : `/register?plan=${plan.id}`;
   const target = href ?? defaultHref;
   const label = current ? "Current plan" : ctaLabel ?? plan.cta;
   const inactive = current || disabled;
+  const emphasized = popular ?? plan.highlight;
 
   return (
     <div
@@ -36,7 +43,7 @@ export function PricingCard({
         "relative flex flex-col rounded-2xl border p-8 transition-all duration-300",
         current
           ? "border-emerald-500/60 bg-gradient-to-b from-emerald-500/[0.12] to-transparent shadow-glow-emerald"
-          : plan.highlight
+          : emphasized
             ? "border-emerald-500/40 bg-gradient-to-b from-emerald-500/[0.08] to-transparent shadow-glow-emerald lg:-translate-y-4"
             : "border-white/[0.06] bg-white/[0.02] hover:border-white/[0.14]"
       )}
@@ -49,7 +56,7 @@ export function PricingCard({
           </span>
         </div>
       ) : (
-        plan.highlight && (
+        emphasized && (
           <div className="absolute -top-3 left-1/2 -translate-x-1/2">
             <span className="flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-emerald-950 shadow-glow-emerald">
               <Sparkles className="h-3 w-3" />
@@ -98,7 +105,7 @@ export function PricingCard({
         <Button
           type="button"
           disabled
-          variant={current ? "default" : plan.highlight ? "default" : "outline"}
+          variant={current ? "default" : emphasized ? "default" : "outline"}
           className="mt-8 h-11 w-full rounded-xl"
         >
           {disabled && !current ? (
@@ -112,7 +119,7 @@ export function PricingCard({
       ) : (
         <Button
           render={<Link href={target} />}
-          variant={plan.highlight ? "default" : "outline"}
+          variant={emphasized ? "default" : "outline"}
           className="mt-8 h-11 w-full rounded-xl"
         >
           {label}
@@ -123,6 +130,12 @@ export function PricingCard({
         <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-emerald-400/70" />
         {MONEY_BACK_DAYS}-day money-back guarantee · Cancel anytime
       </p>
+
+      {footnote && (
+        <p className="mt-2 text-center text-[11px] leading-4 text-amber-300/70">
+          {footnote}
+        </p>
+      )}
     </div>
   );
 }

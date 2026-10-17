@@ -13,6 +13,8 @@ export interface Plan {
   cta: string;
   /** Length of the free trial in days before the first charge. */
   trialDays: number;
+  /** Optional marketing note shown on the public pricing cards. */
+  note?: string;
   /** Paddle price id (pri_...). Public identifier, resolved from env. */
   priceId?: string;
 }
@@ -54,6 +56,7 @@ export const PLANS: Plan[] = [
     tagline: "Signals plus direct broker connection for automated traders",
     highlight: true,
     trialDays: TRIAL_DAYS,
+    note: "Automated broker execution is launching soon.",
     features: [
       "Everything in the $29 plan",
       "Broker connection support",
@@ -80,8 +83,9 @@ export const STRATEGY_WEIGHTS = {
   "market-structure": 20,
   "trend-following": 15,
   "support-resistance": 15,
-  breakout: 15,
-  "supply-demand": 15,
+  breakout: 10,
+  "supply-demand": 10,
+  smc: 10,
 } as const;
 
 export const CONSENSUS_THRESHOLDS = {

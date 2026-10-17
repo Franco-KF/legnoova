@@ -6,7 +6,7 @@ import { CoreValue } from "@/components/marketing/core-value";
 import { Features } from "@/components/marketing/features";
 import { Strategies } from "@/components/marketing/strategies";
 import { UseCase } from "@/components/marketing/use-case";
-import { Testimonials } from "@/components/marketing/testimonials";
+import { TrustPrinciples } from "@/components/marketing/trust-principles";
 import { Pricing } from "@/components/marketing/pricing";
 import { FAQ } from "@/components/marketing/faq";
 import { CTASection } from "@/components/marketing/cta-section";
@@ -96,6 +96,7 @@ const softwareSchema = {
     "Trend detection",
     "Market structure",
     "Support and resistance",
+    "Smart Money Concepts",
     "Entry, take profit and stop loss ideas",
     `Confidence threshold: ${CONSENSUS_THRESHOLDS.buy}% agreement to form a signal`,
   ],
@@ -115,7 +116,7 @@ export default function Home() {
       <Features />
       <Strategies />
       <UseCase />
-      <Testimonials />
+      <TrustPrinciples />
       <Pricing />
       <FAQ />
       <CTASection />

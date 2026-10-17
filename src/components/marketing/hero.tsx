@@ -94,6 +94,9 @@ export function Hero() {
         {/* Mock analysis */}
         <div className="animate-fade-in-up animation-delay-500 mt-16">
           <HeroMockAnalysis />
+          <p className="mt-4 text-center text-xs text-muted-foreground/60">
+            Illustrative example of a Legnoova AI analysis.
+          </p>
         </div>
       </div>
     </section>
