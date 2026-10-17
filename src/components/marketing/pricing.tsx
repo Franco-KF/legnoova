@@ -2,6 +2,7 @@ import { PLANS } from "@/config/plans";
 import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
 import { PricingCard } from "./pricing-card";
 import { BadgeCheck, CalendarDays, ShieldCheck } from "lucide-react";
+import { siteConfig } from "@/config/site";
 
 export function Pricing() {
   return (
@@ -38,8 +39,12 @@ export function Pricing() {
               key={plan.id}
               plan={plan}
               popular={plan.id === "analyze"}
-              disabled={plan.id === "broker"}
-              ctaLabel={plan.id === "broker" ? "Broker access not active yet" : undefined}
+              href={
+                plan.id === "broker"
+                  ? `mailto:${siteConfig.contactEmail}?subject=${encodeURIComponent("Broker automation plan")}`
+                  : undefined
+              }
+              ctaLabel={plan.id === "broker" ? "Ask about broker automation" : undefined}
               footnote={plan.note}
             />
           ))}

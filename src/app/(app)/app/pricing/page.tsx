@@ -111,7 +111,14 @@ export default async function UpgradePage({
               plan={plan}
               current={isCurrent}
               href={`/app/billing/checkout?plan=${plan.id}`}
-              ctaLabel={isCurrent ? "Current plan" : plan.cta}
+              disabled={plan.id === "broker" && !isCurrent}
+              ctaLabel={
+                isCurrent
+                  ? "Current plan"
+                  : plan.id === "broker"
+                    ? "Broker access not active yet"
+                    : plan.cta
+              }
             />
           );
         })}
