@@ -21,7 +21,7 @@ export function Hero() {
           <div className="flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/[0.07] px-4 py-1.5">
             <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
             <span className="text-sm text-emerald-300/90">
-              Chart analysis today · Broker automation in development
+              Forex chart analysis · $59 broker automation plan
             </span>
             <span className="hidden h-3.5 w-px bg-emerald-500/30 sm:block" />
             <span className="hidden text-sm font-semibold text-emerald-300 sm:block">
@@ -69,6 +69,13 @@ export function Hero() {
             Explore the sample
           </Button>
         </div>
+
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Want broker automation?{" "}
+          <Link href="#pricing" className="font-semibold text-emerald-400 hover:text-emerald-300">
+            See the $59 plan <span aria-hidden="true">→</span>
+          </Link>
+        </p>
 
         {/* Trust indicators */}
         <div

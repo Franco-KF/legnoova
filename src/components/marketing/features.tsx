@@ -95,9 +95,9 @@ const features = [
   },
   {
     icon: Zap,
-    title: "Broker Automation Plan · $59",
+    title: "Automate Your Broker · $59 Plan",
     description:
-      "Want your workflow to do more? The $59 plan is built to add broker links and automated trades. We are building this now; trade execution is not live yet.",
+      "Ready to cut out manual steps? The $59 plan is for broker links and automated trade execution. Broker trading is not active yet.",
     accent: "text-amber-400",
     border: "hover:border-amber-500/30",
     tint: "bg-amber-500/10",
@@ -117,7 +117,7 @@ export function Features() {
           </h2>
           <p className="mt-4 text-muted-foreground">
             Spend less time searching chats. Check your chart, follow signals
-            and track your plan. Add broker automation when it is ready.
+            and track your plan. Choose the $59 broker automation plan for the next step toward hands-free trading.
           </p>
         </div>
 

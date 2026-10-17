@@ -38,7 +38,7 @@ export const faqs = [
   {
     question: "Does Legnoova automate trades through my broker?",
     answer:
-      "Broker automation is being built for the $59 plan. The current app does not place trades. You stay in control of every decision.",
+      "Broker automation is part of the $59 plan, but broker trade execution is not active yet. The current app does not place trades. You stay in control of every decision.",
   },
   {
     question: "Is the win rate 92%, and will Legnoova make me profitable?",

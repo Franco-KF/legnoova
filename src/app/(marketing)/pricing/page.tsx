@@ -73,7 +73,7 @@ export default function PricingPage() {
                 plan={plan}
                 popular={plan.id === "analyze"}
                 disabled={plan.id === "broker"}
-                ctaLabel={plan.id === "broker" ? "Broker plan in development" : undefined}
+                ctaLabel={plan.id === "broker" ? "Broker access not active yet" : undefined}
                 footnote={plan.note}
               />
             ))}

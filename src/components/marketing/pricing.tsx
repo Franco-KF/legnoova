@@ -16,8 +16,8 @@ export function Pricing() {
           </h2>
           <p className="mt-4 text-muted-foreground">
             Get chart reviews, signals and trading tools for $29 a month. Want
-            broker automation too? It is part of the $59 plan and is in
-            development now. No plan can promise a profit.
+            broker links and automated trading? The $59 plan is built for that.
+            Broker trade execution is not active yet. No plan can promise a profit.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -39,7 +39,7 @@ export function Pricing() {
               plan={plan}
               popular={plan.id === "analyze"}
               disabled={plan.id === "broker"}
-              ctaLabel={plan.id === "broker" ? "Broker plan in development" : undefined}
+              ctaLabel={plan.id === "broker" ? "Broker access not active yet" : undefined}
               footnote={plan.note}
             />
           ))}
