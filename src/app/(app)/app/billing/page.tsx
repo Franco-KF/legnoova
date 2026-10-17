@@ -20,7 +20,6 @@ import {
   ShieldCheck,
   Sparkles,
   Star,
-  Trash2,
   XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -168,21 +167,6 @@ function BillingContent() {
 
   const handleCheckout = (planId: "analyze" | "broker") => {
     router.push(`/app/billing/checkout?plan=${planId}`);
-  };
-
-  const removeMethod = async (id: string) => {
-    try {
-      const res = await fetch(`/api/billing/payment-methods/${id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Could not remove card");
-      toast.success("Card removed");
-      await loadMethods();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Could not remove card"
-      );
-    }
   };
 
   const cancelSubscription = async () => {
@@ -477,17 +461,6 @@ function BillingContent() {
                     Default
                   </span>
                 )}
-                <button
-                  type="button"
-                  onClick={() => removeMethod(m.id)}
-                  className={cn(
-                    "rounded-lg p-2 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-400",
-                    !m.isDefault && "ml-auto"
-                  )}
-                  aria-label="Remove card"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
               </div>
             ))}
           </div>
