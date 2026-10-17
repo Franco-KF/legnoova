@@ -4,7 +4,12 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { PLANS, FREE_ANALYSIS_LIMIT } from "@/config/plans";
-import { MONEY_BACK_DAYS, TRIAL_DAYS, daysRemaining } from "@/config/billing";
+import {
+  MONEY_BACK_DAYS,
+  PAYMENT_FAILED_COPY,
+  TRIAL_DAYS,
+  daysRemaining,
+} from "@/config/billing";
 import {
   BadgeCheck,
   CalendarDays,
@@ -145,8 +150,8 @@ function BillingContent() {
 
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
-      toast.success("Your free trial has started!", {
-        description: `No charge today. We'll remind you before your ${TRIAL_DAYS}-day trial ends.`,
+      toast.error(PAYMENT_FAILED_COPY.title, {
+        description: PAYMENT_FAILED_COPY.description,
       });
       const t = setTimeout(refresh, 5000);
       return () => clearTimeout(t);
@@ -155,8 +160,8 @@ function BillingContent() {
       toast.info("Choose a plan to unlock the platform.");
     }
     if (searchParams.get("activated") === "manual") {
-      toast.info("Card saved. Payment processing isn't enabled yet.", {
-        description: "Connect a payment processor to activate plans automatically.",
+      toast.error(PAYMENT_FAILED_COPY.title, {
+        description: PAYMENT_FAILED_COPY.description,
       });
     }
   }, [searchParams, refresh]);

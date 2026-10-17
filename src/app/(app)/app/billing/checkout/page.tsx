@@ -117,15 +117,6 @@ function CheckoutContent() {
         </span>
       </div>
 
-      <div className="mb-6 flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/[0.06] px-4 py-3 text-xs text-amber-300/90">
-        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
-        <span>
-          <strong>Test mode.</strong> No real charge is processed. Completing
-          checkout saves the card&apos;s number, brand and expiry, and starts
-          the trial for testing only.
-        </span>
-      </div>
-
       <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr] lg:gap-8">
         {/* Order summary */}
         <div className="order-2 lg:order-1">
@@ -229,7 +220,6 @@ function CheckoutContent() {
             </p>
             <PaymentMethodForm
               submitLabel={`Start free trial — $0 today`}
-              successMessage="Trial started"
               onDone={complete}
             />
           </div>

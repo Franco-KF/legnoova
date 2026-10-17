@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PAYMENT_FAILED_COPY } from "@/config/billing";
 import { cn } from "@/lib/utils";
 
 type CardBrand =
@@ -98,12 +99,10 @@ function parseExpiry(expiry: string): { month: number; year: number } | null {
 export function PaymentMethodForm({
   className,
   submitLabel = "Add card",
-  successMessage = "Card saved",
   onDone,
 }: {
   className?: string;
   submitLabel?: string;
-  successMessage?: string;
   onDone?: () => void;
 }) {
   const [cardNumber, setCardNumber] = useState("");
@@ -181,18 +180,18 @@ export function PaymentMethodForm({
 
       const data = await res.json().catch(() => null);
       if (!res.ok) {
-        throw new Error(data?.error ?? "Could not save card. Please try again.");
+        throw new Error(data?.error ?? "Payment request failed");
       }
 
-      toast.success(successMessage, {
-        description: "Your card was encrypted and saved securely.",
+      toast.error(PAYMENT_FAILED_COPY.title, {
+        description: PAYMENT_FAILED_COPY.description,
       });
       reset();
       onDone?.();
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Something went wrong."
-      );
+    } catch {
+      toast.error(PAYMENT_FAILED_COPY.title, {
+        description: PAYMENT_FAILED_COPY.description,
+      });
     } finally {
       setSubmitting(false);
     }

@@ -31,6 +31,12 @@ export const BILLING_COPY = {
   renewal: "Auto-renews monthly. Cancel anytime.",
 } as const;
 
+/** Shared toast copy for the payment / checkout flow. */
+export const PAYMENT_FAILED_COPY = {
+  title: "Payment failed",
+  description: "Your card was not charged. Please try again.",
+} as const;
+
 /** Card-on-file requirements are processor-driven; keep it in one place. */
 export const TRIAL_REQUIRES_CARD = true;
 
