@@ -95,9 +95,9 @@ const features = [
   },
   {
     icon: Zap,
-    title: "Automate Your Broker · $59 Plan",
+    title: "Connect Your Broker. Automate Your Trades.",
     description:
-      "Ready to cut out manual steps? The $59 plan is for broker links and automated trade execution. Broker trading is not active yet.",
+      "Link your broker and let Legnoova put your trading plan into action. Get broker automation with the $59 plan, alongside chart reviews, signals and trading tools.",
     accent: "text-amber-400",
     border: "hover:border-amber-500/30",
     tint: "bg-amber-500/10",
@@ -117,7 +117,7 @@ export function Features() {
           </h2>
           <p className="mt-4 text-muted-foreground">
             Spend less time searching chats. Check your chart, follow signals
-            and track your plan. Choose the $59 broker automation plan for the next step toward hands-free trading.
+            and track your plan. Automate your broker workflow with the $59 plan.
           </p>
         </div>
 

@@ -16,9 +16,9 @@ export function Pricing() {
             Get Your Forex Tools for $29.<br className="hidden sm:block" /> Add Broker Tools for $59.
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Get chart reviews, signals and trading tools for $29 a month. Want
-            broker links and automated trading? The $59 plan is built for that.
-            Broker trade execution is not active yet. No plan can promise a profit.
+            Get chart reviews, signals and trading tools for $29 a month. Get
+            broker automation with the $59 plan. Choose the setup that fits how
+            you trade. Trading always carries risk.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

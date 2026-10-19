@@ -4,7 +4,7 @@ export const siteConfig = {
   tagline: "A clearer way to check your forex chart and plan your next move.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://legnoova.com",
   description:
-    "Check forex charts, see possible trade levels and follow signals in one place. Get a clear second look, not a promise of profit.",
+    "Check forex charts, follow signals and automate broker trades in one place. Choose chart analysis for $29/month or broker automation for $59/month. Trading involves risk.",
   keywords: [
     "forex chart analysis",
     "forex trading tools",
