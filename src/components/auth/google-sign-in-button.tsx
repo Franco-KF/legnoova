@@ -10,11 +10,9 @@ export function GoogleSignInButton({ callbackUrl = "/app" }: { callbackUrl?: str
   const handleClick = async () => {
     setLoading(true);
     try {
+      // Auth.js redirects the browser on success. A resolved promise means the
+      // redirect has started; it is not a failed sign-in.
       await signIn("google", { callbackUrl });
-      // A full-page redirect happens on success; if we get here the
-      // provider flow failed to start.
-      setLoading(false);
-      toast.error("Could not start Google sign-in. Please try again.");
     } catch {
       setLoading(false);
       toast.error("Could not start Google sign-in. Please try again.");

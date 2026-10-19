@@ -44,7 +44,7 @@ export function Pricing() {
                   ? `mailto:${siteConfig.contactEmail}?subject=${encodeURIComponent("Broker automation plan")}`
                   : undefined
               }
-              ctaLabel={plan.id === "broker" ? "Ask about broker automation" : undefined}
+              ctaLabel={plan.id === "broker" ? "Ask about broker automation" : plan.cta}
               footnote={plan.note}
             />
           ))}

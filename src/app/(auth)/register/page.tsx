@@ -25,6 +25,9 @@ function RegisterForm() {
   const postAuthUrl = plan
     ? `/app/billing/checkout?plan=${plan}`
     : "/app";
+  const loginHref = plan
+    ? `/login?callbackUrl=${encodeURIComponent(postAuthUrl)}`
+    : "/login";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -236,7 +239,7 @@ function RegisterForm() {
       <p className="mt-6 text-center text-sm text-muted-foreground">
         Already have an account?{" "}
         <Link
-          href="/login"
+          href={loginHref}
           className="font-medium text-emerald-400 transition-colors hover:text-emerald-300"
         >
           Sign in
