@@ -111,12 +111,12 @@ export default async function UpgradePage({
               plan={plan}
               current={isCurrent}
               href={`/app/billing/checkout?plan=${plan.id}`}
-              disabled={plan.id === "broker" && !isCurrent}
+              popular={plan.id === "broker"}
               ctaLabel={
                 isCurrent
                   ? "Current plan"
                   : plan.id === "broker"
-                    ? "Broker access not active yet"
+                    ? "Choose the $59 Broker Plan"
                     : plan.cta
               }
             />

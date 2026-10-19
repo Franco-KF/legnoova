@@ -7,7 +7,7 @@ import { FAQ } from "@/components/marketing/faq";
 import { CTASection } from "@/components/marketing/cta-section";
 import { JsonLd } from "@/components/seo/json-ld";
 import { BadgeCheck, CalendarDays, ShieldCheck } from "lucide-react";
-import { siteConfig, siteUrl } from "@/config/site";
+import { siteUrl } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -71,13 +71,8 @@ export default function PricingPage() {
               <PricingCard
                 key={plan.id}
                 plan={plan}
-                popular={plan.id === "analyze"}
-                href={
-                  plan.id === "broker"
-                    ? `mailto:${siteConfig.contactEmail}?subject=${encodeURIComponent("Broker automation plan")}`
-                    : undefined
-                }
-                ctaLabel={plan.id === "broker" ? "Ask about broker automation" : plan.cta}
+                popular={plan.id === "broker"}
+                ctaLabel={plan.id === "broker" ? "Choose the $59 Broker Plan" : plan.cta}
                 footnote={plan.note}
               />
             ))}
