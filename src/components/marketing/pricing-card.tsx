@@ -119,8 +119,8 @@ export function PricingCard({
       ) : (
         <Button
           render={<Link href={target} />}
-          variant={emphasized ? "default" : "outline"}
-          className="mt-8 h-11 w-full rounded-xl"
+          variant="default"
+          className="mt-8 h-11 w-full rounded-xl bg-emerald-500 text-emerald-950 shadow-glow-emerald transition-all hover:scale-[1.01] hover:bg-emerald-400"
         >
           {label}
         </Button>

@@ -22,6 +22,10 @@ export default auth((req) => {
   const isAuthRoute = AUTH_ROUTES.some(
     (r) => pathname === r || pathname.startsWith(r + "/")
   );
+  if (isLoggedIn && pathname === "/") {
+    return NextResponse.redirect(new URL("/app", nextUrl));
+  }
+
   const isProtectedApp = pathname.startsWith(PROTECTED_PREFIX);
   const isProtectedApi = API_PROTECTED.some((p) => pathname.startsWith(p));
 
@@ -33,7 +37,7 @@ export default auth((req) => {
   // Protect /app routes
   if (isProtectedApp && !isLoggedIn) {
     const loginUrl = new URL("/login", nextUrl);
-    loginUrl.searchParams.set("callbackUrl", pathname);
+    loginUrl.searchParams.set("callbackUrl", `${pathname}${nextUrl.search}`);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -47,6 +51,7 @@ export default auth((req) => {
 
 export const config = {
   matcher: [
+    "/",
     "/app/:path*",
     "/api/account/:path*",
     "/api/analyze/:path*",

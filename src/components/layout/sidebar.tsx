@@ -27,8 +27,8 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { href: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/app/signals", label: "Signals", icon: BellRing },
-  { href: "/app/analyze", label: "Analyze", icon: LineChart },
-  { href: "/app/bot", label: "Trade with Bot", icon: Bot },
+  { href: "/app/analyze", label: "Chart Analysis", icon: LineChart },
+  { href: "/app/bot", label: "Broker Automation", icon: Bot, badge: "$59" },
   { href: "/app/history", label: "History", icon: History },
   { href: "/app/watchlist", label: "Watchlist", icon: Star },
   { href: "/app/pricing", label: "Plans", icon: Sparkles },
@@ -120,7 +120,16 @@ function SidebarContent({
               <item.icon
                 className={cn("h-5 w-5 shrink-0", active && "text-emerald-400")}
               />
-              {!compact && <span>{item.label}</span>}
+              {!compact && (
+                <>
+                  <span className="min-w-0 flex-1">{item.label}</span>
+                  {item.badge && (
+                    <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-300">
+                      {item.badge}
+                    </span>
+                  )}
+                </>
+              )}
             </Link>
           );
         })}

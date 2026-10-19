@@ -25,12 +25,11 @@ export default function NotFound() {
               Error 404
             </span>
             <h1 className="mt-3 font-heading text-4xl font-bold tracking-tight sm:text-5xl">
-              This page took a bad trade
+              We couldn&apos;t find that page
             </h1>
             <p className="mt-4 text-muted-foreground">
-              The page you&apos;re looking for doesn&apos;t exist or has been
-              moved. Let&apos;s get you back on track — or start with a second
-              opinion on your next setup below.
+              The link may be out of date, or the page may have moved. Head
+              back home, review a chart, or compare plans below.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button
@@ -46,7 +45,7 @@ export default function NotFound() {
                 className="h-11 rounded-xl px-6"
               >
                 <Compass className="h-4 w-4" />
-                Analyse a chart
+                Analyze a chart
               </Button>
             </div>
           </div>
