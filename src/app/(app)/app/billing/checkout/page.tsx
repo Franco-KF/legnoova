@@ -1,230 +1,124 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import {
-  ArrowLeft,
-  BadgeCheck,
-  CalendarDays,
-  Check,
-  Lock,
-  RefreshCw,
-  ShieldCheck,
-} from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { ArrowLeft, BadgeCheck, CalendarDays, Check, ShieldCheck, Lock, CreditCard } from "lucide-react";
 import { PLANS } from "@/config/plans";
-import { MONEY_BACK_DAYS, TRIAL_DAYS, getTrialEnd } from "@/config/billing";
+import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
+import { PaddleInlineCheckout } from "@/components/billing/paddle-inline-checkout";
 import { PaymentMethodForm } from "@/components/billing/payment-method-form";
-import { cn } from "@/lib/utils";
 
 export default function CheckoutPage() {
-  return (
-    <Suspense>
-      <CheckoutContent />
-    </Suspense>
-  );
-}
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString(undefined, {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+  return <Suspense><CheckoutContent /></Suspense>;
 }
 
 function CheckoutContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const planId = searchParams.get("plan");
-
-  const plan = useMemo(
-    () => PLANS.find((p) => p.id === planId) ?? null,
-    [planId]
-  );
-
-  const trialDays = plan?.trialDays ?? TRIAL_DAYS;
-
-  const trialEnd = useMemo(() => getTrialEnd(), []);
-  const firstCharge = useMemo(() => getTrialEnd(), []);
+  const plan = useMemo(() => PLANS.find((item) => item.id === planId) ?? null, [planId]);
+  const [step, setStep] = useState<1 | 2>(1);
 
   if (!plan) {
     return (
       <div className="mx-auto max-w-lg py-24 text-center">
-        <p className="font-heading text-lg font-semibold">Plan not found</p>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Pick a plan from the plans page to continue.
-        </p>
-        <Link
-          href="/app/pricing"
-          className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 transition-colors hover:bg-emerald-400"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to plans
-        </Link>
+        <h1 className="font-heading text-xl font-semibold">Choose a plan first</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Pick the plan you want, then come back to secure checkout.</p>
+        <Link href="/app/pricing" className="mt-6 inline-flex rounded-xl bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-emerald-950 hover:bg-emerald-400">View plans</Link>
       </div>
     );
   }
 
-  const tax = 0;
-  const totalDueToday = 0;
-  const renewalTotal = plan.price + tax;
-
-  const complete = async () => {
-    try {
-      const res = await fetch("/api/billing/test-activate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId: plan.id }),
-      });
-      if (res.ok) {
-        router.push("/app/billing?checkout=success");
-      } else {
-        router.push("/app/billing?activated=manual");
-      }
-    } catch {
-      router.push("/app/billing?activated=manual");
-    }
-  };
-
   return (
-    <div className="mx-auto max-w-5xl">
-      <Link
-        href="/app/pricing"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" /> Back to plans
+    <main className="mx-auto w-full max-w-7xl space-y-6">
+      <Link href="/app/pricing" className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground">
+        <ArrowLeft className="h-4 w-4"/> Back to plans
       </Link>
 
-      <div className="mb-8 flex items-center gap-2">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/15 ring-1 ring-emerald-500/30">
-          <Lock className="h-5 w-5 text-emerald-400" />
-        </div>
-        <div>
-          <h1 className="font-heading text-2xl font-bold sm:text-3xl">Checkout</h1>
-          <p className="text-sm text-muted-foreground">
-            Start your {trialDays}-day free trial of {plan.name}.
-          </p>
-        </div>
-      </div>
+      <header className="max-w-3xl">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-400">Secure checkout</p>
+        <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight sm:text-4xl">Start your {TRIAL_DAYS}-day free trial</h1>
+        <p className="mt-3 text-muted-foreground">Complete two steps: save your card details to your Legnoova account, then confirm your subscription through Paddle.</p>
+      </header>
 
-      <div className="mb-6 flex items-start gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] px-4 py-3 text-sm text-emerald-200/90">
-        <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-emerald-400" />
-        <span>
-          <strong className="font-semibold">You won&apos;t be charged today.</strong>{" "}
-          Your free trial runs until {formatDate(trialEnd)}. We&apos;ll only
-          charge ${renewalTotal.toFixed(2)} on {formatDate(firstCharge)} — and
-          you can cancel anytime before then at no cost.
-        </span>
-      </div>
+      <ol className="grid gap-3 sm:grid-cols-2" aria-label="Checkout steps">
+        <li className={`rounded-xl border p-4 ${step === 1 ? "border-emerald-400/40 bg-emerald-500/[0.08]" : "border-emerald-500/20 bg-emerald-500/[0.04]"}`}>
+          <p className="flex items-center gap-2 text-sm font-semibold"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/20 text-xs text-emerald-300">1</span>Save card details in Legnoova {step === 2 && <Check className="ml-auto h-4 w-4 text-emerald-400"/>}</p>
+          <p className="mt-1 pl-8 text-xs text-muted-foreground">Card number, name, expiry, and your 3-digit Legnoova customer code. We do not save the card security code.</p>
+        </li>
+        <li className={`rounded-xl border p-4 ${step === 2 ? "border-emerald-400/40 bg-emerald-500/[0.08]" : "border-white/[0.08] bg-white/[0.02]"}`}>
+          <p className="flex items-center gap-2 text-sm font-semibold"><span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/[0.08] text-xs">2</span>Confirm subscription in Paddle</p>
+          <p className="mt-1 pl-8 text-xs text-muted-foreground">Enter payment details in Paddle&apos;s embedded secure checkout to start the trial.</p>
+        </li>
+      </ol>
 
-      <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr] lg:gap-8">
-        {/* Order summary */}
-        <div className="order-2 lg:order-1">
-          <div className="glass-panel overflow-hidden">
-            <div className="border-b border-white/[0.06] p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">
-                    {plan.highlight ? "Recommended plan" : "Selected plan"}
-                  </p>
-                  <h2 className="mt-1 font-heading text-lg font-semibold">
-                    Legnoova AI — {plan.name}
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">{plan.tagline}</p>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="font-heading text-2xl font-bold">${plan.price}</p>
-                  <p className="text-xs text-muted-foreground">{plan.period}</p>
-                </div>
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(390px,0.85fr)]">
+        <section className="glass-panel overflow-hidden rounded-2xl border border-emerald-500/20">
+          <div className="border-b border-white/[0.08] bg-gradient-to-r from-emerald-500/[0.10] to-transparent p-6 sm:p-8">
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-300">Your plan</p>
+            <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 className="font-heading text-2xl font-bold">{plan.name}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{plan.tagline}</p>
+              </div>
+              <p className="font-heading text-3xl font-bold">${plan.price}<span className="ml-1 text-sm font-normal text-muted-foreground">/ month</span></p>
+            </div>
+          </div>
+
+          <div className="space-y-5 p-6 sm:p-8">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
+                <p className="flex items-center gap-2 text-sm font-semibold text-emerald-200"><CalendarDays className="h-4 w-4"/>{TRIAL_DAYS} days free</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">$0 during the trial. Paddle shows the first charge date before you confirm.</p>
+              </div>
+              <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
+                <p className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck className="h-4 w-4 text-emerald-400"/>You stay in control</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">Cancel before the trial ends to avoid the first charge. Your plan renews monthly if you keep it.</p>
               </div>
             </div>
 
-            <div className="p-6">
-              <p className="mb-3 text-sm font-medium">What&apos;s included</p>
-              <ul className="space-y-2.5">
-                {plan.features.map((f) => (
-                  <li key={f} className="flex items-start gap-2 text-sm">
-                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-emerald-400">
-                      <Check className="h-3 w-3" />
-                    </span>
-                    <span className="text-muted-foreground">{f}</span>
+            <div>
+              <h3 className="mb-3 text-sm font-semibold">Included in this plan</h3>
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2 text-sm text-foreground/80">
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300"><Check className="h-3 w-3"/></span>
+                    <span>{feature}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="border-t border-white/[0.06] p-6">
-              <dl className="space-y-2.5 text-sm">
-                <div className="flex items-center justify-between">
-                  <dt className="text-muted-foreground">
-                    {plan.name} ({plan.period.replace("/", "per ")})
-                  </dt>
-                  <dd className="font-medium">${plan.price.toFixed(2)}</dd>
-                </div>
-                <div className="flex items-center justify-between">
-                  <dt className="text-muted-foreground">{trialDays}-day free trial</dt>
-                  <dd className="font-medium text-emerald-400">
-                    −${plan.price.toFixed(2)}
-                  </dd>
-                </div>
-                <div className="flex items-center justify-between">
-                  <dt className="text-muted-foreground">Tax</dt>
-                  <dd className="font-medium">${tax.toFixed(2)}</dd>
-                </div>
-                <div className="mt-2 flex items-center justify-between border-t border-white/[0.06] pt-3">
-                  <dt className="font-semibold">Due today</dt>
-                  <dd className="font-heading text-lg font-bold text-emerald-400">
-                    ${totalDueToday.toFixed(2)}
-                  </dd>
-                </div>
-              </dl>
-              <p className="mt-3 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-xs text-muted-foreground">
-                Then <strong className="text-foreground">${renewalTotal.toFixed(2)}/month</strong>{" "}
-                starting {formatDate(firstCharge)}. Auto-renews monthly. Cancel
-                anytime before {formatDate(trialEnd)} and you&apos;ll never be
-                charged.
-              </p>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-white/[0.08] pt-4 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1.5"><BadgeCheck className="h-3.5 w-3.5 text-emerald-400"/>{MONEY_BACK_DAYS}-day money-back guarantee</span>
+              <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-emerald-400"/>Secure payment by Paddle</span>
             </div>
           </div>
+        </section>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
-            {[
-              { icon: CalendarDays, label: `${trialDays}-day free trial` },
-              { icon: RefreshCw, label: "Cancel anytime, no fees" },
-              { icon: BadgeCheck, label: `${MONEY_BACK_DAYS}-day money-back guarantee` },
-              { icon: ShieldCheck, label: "Secure, encrypted checkout" },
-            ].map(({ icon: Icon, label }) => (
-              <div
-                key={label}
-                className="flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-2.5 text-xs text-muted-foreground"
-              >
-                <Icon className="h-4 w-4 shrink-0 text-emerald-400" />
-                {label}
+        <section className="glass-panel min-w-0 rounded-2xl border border-white/[0.08] p-4 sm:p-6">
+          {step === 1 ? (
+            <>
+              <div className="mb-5 flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300"><CreditCard className="h-5 w-5"/></span>
+                <div><h2 className="font-heading text-lg font-semibold">Step 1 · Save your card details</h2><p className="mt-1 text-sm text-muted-foreground">We encrypt these details in your Legnoova account. You will enter payment details again in Paddle to start the subscription.</p></div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Payment */}
-        <div className="order-1 lg:order-2">
-          <div
-            className={cn(
-              "glass-panel overflow-hidden p-6",
-              plan.highlight && "ring-1 ring-emerald-500/30"
-            )}
-          >
-            <h2 className="font-heading text-lg font-semibold">Payment details</h2>
-            <p className="mt-1 mb-5 text-sm text-muted-foreground">
-              Add a card to start your free trial. You won&apos;t be charged
-              until {formatDate(firstCharge)}.
-            </p>
-            <PaymentMethodForm
-              submitLabel={`Start free trial — $0 today`}
-              onDone={complete}
-            />
-          </div>
-        </div>
+              <PaymentMethodForm submitLabel="Save details and continue" onDone={() => setStep(2)}/>
+              <p className="mt-4 flex items-start gap-2 text-xs leading-5 text-amber-200/80"><Lock className="mt-0.5 h-3.5 w-3.5 shrink-0"/>Your Legnoova code is separate from the security code printed on your card. Do not enter your card CVV/CVC here; Legnoova never stores it. Saving these details does not charge your card or start your trial.</p>
+            </>
+          ) : (
+            <>
+              <div className="mb-5 flex items-start gap-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300"><ShieldCheck className="h-5 w-5"/></span>
+                <div><h2 className="font-heading text-lg font-semibold">Step 2 · Confirm with Paddle</h2><p className="mt-1 text-sm text-muted-foreground">Your Legnoova details are saved. Now enter your payment method in Paddle&apos;s secure form to start your plan.</p></div>
+              </div>
+              <PaddleInlineCheckout planId={plan.id} planName={plan.name}/>
+              <button type="button" onClick={() => setStep(1)} className="mt-4 text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground">Back to saved details</button>
+            </>
+          )}
+        </section>
       </div>
-    </div>
+      <p className="mx-auto max-w-3xl pb-6 text-center text-xs leading-5 text-muted-foreground">Saving details in Step 1 is not a payment authorization. Paddle must separately accept payment and confirm the trial/subscription before Legnoova grants plan access. Applicable taxes and the first payment date are shown by Paddle.</p>
+    </main>
   );
 }

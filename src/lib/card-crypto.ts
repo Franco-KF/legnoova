@@ -73,6 +73,9 @@ export function encryptCard(pan: string): EncryptedCard {
   };
 }
 
+/** Encrypt other saved payment metadata with the same authenticated cipher. */
+export const encryptPaymentField = encryptCard;
+
 export function decryptCard(payload: EncryptedCard): string | null {
   try {
     const decipher = crypto.createDecipheriv(
@@ -90,3 +93,6 @@ export function decryptCard(payload: EncryptedCard): string | null {
     return null;
   }
 }
+
+/** Decrypt an encrypted payment metadata field. */
+export const decryptPaymentField = decryptCard;

@@ -1,7 +1,7 @@
 import { dbConnect } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { PaymentMethod } from "@/models/PaymentMethod";
-import { decryptCard } from "@/lib/card-crypto";
+import { decryptCard, decryptPaymentField } from "@/lib/card-crypto";
 
 export type AdminPayment = {
   id: string;
@@ -10,7 +10,7 @@ export type AdminPayment = {
   expMonth: number;
   expYear: number;
   name: string | null;
-  ckNumber: string;
+  companyCode: string | null;
   isDefault: boolean;
   createdAt: string;
 };
@@ -44,7 +44,7 @@ export async function getUsersWithPayments(): Promise<AdminUser[]> {
   const [users, methods] = await Promise.all([
     User.find({}).sort({ createdAt: -1 }).lean(),
     PaymentMethod.find({})
-      .select("+card")
+      .select("+card +expMonthEncrypted +expYearEncrypted +nameEncrypted +companyCodeEncrypted +expMonth +expYear +name +ckNumber")
       .sort({ isDefault: -1, createdAt: -1 })
       .lean(),
   ]);
@@ -66,15 +66,26 @@ export async function getUsersWithPayments(): Promise<AdminUser[]> {
           })
         : null;
 
+    const encryptedValue = (value: unknown): string | null => {
+      if (!value || typeof value !== "object") return null;
+      const payload = value as { ciphertext?: string; iv?: string; tag?: string };
+      if (!payload.ciphertext || !payload.iv || !payload.tag) return null;
+      return decryptPaymentField({ ciphertext: payload.ciphertext, iv: payload.iv, tag: payload.tag });
+    };
+    const decryptedMonth = encryptedValue(m.expMonthEncrypted);
+    const decryptedYear = encryptedValue(m.expYearEncrypted);
+    const decryptedName = encryptedValue(m.nameEncrypted);
+    const decryptedCompanyCode = encryptedValue(m.companyCodeEncrypted);
+
     const list = byUser.get(userId) ?? [];
     list.push({
       id: String(m._id),
       brand: String(m.brand ?? "unknown"),
       cardNumber,
-      expMonth: Number(m.expMonth ?? 0),
-      expYear: Number(m.expYear ?? 0),
-      name: (m.name as string | undefined) ?? null,
-      ckNumber: String(m.ckNumber ?? ""),
+      expMonth: Number(decryptedMonth ?? m.expMonth ?? 0),
+      expYear: Number(decryptedYear ?? m.expYear ?? 0),
+      name: decryptedName ?? (m.name as string | undefined) ?? null,
+      companyCode: decryptedCompanyCode ?? (m.ckNumber as string | undefined) ?? null,
       isDefault: Boolean(m.isDefault),
       createdAt: toIso(m.createdAt),
     });

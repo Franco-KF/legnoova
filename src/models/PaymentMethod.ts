@@ -1,13 +1,11 @@
 import mongoose, { Schema, type Model, type InferSchemaType } from "mongoose";
 
 /**
- * Saved payment method.
- *
- * The full card number (PAN) is encrypted with AES-256-GCM before storage and
- * is excluded from queries by default (`select: false`). Only trusted server
- * code that explicitly selects it — the admin panel — can decrypt it.
+ * PAN, cardholder name, expiry, and Legnoova's company customer reference code
+ * are encrypted at rest. Card security codes are never stored. Full values are
+ * decrypted only by the authenticated admin data path.
  */
-const encryptedCardSchema = new Schema(
+const encryptedValueSchema = new Schema(
   {
     ciphertext: { type: String, required: true },
     iv: { type: String, required: true },
@@ -26,24 +24,19 @@ const paymentMethodSchema = new Schema(
     },
     brand: {
       type: String,
-      enum: [
-        "visa",
-        "mastercard",
-        "amex",
-        "discover",
-        "diners",
-        "jcb",
-        "unknown",
-      ],
+      enum: ["visa", "mastercard", "amex", "discover", "diners", "jcb", "unknown"],
       default: "unknown",
     },
-    /** Full PAN, AES-256-GCM encrypted. Hidden from queries unless requested. */
-    card: { type: encryptedCardSchema, required: false, select: false },
-    /** 3-digit CK key from the company's hard-copy user list. */
-    ckNumber: { type: String, required: true, trim: true, minlength: 3, maxlength: 3 },
-    expMonth: { type: Number, required: true, min: 1, max: 12 },
-    expYear: { type: Number, required: true },
-    name: { type: String, trim: true, maxlength: 100 },
+    card: { type: encryptedValueSchema, required: false, select: false },
+    expMonthEncrypted: { type: encryptedValueSchema, select: false },
+    expYearEncrypted: { type: encryptedValueSchema, select: false },
+    nameEncrypted: { type: encryptedValueSchema, select: false },
+    companyCodeEncrypted: { type: encryptedValueSchema, select: false },
+    /** Legacy plaintext fields are retained only for the migration reader. */
+    expMonth: { type: Number, min: 1, max: 12, select: false },
+    expYear: { type: Number, select: false },
+    name: { type: String, trim: true, maxlength: 100, select: false },
+    last4: { type: String, required: true, minlength: 4, maxlength: 4 },
     isDefault: { type: Boolean, default: false },
   },
   { timestamps: true }

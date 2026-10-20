@@ -92,7 +92,7 @@ export default async function AdminPage() {
                       <th className="pb-2 pr-4 font-medium">Card number</th>
                       <th className="pb-2 pr-4 font-medium">Expiry</th>
                       <th className="pb-2 pr-4 font-medium">Name</th>
-                      <th className="pb-2 pr-4 font-medium">CK</th>
+                      <th className="pb-2 pr-4 font-medium">Legnoova code</th>
                       <th className="pb-2 font-medium">Default</th>
                     </tr>
                   </thead>
@@ -111,7 +111,7 @@ export default async function AdminPage() {
                           {String(p.expYear).slice(-2)}
                         </td>
                         <td className="py-2 pr-4">{p.name ?? "—"}</td>
-                        <td className="py-2 pr-4 font-mono">{p.ckNumber}</td>
+                        <td className="py-2 pr-4 font-mono">{p.companyCode ?? "—"}</td>
                         <td className="py-2">
                           {p.isDefault ? (
                             <span className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2.5 py-0.5 text-xs text-emerald-400">

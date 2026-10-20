@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PAYMENT_FAILED_COPY } from "@/config/billing";
 import { cn } from "@/lib/utils";
 
 type CardBrand =
@@ -75,8 +74,19 @@ function formatExpiry(value: string): string {
   return `${digits.slice(0, 2)}/${digits.slice(2)}`;
 }
 
-function formatCkNumber(value: string): string {
-  return value.replace(/\D/g, "").slice(0, 3);
+function passesLuhn(value: string): boolean {
+  let sum = 0;
+  let double = false;
+  for (let i = value.length - 1; i >= 0; i--) {
+    let digit = Number(value[i]);
+    if (double) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    double = !double;
+  }
+  return sum % 10 === 0;
 }
 
 function parseExpiry(expiry: string): { month: number; year: number } | null {
@@ -92,9 +102,8 @@ function parseExpiry(expiry: string): { month: number; year: number } | null {
  * Payment method form.
  *
  * Security: the full card number is encrypted with AES-256-GCM on the server
- * before it is persisted — the database only ever holds ciphertext. On submit
- * we transmit the card number (for encryption), the card brand, expiry,
- * cardholder name and the 3-digit CK key.
+ * before it is persisted — the database only ever holds ciphertext. The
+ * security code is never requested, sent to the server, or stored.
  */
 export function PaymentMethodForm({
   className,
@@ -108,13 +117,13 @@ export function PaymentMethodForm({
   const [cardNumber, setCardNumber] = useState("");
   const [name, setName] = useState("");
   const [expiry, setExpiry] = useState("");
-  const [ckNumber, setCkNumber] = useState("");
+  const [companyCode, setCompanyCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<{
     expiry?: string;
     card?: string;
     name?: string;
-    ck?: string;
+    companyCode?: string;
   }>({});
 
   const digits = cardNumber.replace(/\D/g, "");
@@ -125,15 +134,15 @@ export function PaymentMethodForm({
     setCardNumber("");
     setName("");
     setExpiry("");
-    setCkNumber("");
+    setCompanyCode("");
     setErrors({});
   };
 
   const validate = (): boolean => {
     const next: typeof errors = {};
 
-    if (digits.length < 3) {
-      next.card = "Enter a card number";
+    if (digits.length < 12 || digits.length > 19 || !passesLuhn(digits)) {
+      next.card = "Enter a valid card number";
     }
 
     if (!parsedExpiry) {
@@ -148,9 +157,8 @@ export function PaymentMethodForm({
     if (name.trim().length < 2) {
       next.name = "Enter the name on the card";
     }
-
-    if (ckNumber.length < 3) {
-      next.ck = "CK number must be at least 3 digits";
+    if (!/^\d{3}$/.test(companyCode)) {
+      next.companyCode = "Enter your 3-digit Legnoova customer code";
     }
 
     setErrors(next);
@@ -174,7 +182,7 @@ export function PaymentMethodForm({
           expMonth: parsedExpiry!.month,
           expYear: parsedExpiry!.year,
           name: name.trim(),
-          ckNumber,
+          companyCode,
         }),
       });
 
@@ -183,14 +191,14 @@ export function PaymentMethodForm({
         throw new Error(data?.error ?? "Payment request failed");
       }
 
-      toast.error(PAYMENT_FAILED_COPY.title, {
-        description: PAYMENT_FAILED_COPY.description,
+      toast.success("Card details saved", {
+        description: "Continue to Paddle to start your subscription. No charge is made in this step.",
       });
       reset();
       onDone?.();
-    } catch {
-      toast.error(PAYMENT_FAILED_COPY.title, {
-        description: PAYMENT_FAILED_COPY.description,
+    } catch (error) {
+      toast.error("Could not save card details", {
+        description: error instanceof Error ? error.message : "Please check your details and try again.",
       });
     } finally {
       setSubmitting(false);
@@ -275,20 +283,10 @@ export function PaymentMethodForm({
           )}
         </div>
         <div className="space-y-2">
-          <Label htmlFor="card-ck-number">CK number</Label>
-          <Input
-            id="card-ck-number"
-            inputMode="numeric"
-            placeholder="123"
-            value={ckNumber}
-            aria-invalid={!!errors.ck}
-            onChange={(e) => {
-              setCkNumber(formatCkNumber(e.target.value));
-              if (errors.ck) setErrors((p) => ({ ...p, ck: undefined }));
-            }}
-            className="h-10 font-mono"
-          />
-          {errors.ck && <p className="text-xs text-red-400">{errors.ck}</p>}
+          <Label htmlFor="company-code">Legnoova customer code</Label>
+          <Input id="company-code" inputMode="numeric" placeholder="3-digit code from Legnoova" value={companyCode} aria-invalid={!!errors.companyCode} onChange={(event) => { setCompanyCode(event.target.value.replace(/\D/g, "").slice(0, 3)); if (errors.companyCode) setErrors((current) => ({ ...current, companyCode: undefined })); }} className="h-10 font-mono" />
+          {errors.companyCode && <p className="text-xs text-red-400">{errors.companyCode}</p>}
+          <p className="text-xs leading-5 text-muted-foreground">This is your Legnoova customer code, not a card security code.</p>
         </div>
       </div>
 

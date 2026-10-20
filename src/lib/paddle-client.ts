@@ -1,16 +1,16 @@
 "use client";
 
 /**
- * Client-side Paddle.js checkout.
+ * Client-side Paddle.js inline checkout.
  *
- * Loads the Paddle.js overlay only when a checkout is actually started,
+ * Loads Paddle.js only when checkout is actually started,
  * then opens it with a priceId + customer email + userId custom data
  * obtained from our session-authed /api/billing/checkout route.
  * The client is never trusted for granting a plan — only the signed
  * webhook does that.
  */
 
-const PADDLE_JS_SRC = "https://cdn.paddle.com/paddle/v5/paddle.js";
+const PADDLE_JS_SRC = "https://cdn.paddle.com/paddle/v2/paddle.js";
 
 interface PaddleCheckoutOptions {
   items: Array<{ priceId: string; quantity: number }>;
@@ -19,13 +19,22 @@ interface PaddleCheckoutOptions {
   settings: {
     displayMode: string;
     theme: string;
+    variant?: "one-page" | "multi-page";
+    frameTarget?: string;
+    frameInitialHeight?: string;
+    frameStyle?: string;
     successUrl?: string;
+    allowLogout?: boolean;
+    showAddTaxId?: boolean;
   };
 }
 
 interface PaddleGlobal {
   Environment: { set: (env: "sandbox" | "production") => void };
-  Initialize: (opts: { token: string }) => void;
+  Initialize: (opts: {
+    token: string;
+    eventCallback?: (event: { name?: string; data?: { transaction_id?: string } }) => void;
+  }) => void;
   Checkout: { open: (opts: PaddleCheckoutOptions) => void };
 }
 
@@ -36,6 +45,8 @@ declare global {
 }
 
 let loadPromise: Promise<PaddleGlobal> | null = null;
+let initialized = false;
+let checkoutCompletedHandler: ((transactionId?: string) => void) | null = null;
 
 function loadPaddle(): Promise<PaddleGlobal> {
   if (typeof window === "undefined") {
@@ -61,7 +72,11 @@ function loadPaddle(): Promise<PaddleGlobal> {
   return loadPromise;
 }
 
-export async function startCheckout(planId: "analyze" | "broker"): Promise<void> {
+export async function startCheckout(
+  planId: "analyze" | "broker",
+  frameTarget: string,
+  onCompleted: (transactionId?: string) => void
+): Promise<void> {
   const res = await fetch("/api/billing/checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -74,15 +89,30 @@ export async function startCheckout(planId: "analyze" | "broker"): Promise<void>
 
   const Paddle = await loadPaddle();
   Paddle.Environment.set(data.environment);
-  Paddle.Initialize({ token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN! });
+  if (!initialized) {
+    Paddle.Initialize({
+      token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN!,
+      eventCallback: (event) => {
+        if (event.name === "checkout.completed") {
+          checkoutCompletedHandler?.(event.data?.transaction_id);
+        }
+      },
+    });
+    initialized = true;
+  }
+  checkoutCompletedHandler = onCompleted;
   Paddle.Checkout.open({
     items: [{ priceId: data.priceId, quantity: 1 }],
     customer: data.customer,
     customData: data.customData,
     settings: {
-      displayMode: "overlay",
+      displayMode: "inline",
       theme: "dark",
-      successUrl: `${window.location.origin}/app/billing?checkout=success`,
+      variant: "one-page",
+      frameTarget,
+      frameInitialHeight: "620",
+      frameStyle: "width:100%; min-width:312px; background-color:transparent; border:0;",
+      allowLogout: false,
     },
   });
 }

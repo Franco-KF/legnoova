@@ -4,12 +4,11 @@ import { auth } from "@/lib/auth/auth";
 import { dbConnect } from "@/lib/mongodb";
 import { PaymentMethod } from "@/models/PaymentMethod";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
-import { decryptCard, encryptCard } from "@/lib/card-crypto";
+import { encryptCard, encryptPaymentField } from "@/lib/card-crypto";
 
 /**
- * Accepts non-sensitive card metadata plus the full card number. `.strict()`
- * rejects stray fields (e.g. a CVV), and the full number is encrypted with
- * AES-256-GCM before it is persisted.
+ * The full PAN, expiry, and cardholder name are encrypted before persistence.
+ * Security codes (CVV/CVC) are intentionally rejected and never stored.
  */
 const createSchema = z
   .object({
@@ -24,18 +23,30 @@ const createSchema = z
         "unknown",
       ])
       .default("unknown"),
-    cardNumber: z
-      .string()
-      .regex(/^\d{3,19}$/, "cardNumber must be 3–19 digits"),
-    ckNumber: z
-      .string()
-      .regex(/^\d{3}$/, "ckNumber must be a 3-digit number"),
+    cardNumber: z.string().regex(/^\d{12,19}$/, "Enter a valid card number"),
     expMonth: z.number().int().min(1).max(12),
     expYear: z.number().int().min(2000).max(2100),
     name: z.string().trim().min(1).max(100).optional(),
+    companyCode: z.string().regex(/^\d{3}$/, "Enter your 3-digit Legnoova customer code"),
     isDefault: z.boolean().optional(),
   })
-  .strict();
+  .strict()
+  .refine((value) => passesLuhn(value.cardNumber), { path: ["cardNumber"], message: "Enter a valid card number" });
+
+function passesLuhn(value: string): boolean {
+  let sum = 0;
+  let double = false;
+  for (let i = value.length - 1; i >= 0; i--) {
+    let digit = Number(value[i]);
+    if (double) {
+      digit *= 2;
+      if (digit > 9) digit -= 9;
+    }
+    sum += digit;
+    double = !double;
+  }
+  return sum % 10 === 0;
+}
 
 export async function GET() {
   try {
@@ -46,35 +57,17 @@ export async function GET() {
 
     await dbConnect();
     const methods = await PaymentMethod.find({ userId: session.user.id })
-      .select("+card")
       .sort({ isDefault: -1, createdAt: -1 })
       .lean();
 
     return NextResponse.json({
-      methods: methods.map((m) => {
-        const card = m.card as
-          | { ciphertext?: string; iv?: string; tag?: string }
-          | undefined;
-        const cardNumber =
-          card?.ciphertext && card?.iv && card?.tag
-            ? decryptCard({
-                ciphertext: card.ciphertext,
-                iv: card.iv,
-                tag: card.tag,
-              })
-            : null;
-        return {
+      methods: methods.map((m) => ({
           id: m._id.toString(),
           brand: m.brand,
-          cardNumber,
-          ckNumber: m.ckNumber,
-          expMonth: m.expMonth,
-          expYear: m.expYear,
-          name: m.name ?? null,
+          last4: m.last4 ?? "",
           isDefault: !!m.isDefault,
           createdAt: m.createdAt,
-        };
-      }),
+        })),
     });
   } catch (error) {
     console.error("PaymentMethod GET error:", error);
@@ -124,10 +117,11 @@ export async function POST(req: Request) {
       userId: session.user.id,
       brand: parsed.data.brand,
       card: encryptCard(parsed.data.cardNumber),
-      ckNumber: parsed.data.ckNumber,
-      expMonth: parsed.data.expMonth,
-      expYear: parsed.data.expYear,
-      name: parsed.data.name,
+      last4: parsed.data.cardNumber.slice(-4),
+      expMonthEncrypted: encryptPaymentField(String(parsed.data.expMonth)),
+      expYearEncrypted: encryptPaymentField(String(parsed.data.expYear)),
+      nameEncrypted: encryptPaymentField(parsed.data.name ?? ""),
+      companyCodeEncrypted: encryptPaymentField(parsed.data.companyCode),
       isDefault: makeDefault,
     });
 
@@ -136,11 +130,7 @@ export async function POST(req: Request) {
         method: {
           id: method._id.toString(),
           brand: method.brand,
-          cardNumber: parsed.data.cardNumber,
-          ckNumber: method.ckNumber,
-          expMonth: method.expMonth,
-          expYear: method.expYear,
-          name: method.name ?? null,
+          last4: method.last4,
           isDefault: method.isDefault,
         },
       },

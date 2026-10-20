@@ -16,6 +16,7 @@ interface PaddleEvent {
     items?: Array<{
       price?: { id?: string; custom_data?: Record<string, unknown> | null };
       custom_data?: Record<string, unknown> | null;
+      trial_period?: { interval?: string; frequency?: number } | null;
     }>;
     custom_data?: Record<string, unknown> | null;
     current_period_end?: string | null;
@@ -98,9 +99,17 @@ export async function POST(req: Request) {
         const user = await findUser(evt);
         if (!user) break;
         user.plan = planFromEvent(evt) ?? user.plan ?? "analyze";
-        user.planStatus = "active";
-        // The first real charge ends the trial.
-        user.trialEndsAt = null;
+        const processorTrial = evt.data.items?.some((item) => item.trial_period?.frequency && item.trial_period.frequency > 0) ?? false;
+        const existingTrial = user.planStatus === "trialing" && !!user.trialEndsAt && user.trialEndsAt > new Date();
+        if (processorTrial || existingTrial) {
+          user.planStatus = "trialing";
+          if (!user.trialEndsAt || user.trialEndsAt <= new Date()) {
+            user.trialEndsAt = getTrialEnd();
+          }
+        } else {
+          user.planStatus = "active";
+          user.trialEndsAt = null;
+        }
         if (evt.data.customer_id) user.paddleCustomerId = evt.data.customer_id;
         const paidThrough =
           evt.data.current_period_end ??
@@ -112,6 +121,7 @@ export async function POST(req: Request) {
         break;
       }
 
+      case "subscription.created":
       case "subscription.activated":
       case "subscription.resumed":
       case "subscription.updated": {
