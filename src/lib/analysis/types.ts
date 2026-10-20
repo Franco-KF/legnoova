@@ -161,6 +161,23 @@ export const STRATEGIES: StrategyDef[] = [
 The entry must be justified by at least an OB or FVG, with the stop placed beyond the swept liquidity or the order block, never at an arbitrary distance.`,
   },
   {
+    id: "automation-confluence",
+    label: "Trend-Pullback Confluence",
+    short: "TPC",
+    tagline: "Only trade when chart evidence lines up",
+    description:
+      "A cautious automation setup: follow the visible swing direction, wait for a pullback to a clear price area, then require a visible price-action trigger and a defined exit plan.",
+    checklist: [
+      "A clear direction is visible in the chart's swing highs and lows",
+      "Price has pulled back to a visible support, resistance, or prior breakout area",
+      "A clear candle or price-action trigger confirms a possible continuation",
+      "The stop-loss sits beyond a visible invalidation level",
+      "At least one chart-based target offers 1.5R or better",
+      "No strong opposing signal is visible in the chart",
+    ],
+    promptFocus: `Use a conservative trend-and-pullback approach and only judge information visible in the uploaded screenshot. Do not invent higher-timeframe agreement if the screenshot does not show it. Require a clear swing direction, a pullback to a visible level, and a visible price-action trigger. Place the stop beyond the level that invalidates the idea. If no visible target offers at least 1.5 times the entry-to-stop risk, return neutral. If the screenshot is unclear or evidence conflicts, return neutral. The confidence score is an evidence-strength score, not a probability or predicted win rate. Never promise performance.`,
+  },
+  {
     id: "all",
     label: "Consensus — All Strategies",
     short: "ALL",
@@ -236,6 +253,10 @@ export interface Analysis {
   /** Per-point evaluation of the chosen strategy's checklist. */
   strategyChecklist?: StrategyChecklistItem[];
   riskDisclosure: string;
+  /** True only when the model supplied a chart-based target (not a synthetic fallback). */
+  targetsVisible?: boolean;
+  /** Server-side automation gate; not a performance or win-probability claim. */
+  automationEligible?: boolean;
   /** Signal lifecycle — directional calls become signals (default "active"). */
   signalStatus?: SignalStatus;
   /** Journal: did the trader take this signal? default "unset". */
@@ -264,5 +285,6 @@ export interface SignalRecord {
   signalStatus: SignalStatus;
   tookIt: TookIt;
   published?: boolean;
+  automationEligible?: boolean;
   createdAt: string | null;
 }

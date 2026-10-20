@@ -1,16 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
+import { toast } from "sonner";
 import {
   LayoutDashboard,
   BellRing,
   LineChart,
   History,
   Star,
-  Bot,
+  BookOpen,
   CreditCard,
   Settings,
   LogOut,
@@ -19,6 +20,7 @@ import {
   X,
   Sparkles,
   Check,
+  Loader2,
 } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
 import { FREE_ANALYSIS_LIMIT, PLAN_BADGES } from "@/config/plans";
@@ -28,7 +30,7 @@ const navItems = [
   { href: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/app/signals", label: "Signals", icon: BellRing },
   { href: "/app/analyze", label: "Chart Analysis", icon: LineChart },
-  { href: "/app/bot", label: "Broker Automation", icon: Bot, badge: "$59" },
+  { href: "/app/bot", label: "MT5 Setup Guide", icon: BookOpen, badge: "$59" },
   { href: "/app/history", label: "History", icon: History },
   { href: "/app/watchlist", label: "Watchlist", icon: Star },
   { href: "/app/pricing", label: "Plans", icon: Sparkles },
@@ -63,8 +65,25 @@ function SidebarContent({
   signalsThisMonth,
   plan,
 }: SidebarContentProps) {
+  const router = useRouter();
+  const [signingOut, setSigningOut] = useState(false);
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href) && pathname !== "/app";
+
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await signOut({ redirect: false, redirectTo: "/login" });
+      onNavigate();
+      toast.success("You are signed out");
+      router.replace("/login");
+      router.refresh();
+    } catch {
+      setSigningOut(false);
+      toast.error("Could not sign out. Please try again.");
+    }
+  };
 
   return (
     <>
@@ -195,11 +214,13 @@ function SidebarContent({
         )}
         {!compact && (
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-red-400"
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-red-400 disabled:cursor-wait disabled:opacity-60"
             title="Sign out"
+            aria-label="Sign out"
           >
-            <LogOut className="h-4 w-4" />
+            {signingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
           </button>
         )}
       </div>

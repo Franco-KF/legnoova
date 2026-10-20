@@ -19,6 +19,12 @@ export interface IUser extends Document {
   paddleSubscriptionId?: string;
   /** End of the currently paid period (Paddle current_period_end). */
   planCurrentPeriodEnd?: Date | null;
+  eaTokenHash?: string | null;
+  brokerAutomationEnabled?: boolean;
+  brokerRiskPercent?: number;
+  mt5LastSignalId?: string | null;
+  mt5LeaseSignalId?: string | null;
+  mt5LeaseUntil?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,6 +47,12 @@ const UserSchema = new Schema<IUser>(
     paddleCustomerId: { type: String, index: true },
     paddleSubscriptionId: { type: String, index: true },
     planCurrentPeriodEnd: { type: Date, default: null },
+    eaTokenHash: { type: String, default: null, select: false, index: true },
+    brokerAutomationEnabled: { type: Boolean, default: false },
+    brokerRiskPercent: { type: Number, default: 0.5, min: 0.1, max: 0.5 },
+    mt5LastSignalId: { type: String, default: null },
+    mt5LeaseSignalId: { type: String, default: null },
+    mt5LeaseUntil: { type: Date, default: null },
   },
   { timestamps: true }
 );

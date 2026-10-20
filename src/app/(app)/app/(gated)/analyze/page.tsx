@@ -436,6 +436,11 @@ export default function AnalyzePage() {
 
         {/* RIGHT — Results */}
         <div>
+          {result && strategyId === "automation-confluence" && !result.automationEligible && (
+            <div className="mb-4 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-sm text-amber-100/90">
+              This chart review did not pass the automation checks, so MT5 will not receive it. The filters check visible chart evidence, agreement across strategy reviews, a stop, and at least 1.5R. This is a safety filter, not a win-rate estimate.
+            </div>
+          )}
           {loading ? (
             <ResultSkeleton strategy={strategy} />
           ) : result ? (
@@ -478,6 +483,7 @@ function toSignalRecord(
     strategyChecklist: analysis.strategyChecklist,
     keyLevels: analysis.keyLevels,
     strategyAssessments: analysis.strategyAssessments,
+    automationEligible: analysis.automationEligible,
     signalStatus: analysis.signalStatus || "active",
     tookIt: analysis.tookIt || "unset",
     published: analysis.published,

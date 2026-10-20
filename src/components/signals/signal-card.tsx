@@ -205,6 +205,11 @@ export function SignalCard({ signal, onUpdate, market }: SignalCardProps) {
             </div>
             <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground">{signal.strategy}</p>
+              {signal.automationEligible && (
+                <span className="rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-300">
+                  MT5 eligible
+                </span>
+              )}
               {market && (
                 <span className="text-[11px] text-muted-foreground/70">
                   · community signal (anonymized)

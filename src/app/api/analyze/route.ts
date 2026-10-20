@@ -7,6 +7,7 @@ import { Analysis } from "@/models/Analysis";
 import { User } from "@/models/User";
 import { USAGE_LIMITS, FREE_ANALYSIS_LIMIT } from "@/config/plans";
 import { notifySignalAlert } from "@/lib/signals/notify";
+import { isAutomationEligible } from "@/lib/analysis/automation-eligibility";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import {
   STRATEGIES,
@@ -127,6 +128,7 @@ export async function POST(req: Request) {
 
     await dbConnect();
     const isSignal = data.direction !== "neutral";
+    const automationEligible = isAutomationEligible(parsed.data.strategy, data);
     const doc = await Analysis.create({
       userId: session.user.id,
       pair: data.pair,
@@ -145,6 +147,8 @@ export async function POST(req: Request) {
       keyFindings: data.keyFindings || [],
       strategyChecklist: data.strategyChecklist || [],
       riskDisclosure: data.riskDisclosure,
+      targetsVisible: data.targetsVisible ?? false,
+      automationEligible,
       signalStatus: "active",
       tookIt: "unset",
       published: isSignal && data.confidence >= 60,
@@ -163,6 +167,7 @@ export async function POST(req: Request) {
         signalStatus: "active",
         tookIt: "unset",
         published: isSignal && data.confidence >= 60,
+        automationEligible,
       },
       id: doc._id.toString(),
       createdAt: new Date().toISOString(),

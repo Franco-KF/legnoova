@@ -58,6 +58,7 @@ export async function GET(req: Request) {
       signalStatus: doc.signalStatus || "active",
       tookIt: doc.tookIt || "unset",
       published: !!doc.published,
+      automationEligible: !!doc.automationEligible,
       createdAt: (doc.createdAt as Date | undefined)?.toISOString?.() ?? null,
     }));
 

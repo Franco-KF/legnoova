@@ -294,6 +294,7 @@ function parseAnalysis(raw: string, strategyId: string): Analysis {
         : [],
     },
     strategyAssessments,
+    targetsVisible: tpPrices.length > 0,
     keyFindings: parseKeyFindings(parsed.keyFindings),
     strategyChecklist: parseChecklist(
       parsed.strategyChecklist,
