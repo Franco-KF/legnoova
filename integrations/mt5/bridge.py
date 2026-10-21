@@ -5,7 +5,7 @@ import math
 import os
 import secrets
 import time
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 from urllib.error import HTTPError, URLError
@@ -41,6 +41,9 @@ def load_or_create_local_token(path=None):
 
 LOCAL_BRIDGE_TOKEN = os.environ.get("LEGNOOVA_BRIDGE_LOCAL_TOKEN", "")
 LAST_EA_DIAGNOSTIC = None
+LAST_EA_LOCAL_ERROR = None
+LAST_EA_CLOUD_REPORTED = False
+LAST_EA_CLOUD_ERROR = None
 
 
 def app_origin():
@@ -163,6 +166,9 @@ class Handler(BaseHTTPRequestHandler):
                 "eaConnected": age is not None and age <= 45,
                 "eaLastSeenSecondsAgo": age,
                 "ea": {key: value for key, value in last.items() if key != "seenAt"} if last else None,
+                "eaLocalError": LAST_EA_LOCAL_ERROR,
+                "eaCloudReported": LAST_EA_CLOUD_REPORTED,
+                "eaCloudError": LAST_EA_CLOUD_ERROR,
                 "cloud": diagnostics,
                 "cloudError": error,
             })
@@ -179,20 +185,31 @@ class Handler(BaseHTTPRequestHandler):
         if not self.authorized_local_client():
             return self.respond(401, {"error": "unauthorized"})
         if self.path == "/diagnostic":
-            global LAST_EA_DIAGNOSTIC
+            global LAST_EA_DIAGNOSTIC, LAST_EA_LOCAL_ERROR, LAST_EA_CLOUD_REPORTED, LAST_EA_CLOUD_ERROR
             try:
                 length = int(self.headers.get("Content-Length", "0"))
                 if length <= 0 or length > 2048:
+                    LAST_EA_LOCAL_ERROR = "invalid_request_size"
                     return self.respond(400, {"error": "invalid request size"})
                 payload = validate_ea_diagnostic(json.loads(self.rfile.read(length)))
                 LAST_EA_DIAGNOSTIC = {**payload, "seenAt": time.time()}
-                try:
-                    api("POST", payload, "/api/automation/diagnostics/device")
-                except (HTTPError, URLError, RuntimeError, ValueError):
-                    return self.respond(502, {"recorded": True, "cloudReported": False})
-                return self.respond(200, {"recorded": True, "cloudReported": True})
-            except (ValueError, TypeError):
+                LAST_EA_LOCAL_ERROR = None
+            except (ValueError, TypeError) as error:
+                LAST_EA_LOCAL_ERROR = str(error)[:120]
                 return self.respond(400, {"error": "invalid diagnostic payload"})
+            try:
+                api("POST", payload, "/api/automation/diagnostics/device")
+                LAST_EA_CLOUD_REPORTED = True
+                LAST_EA_CLOUD_ERROR = None
+                return self.respond(200, {"recorded": True, "cloudReported": True})
+            except HTTPError as error:
+                LAST_EA_CLOUD_REPORTED = False
+                LAST_EA_CLOUD_ERROR = f"cloud_http_{error.code}"
+                return self.respond(502, {"recorded": True, "cloudReported": False, "cloudError": LAST_EA_CLOUD_ERROR})
+            except (URLError, RuntimeError, ValueError):
+                LAST_EA_CLOUD_REPORTED = False
+                LAST_EA_CLOUD_ERROR = "cloud_unavailable"
+                return self.respond(502, {"recorded": True, "cloudReported": False, "cloudError": LAST_EA_CLOUD_ERROR})
         if self.path == "/event":
             try:
                 length = int(self.headers.get("Content-Length", "0"))
@@ -232,7 +249,13 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
 
 
+class BridgeHTTPServer(ThreadingHTTPServer):
+    """Keep a slow cloud poll from blocking EA heartbeat and event requests."""
+    daemon_threads = True
+    request_queue_size = 16
+
+
 if __name__ == "__main__":
     if not LOCAL_BRIDGE_TOKEN:
         LOCAL_BRIDGE_TOKEN = load_or_create_local_token()
-    HTTPServer((HOST, PORT), Handler).serve_forever()
+    BridgeHTTPServer((HOST, PORT), Handler).serve_forever()

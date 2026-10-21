@@ -3,11 +3,16 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
+from http.server import ThreadingHTTPServer
 
 import bridge
 
 
 class BridgeTests(unittest.TestCase):
+    def test_bridge_server_is_threaded_for_parallel_signal_and_heartbeat_requests(self):
+        self.assertTrue(issubclass(bridge.BridgeHTTPServer, ThreadingHTTPServer))
+        self.assertTrue(bridge.BridgeHTTPServer.daemon_threads)
+
     def test_api_sends_bearer_token_without_printing_it(self):
         bridge.API_URL = "https://example.test"
         bridge.DEVICE_TOKEN = "test-secret"

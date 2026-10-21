@@ -18,6 +18,18 @@ type Diagnostics = {
   mt5: { connected: boolean; lastSeenSecondsAgo: number | null; runtime: { status: string; demoAccount: boolean; chartM1: boolean; accountCurrency: string; eaOpenPositions: number; eaFloatingProfit: number } | null };
   activation: { demoReady: boolean; scalpingReady: boolean; blockers: string[]; scalpingBlockers: string[] };
 };
+type LocalHealth = {
+  bridgeRunning: boolean;
+  configurationReady: boolean;
+  eaConnected: boolean;
+  eaLastSeenSecondsAgo: number | null;
+  ea: { executionEnabled: boolean; terminalTradeAllowed: boolean; accountTradeAllowed: boolean; expertTradeAllowed: boolean; demoAccount: boolean; chartM1: boolean; liveTradingAllowed: boolean; accountCurrency: string; eaOpenPositions: number; eaFloatingProfit: number; status: string } | null;
+  eaLocalError: string | null;
+  eaCloudReported: boolean;
+  eaCloudError: string | null;
+  cloud: Diagnostics | null;
+  cloudError: string | null;
+};
 type TradeEvent = { _id: string; signalId: string; dealId: string; brokerOrderId: string; eventType: "entry" | "exit"; symbol: string; currency: string; volume: number; price: number; netProfit: number; occurredAt: string };
 type Acknowledgement = { _id: string; signalId: string; status: string; details: string; brokerOrderId: string; createdAt: string };
 type ActivityData = { events: TradeEvent[]; acknowledgements: Acknowledgement[] };
@@ -43,6 +55,9 @@ export function AutomationCenter() {
   const [activating, setActivating] = useState<Mode | "pause" | null>(null);
   const [tokenBusy, setTokenBusy] = useState(false);
   const [token, setToken] = useState("");
+  const [localHealth, setLocalHealth] = useState<LocalHealth | null>(null);
+  const [localCheckBusy, setLocalCheckBusy] = useState(false);
+  const [localCheckError, setLocalCheckError] = useState("");
 
   const refresh = useCallback(async (quiet = false) => {
     if (!quiet) setRefreshing(true);
@@ -145,6 +160,29 @@ export function AutomationCenter() {
     } finally { setActivating(null); }
   };
 
+  const checkLocalBridge = async () => {
+    setLocalCheckBusy(true);
+    setLocalCheckError("");
+    setLocalHealth(null);
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 10_000);
+    try {
+      const response = await fetch("http://127.0.0.1:8765/health", {
+        cache: "no-store",
+        mode: "cors",
+        signal: controller.signal,
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(`The local bridge replied with HTTP ${response.status}.`);
+      setLocalHealth(body as LocalHealth);
+    } catch {
+      setLocalCheckError("This browser could not reach 127.0.0.1:8765. Run this check on the same computer as bridge.py and allow local-network access if the browser asks.");
+    } finally {
+      window.clearTimeout(timer);
+      setLocalCheckBusy(false);
+    }
+  };
+
   if (loading) return <div className="glass-panel flex items-center gap-3 p-6 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin text-emerald-400"/>Loading MT5 automation status…</div>;
   if (!snapshot) return <div className="glass-panel p-6"><p className="text-sm text-muted-foreground">Automation status could not be loaded.</p><Button className="mt-4" variant="outline" onClick={() => void refresh()}><RefreshCw className="mr-2 h-4 w-4"/>Try again</Button></div>;
 
@@ -172,6 +210,7 @@ export function AutomationCenter() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" onClick={() => void refresh()} disabled={refreshing}><RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`}/>Refresh status</Button>
+            <Button variant="outline" onClick={() => void checkLocalBridge()} disabled={localCheckBusy}>{localCheckBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Wifi className="mr-2 h-4 w-4"/>}Check this computer</Button>
             {settings.enabled && <Button variant="destructive" onClick={() => void pause()} disabled={activating !== null}><Pause className="mr-2 h-4 w-4"/>{activating === "pause" ? "Pausing…" : "Pause new orders"}</Button>}
           </div>
         </div>
@@ -185,6 +224,21 @@ export function AutomationCenter() {
         </div>
         <p className="border-t border-white/[0.06] px-5 py-3 text-xs text-muted-foreground">Floating P/L is an MT5 estimate for open EA positions (includes swap, may exclude commission); deal P/L is reported from MT5 history. Heartbeat updates about every 15 seconds.</p>
       </section>
+
+      {(localCheckError || localHealth) && <section className="glass-panel space-y-3 border-sky-400/20 p-5" aria-live="polite">
+        <div><p className="text-xs uppercase tracking-[0.18em] text-sky-300">Read-only check · this computer</p><h2 className="mt-1 font-heading text-lg font-semibold">Local bridge diagnostics</h2><p className="mt-1 text-xs text-muted-foreground">This checks the Python bridge on the computer where this browser is running. It does not enable trading or send an order.</p></div>
+        {localCheckError && <p className="rounded-lg border border-amber-400/20 bg-amber-400/[0.05] p-3 text-sm text-amber-100">{localCheckError}</p>}
+        {localHealth && <>
+          <ul className="grid gap-2 sm:grid-cols-2">
+            <LocalCheck label="Python bridge" ok={localHealth.bridgeRunning} detail={localHealth.bridgeRunning ? "Responding at 127.0.0.1:8765." : "Start bridge.py on this computer."}/>
+            <LocalCheck label="Bridge configuration" ok={localHealth.configurationReady} detail={localHealth.configurationReady ? "Cloud URL, device token and local token are configured." : "Check both bridge environment variables and restart bridge.py."}/>
+            <LocalCheck label="EA reached Python bridge" ok={localHealth.eaConnected} detail={localHealth.eaConnected ? `Heartbeat ${localHealth.eaLastSeenSecondsAgo}s ago; EA status: ${localHealth.ea?.status ?? "unknown"}.` : "Bridge is reachable, but no EA diagnostic arrived. Check the EA is attached, compiled and its LocalBridgeToken matches the token file."}/>
+            <LocalCheck label="Heartbeat accepted by Legnoova" ok={localHealth.eaCloudReported} detail={localHealth.eaCloudReported ? "The latest EA heartbeat was saved to your Legnoova account." : localHealth.eaLocalError ? `Python rejected the EA diagnostic: ${localHealth.eaLocalError}. Download and compile the latest EA.` : localHealth.eaCloudError === "cloud_http_400" ? "Legnoova rejected the heartbeat fields. Download/compile the latest EA and restart bridge.py." : localHealth.eaCloudError ? `Heartbeat could not be saved: ${localHealth.eaCloudError}. Check the bridge log and device token.` : "No heartbeat has been relayed to Legnoova yet."}/>
+            <LocalCheck label="Cloud/device token" ok={!!localHealth.cloud} detail={localHealth.cloud ? "The bridge authenticated with Legnoova and fetched cloud diagnostics." : localHealth.cloudError === "device_token_rejected" ? "Legnoova rejected the bridge device token. Confirm it belongs to this signed-in account." : localHealth.cloudError === "bridge_credentials_missing" ? "The bridge is missing LEGNOOVA_API_URL or LEGNOOVA_DEVICE_TOKEN." : `Cloud diagnostics unavailable: ${localHealth.cloudError ?? "check the Python bridge log and network"}.`}/>
+          </ul>
+          {localHealth.ea && <p className="text-xs text-muted-foreground">EA inputs: execution {localHealth.ea.executionEnabled ? "ON" : "OFF"} · demo account {localHealth.ea.demoAccount ? "YES" : "NO"} · trade permissions {localHealth.ea.terminalTradeAllowed && localHealth.ea.accountTradeAllowed && localHealth.ea.expertTradeAllowed ? "ON" : "OFF"} · M1 chart {localHealth.ea.chartM1 ? "YES" : "NO"}.</p>}
+        </>}
+      </section>}
 
       {!settings.tokenIssued && settings.hasBrokerPlan && <section className="glass-panel flex flex-wrap items-center justify-between gap-4 border-amber-400/20 p-5"><div><h2 className="font-semibold">Connect this MT5 terminal</h2><p className="mt-1 max-w-2xl text-sm text-muted-foreground">Create a private device token, configure the local bridge and EA from the setup guide, then wait for a heartbeat here.</p></div><div className="flex gap-2"><Button onClick={() => void issueToken()} disabled={tokenBusy}>{tokenBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}Create bridge token</Button><Button render={<Link href="/app/bot"/>} variant="outline">Open setup guide</Button></div></section>}
       {settings.tokenIssued && settings.hasBrokerPlan && <section className="glass-panel p-5">
@@ -234,4 +288,8 @@ function CheckIcon({ status }: { status: Check["status"] }) {
   if (status === "fail") return <WifiOff className="mt-0.5 h-4 w-4 shrink-0 text-red-300"/>;
   if (status === "info") return <Activity className="mt-0.5 h-4 w-4 shrink-0 text-sky-300"/>;
   return <Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-amber-200"/>;
+}
+
+function LocalCheck({ label, ok, detail }: { label: string; ok: boolean; detail: string }) {
+  return <li className="flex gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] p-3"><CheckIcon status={ok ? "pass" : "fail"}/><div><p className="text-sm font-medium">{label}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p></div></li>;
 }

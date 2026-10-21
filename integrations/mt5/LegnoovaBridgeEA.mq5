@@ -1,5 +1,5 @@
 #property strict
-#property version "0.5"
+#property version "0.6"
 #property description "Legnoova MT5 bridge. Demo-only and disabled until explicitly configured."
 
 input bool ExecutionEnabled = false;
@@ -92,7 +92,11 @@ bool JsonBool(const string json, const string key)
 
 bool Request(const string method, const string path, const string payload, string &response)
 {
-   if(StringLen(LocalBridgeToken) < 32) return false;
+   if(StringLen(LocalBridgeToken) < 32)
+   {
+      Print("Legnoova: LocalBridgeToken is missing or too short; set the local token from bridge.py in EA Inputs.");
+      return false;
+   }
    char data[], result[];
    if(payload != "")
    {
@@ -101,8 +105,22 @@ bool Request(const string method, const string path, const string payload, strin
    }
    string headers = "Authorization: Bearer " + LocalBridgeToken + "\r\nContent-Type: application/json\r\n";
    string responseHeaders;
-   int code = WebRequest(method, BridgeUrl + path, headers, 5000, data, result, responseHeaders);
-   if(code < 200 || code >= 300) return false;
+   ResetLastError();
+   int code = WebRequest(method, BridgeUrl + path, headers, 10000, data, result, responseHeaders);
+   if(code == -1)
+   {
+      int terminalError = GetLastError();
+      Print("Legnoova WebRequest failed for ", path, "; MT5 error ", terminalError,
+         ". Check the allowed URL http://127.0.0.1:8765 and local bridge token.");
+      ResetLastError();
+      return false;
+   }
+   if(code < 200 || code >= 300)
+   {
+      Print("Legnoova local bridge returned HTTP ", code, " for ", path,
+         ". Check the matching local token and Python bridge log.");
+      return false;
+   }
    response = CharArrayToString(result, 0, WHOLE_ARRAY, CP_UTF8);
    return true;
 }
@@ -580,7 +598,11 @@ void OnTimer()
           Comment("Legnoova MT5: ", g_diagnosticStatus);
        }
    }
-   else g_diagnosticStatus = "bridge_unavailable";
+   else
+   {
+      g_diagnosticStatus = "bridge_unavailable";
+      Comment("Legnoova MT5: bridge request failed; check the MT5 Experts tab for the HTTP or WebRequest error.");
+   }
    ReconcileRecentTradeEvents();
    SendDiagnostic();
    g_busy = false;
