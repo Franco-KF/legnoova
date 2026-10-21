@@ -13,7 +13,7 @@ import type {
 } from "./analysis/types";
 import { getStrategy } from "./analysis/types";
 
-const MODEL = "gemini-2.0-flash";
+const MODEL = "gemini-3.8-flash";
 
 let cachedModel: GenerativeModel | null = null;
 
