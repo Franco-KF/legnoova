@@ -1,5 +1,5 @@
 #property strict
-#property version "0.3"
+#property version "0.4"
 #property description "Legnoova MT5 bridge. Demo-only and disabled until explicitly configured."
 
 input bool ExecutionEnabled = false;
@@ -15,6 +15,12 @@ input int PollSeconds = 15;
 
 bool g_busy = false;
 string g_diagnosticStatus = "starting";
+const ulong EA_MAGIC = 741205;
+const double SCALPING_MAX_RISK_PERCENT = 0.25;
+const double SCALPING_MAX_DAILY_LOSS_PERCENT = 1.0;
+const double SCALPING_MAX_SPREAD_POINTS = 30.0;
+const int SCALPING_MAX_ENTRIES_PER_DAY = 3;
+const int SCALPING_MAX_SIGNAL_AGE_SECONDS = 120;
 
 string JsonString(const string json, const string key)
 {
@@ -84,6 +90,7 @@ void SendDiagnostic()
       + ",\"accountTradeAllowed\":" + (AccountInfoInteger(ACCOUNT_TRADE_ALLOWED) ? "true" : "false")
       + ",\"expertTradeAllowed\":" + (AccountInfoInteger(ACCOUNT_TRADE_EXPERT) ? "true" : "false")
       + ",\"demoAccount\":" + (AccountInfoInteger(ACCOUNT_TRADE_MODE) == ACCOUNT_TRADE_MODE_DEMO ? "true" : "false")
+      + ",\"chartM1\":" + (Period() == PERIOD_M1 ? "true" : "false")
       + ",\"liveTradingAllowed\":" + (AllowLiveAccount ? "true" : "false")
       + ",\"status\":\"" + g_diagnosticStatus + "\"}";
    string response;
@@ -142,6 +149,67 @@ bool AlreadyExecuted(const string id)
    return false;
 }
 
+bool ScalpingLimitsAllow(string &status)
+{
+   MqlDateTime today;
+   TimeToStruct(TimeCurrent(), today);
+   today.hour = 0;
+   today.min = 0;
+   today.sec = 0;
+   datetime dayStart = StructToTime(today);
+   if(!HistorySelect(dayStart, TimeCurrent()))
+   {
+      status = "scalp_history_unavailable";
+      return false;
+   }
+
+   ulong entryOrders[];
+   double dayProfit = 0.0;
+   for(int i = 0; i < HistoryDealsTotal(); i++)
+   {
+      ulong deal = HistoryDealGetTicket(i);
+      if(deal == 0 || (ulong)HistoryDealGetInteger(deal, DEAL_MAGIC) != EA_MAGIC) continue;
+      dayProfit += HistoryDealGetDouble(deal, DEAL_PROFIT)
+         + HistoryDealGetDouble(deal, DEAL_COMMISSION)
+         + HistoryDealGetDouble(deal, DEAL_SWAP)
+         + HistoryDealGetDouble(deal, DEAL_FEE);
+      long entry = HistoryDealGetInteger(deal, DEAL_ENTRY);
+      if(entry != DEAL_ENTRY_IN && entry != DEAL_ENTRY_INOUT) continue;
+      ulong order = (ulong)HistoryDealGetInteger(deal, DEAL_ORDER);
+      bool seen = false;
+      for(int j = 0; j < ArraySize(entryOrders); j++)
+      {
+         if(entryOrders[j] == order) { seen = true; break; }
+      }
+      if(!seen)
+      {
+         int size = ArraySize(entryOrders);
+         ArrayResize(entryOrders, size + 1);
+         entryOrders[size] = order;
+      }
+   }
+
+   for(int i = 0; i < PositionsTotal(); i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if(ticket > 0 && (ulong)PositionGetInteger(POSITION_MAGIC) == EA_MAGIC)
+         dayProfit += PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
+   }
+
+   if(ArraySize(entryOrders) >= SCALPING_MAX_ENTRIES_PER_DAY)
+   {
+      status = "scalp_daily_trade_cap";
+      return false;
+   }
+   double dailyLossLimit = AccountInfoDouble(ACCOUNT_BALANCE) * SCALPING_MAX_DAILY_LOSS_PERCENT / 100.0;
+   if(dayProfit <= -dailyLossLimit)
+   {
+      status = "scalp_daily_loss_cap";
+      return false;
+   }
+   return true;
+}
+
 int VolumeDigits(const double step)
 {
    if(step >= 1.0) return 0;
@@ -172,6 +240,8 @@ bool ExecuteSignal(const string json, string &status, string &orderId)
    string id = JsonString(json, "id");
    string requestedSymbol = JsonString(json, "symbol");
    string direction = JsonString(json, "direction");
+   string mode = JsonString(json, "automationMode");
+   string timeframe = JsonString(json, "timeframe");
    double entry = JsonNumber(json, "entryPrice");
    double stop = JsonNumber(json, "stopLoss");
    double target = JsonNumber(json, "takeProfit");
@@ -180,12 +250,21 @@ bool ExecuteSignal(const string json, string &status, string &orderId)
    status = "invalid_signal";
    orderId = "";
    if(StringLen(id) != 24 || entry <= 0 || stop <= 0 || target <= 0 || riskPercent <= 0 || riskPercent > MaximumRiskPercent) return false;
-   if(createdAt > 0 && TimeCurrent() - (datetime)createdAt > MaximumSignalAgeSeconds) { status = "stale_signal"; return false; }
+   int maximumSignalAge = mode == "scalping" ? (int)MathMin(MaximumSignalAgeSeconds, SCALPING_MAX_SIGNAL_AGE_SECONDS) : MaximumSignalAgeSeconds;
+   if(createdAt > 0 && TimeCurrent() - (datetime)createdAt > maximumSignalAge) { status = "stale_signal"; return false; }
    if(!ExecutionEnabled) { status = "execution_off"; return false; }
    if(!AllowLiveAccount && AccountInfoInteger(ACCOUNT_TRADE_MODE) != ACCOUNT_TRADE_MODE_DEMO) { status = "demo_only"; return false; }
+   if(mode == "scalping")
+   {
+      if(AccountInfoInteger(ACCOUNT_TRADE_MODE) != ACCOUNT_TRADE_MODE_DEMO) { status = "demo_only"; return false; }
+      if(timeframe != "M1" || Period() != PERIOD_M1) { status = "chart_not_m1"; return false; }
+      if(riskPercent > SCALPING_MAX_RISK_PERCENT) { status = "scalp_risk_cap"; return false; }
+      if(!ScalpingLimitsAllow(status)) return false;
+   }
    if(!AccountInfoInteger(ACCOUNT_TRADE_ALLOWED) || !AccountInfoInteger(ACCOUNT_TRADE_EXPERT) || !TerminalInfoInteger(TERMINAL_TRADE_ALLOWED)) { status = "trading_disabled"; return false; }
    if(AlreadyExecuted(id)) { status = "already_executed"; return true; }
-   if(MaximumOpenPositions < 1 || PositionsTotal() >= MaximumOpenPositions) { status = "position_limit"; return false; }
+   int positionLimit = mode == "scalping" ? 1 : MaximumOpenPositions;
+   if(positionLimit < 1 || PositionsTotal() >= positionLimit) { status = "position_limit"; return false; }
 
    string symbol = ResolveSymbol(requestedSymbol);
    if(symbol == "") { status = "symbol_unavailable"; return false; }
@@ -198,6 +277,7 @@ bool ExecuteSignal(const string json, string &status, string &orderId)
    else return false;
    double point = SymbolInfoDouble(symbol, SYMBOL_POINT);
    int digits = (int)SymbolInfoInteger(symbol, SYMBOL_DIGITS);
+   if(mode == "scalping" && point > 0 && (tick.ask - tick.bid) / point > SCALPING_MAX_SPREAD_POINTS) { status = "scalp_spread_high"; return false; }
    if(point <= 0 || MathAbs(price - entry) / point > MaximumEntryDriftPoints) { status = "price_drift"; return false; }
    if((side == ORDER_TYPE_BUY && !(stop < price && target > price)) || (side == ORDER_TYPE_SELL && !(stop > price && target < price))) { status = "invalid_levels"; return false; }
 
@@ -216,7 +296,7 @@ bool ExecuteSignal(const string json, string &status, string &orderId)
    request.sl = NormalizeDouble(stop, digits);
    request.tp = NormalizeDouble(target, digits);
    request.deviation = 20;
-   request.magic = 741205;
+   request.magic = EA_MAGIC;
    request.comment = SignalComment(id);
    long filling = SymbolInfoInteger(symbol, SYMBOL_FILLING_MODE);
    if((filling & SYMBOL_FILLING_IOC) == SYMBOL_FILLING_IOC) request.type_filling = ORDER_FILLING_IOC;

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 interface Settings {
   hasBrokerPlan: boolean;
   enabled: boolean;
+  mode: "normal" | "scalping";
   riskPercent: number;
   tokenIssued: boolean;
 }
@@ -18,6 +19,7 @@ type Diagnostics = {
   checks: DiagnosticCheck[];
   queuedSignals: number;
   readyForNewSignals: boolean;
+  mode: "normal" | "scalping";
 };
 type LocalHealth = {
   bridgeRunning: boolean;
@@ -29,7 +31,8 @@ type LocalHealth = {
     terminalTradeAllowed: boolean;
     accountTradeAllowed: boolean;
     expertTradeAllowed: boolean;
-    demoAccount: boolean;
+  demoAccount: boolean;
+  chartM1: boolean;
     liveTradingAllowed: boolean;
     status: string;
   } | null;
@@ -39,6 +42,7 @@ type LocalHealth = {
 
 export function AutomationControls() {
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [mode, setMode] = useState<"normal" | "scalping">("normal");
   const [riskPercent, setRiskPercent] = useState("0.5");
   const [token, setToken] = useState("");
   const [loading, setLoading] = useState(true);
@@ -53,6 +57,7 @@ export function AutomationControls() {
     const body = await response.json();
     if (!response.ok) throw new Error(body.error ?? "Could not load automation settings");
     setSettings(body);
+    setMode(body.mode ?? "normal");
     setRiskPercent(String(body.riskPercent ?? 0.5));
   };
 
@@ -64,6 +69,7 @@ export function AutomationControls() {
         if (!response.ok) throw new Error(body.error ?? "Could not load automation settings");
         if (active) {
           setSettings(body);
+          setMode(body.mode ?? "normal");
           setRiskPercent(String(body.riskPercent ?? 0.5));
         }
       })
@@ -92,12 +98,14 @@ export function AutomationControls() {
       const response = await fetch("/api/automation/settings", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled, riskPercent: Number(riskPercent) }),
+        body: JSON.stringify({ enabled, riskPercent: Number(riskPercent), mode }),
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Could not save automation settings");
       setSettings((current) => current ? { ...current, ...body } : body);
-      toast.success(enabled ? "Automation enabled" : "Automation paused");
+      setMode(body.mode ?? mode);
+      setRiskPercent(String(body.riskPercent ?? riskPercent));
+      toast.success(body.warning ?? (enabled ? "Automation enabled" : "Automation paused"));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Could not save automation settings");
     } finally { setBusy(false); }
@@ -168,9 +176,25 @@ export function AutomationControls() {
         <Button onClick={runDiagnostics} disabled={diagnosticBusy} variant="outline"><Stethoscope className="mr-2 h-4 w-4"/>{diagnosticBusy ? "Checking setup…" : "Check MT5 connection"}</Button>
       </div>
       {token && <div className="rounded-xl border border-amber-400/30 bg-amber-400/[0.06] p-4"><p className="text-sm font-semibold text-amber-200">Copy this token now. It will not be shown again.</p><code className="mt-2 block break-all text-xs text-foreground">{token}</code><Button className="mt-3" size="sm" variant="outline" onClick={() => { void navigator.clipboard.writeText(token); toast.success("Token copied"); }}><Copy className="mr-2 h-3.5 w-3.5"/>Copy token</Button></div>}
+      <div className="space-y-3 rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
+        <label className="block text-sm font-medium" htmlFor="automation-mode">Automation mode</label>
+        <select id="automation-mode" value={mode} onChange={(event) => {
+          const next = event.target.value as "normal" | "scalping";
+          setMode(next);
+          if (next === "scalping" && Number(riskPercent) > 0.25) setRiskPercent("0.25");
+        }} className="h-10 w-full rounded-lg border border-white/10 bg-[#101714] px-3 text-sm">
+          <option value="normal">Normal · Trend-Pullback Confluence</option>
+          <option value="scalping">M1 Scalping · Demo only</option>
+        </select>
+        {settings.mode !== mode && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-400/25 bg-amber-400/[0.05] p-3">
+          <p className="text-xs leading-5 text-amber-100/90">Saving a mode change pauses automation and skips older queued signals. You must explicitly re-enable it after reviewing the demo safeguards.</p>
+          <Button size="sm" onClick={() => saveSettings(false)} disabled={busy} variant="outline">Save mode and pause</Button>
+        </div>}
+        {mode === "scalping" && <p className="text-xs leading-5 text-amber-200/90">Demo-only M1 testing; not a live scalper or tick-stream service. Uses one open position, at most 3 EA entries per server day, a 1% daily loss stop, a 120-second signal age limit, and ≤0.25% risk per entry. Select M1 Scalping (Demo) and upload an M1 chart. It does not generate hundreds of trades.</p>}
+      </div>
       <div className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
-        <label className="block text-sm"><span className="font-medium">Max risk per trade (%)</span><span className="mt-1 block text-xs text-muted-foreground">Legnoova limits this first version to 0.5%. Start on a demo account.</span><input type="number" min="0.1" max="0.5" step="0.1" value={riskPercent} onChange={(event) => setRiskPercent(event.target.value)} className="mt-2 h-10 w-full rounded-lg border border-white/10 bg-white/5 px-3"/></label>
-        <Button onClick={() => saveSettings(!settings.enabled)} disabled={busy || !settings.tokenIssued} variant={settings.enabled ? "outline" : "default"} className={!settings.enabled ? "bg-emerald-500 text-emerald-950 hover:bg-emerald-400" : ""}><Power className="mr-2 h-4 w-4"/>{settings.enabled ? "Pause automation" : "Enable automation"}</Button>
+        <label className="block text-sm"><span className="font-medium">Max risk per trade (%)</span><span className="mt-1 block text-xs text-muted-foreground">{mode === "scalping" ? "Scalping is capped at 0.25% per entry (about $20 per $8,000 equity, before slippage)." : "Normal automation is capped at 0.5%. Start on a demo account."}</span><input type="number" min="0.1" max={mode === "scalping" ? "0.25" : "0.5"} step="0.05" value={riskPercent} onChange={(event) => setRiskPercent(event.target.value)} className="mt-2 h-10 w-full rounded-lg border border-white/10 bg-white/5 px-3"/></label>
+        <Button onClick={() => saveSettings(!settings.enabled)} disabled={busy || !settings.tokenIssued || settings.mode !== mode} variant={settings.enabled ? "outline" : "default"} className={!settings.enabled ? "bg-emerald-500 text-emerald-950 hover:bg-emerald-400" : ""}><Power className="mr-2 h-4 w-4"/>{settings.enabled ? "Pause automation" : "Enable automation"}</Button>
       </div>
       <p className="text-xs text-muted-foreground">Legnoova queue switch: <strong className={settings.enabled ? "text-emerald-300" : "text-amber-300"}>{settings.enabled ? "On" : "Off"}</strong>. This alone does not confirm your local bridge or MT5 is connected; use <strong>Check MT5 connection</strong> below. Only your own qualifying chart signals are sent to the bridge.</p>
       {diagnostics && <div className="space-y-4 rounded-xl border border-white/[0.08] bg-black/10 p-4" aria-live="polite">
@@ -191,7 +215,8 @@ export function AutomationControls() {
             {localHealth.ea && <>
               <DiagnosticRow label="EA execution switch" status={localHealth.ea.executionEnabled ? "pass" : "fail"} detail={localHealth.ea.executionEnabled ? "ExecutionEnabled is on in the EA inputs." : "ExecutionEnabled is false. The EA will intentionally leave signals untraded; enable it only after demo testing and risk review."}/>
               <DiagnosticRow label="MT5 trading permissions" status={localHealth.ea.terminalTradeAllowed && localHealth.ea.accountTradeAllowed && localHealth.ea.expertTradeAllowed ? "pass" : "fail"} detail={localHealth.ea.terminalTradeAllowed && localHealth.ea.accountTradeAllowed && localHealth.ea.expertTradeAllowed ? "Terminal, account, and Expert Advisor trading permissions are enabled." : "Enable Algo Trading and check terminal/account Expert Advisor trading permissions."}/>
-              <DiagnosticRow label="Account safety mode" status={localHealth.ea.demoAccount ? "pass" : localHealth.ea.liveTradingAllowed ? "info" : "fail"} detail={localHealth.ea.demoAccount ? "MT5 is connected to a demo account." : localHealth.ea.liveTradingAllowed ? "This is a live account and the EA input allows it. Review all risk settings before use." : "Live-account trading is blocked by the EA safety setting; use a demo account for setup checks."}/>
+              <DiagnosticRow label="Account safety mode" status={localHealth.ea.demoAccount ? "pass" : diagnostics.mode === "scalping" || !localHealth.ea.liveTradingAllowed ? "fail" : "info"} detail={localHealth.ea.demoAccount ? "MT5 is connected to a demo account." : diagnostics.mode === "scalping" ? "M1 Scalping is demo-only. The EA blocks this mode on any live account." : localHealth.ea.liveTradingAllowed ? "This is a live account and the EA input allows it. Review all risk settings before use." : "Live-account trading is blocked by the EA safety setting; use a demo account for setup checks."}/>
+              {diagnostics.mode === "scalping" && <DiagnosticRow label="MT5 chart timeframe" status={localHealth.ea.chartM1 ? "pass" : "fail"} detail={localHealth.ea.chartM1 ? "The EA is attached to an M1 chart." : "Attach the EA to an M1 chart before running scalping mode."}/>}
             </>}
             <DiagnosticRow label="Cloud connection from bridge" status={localHealth.cloud ? "pass" : "fail"} detail={localHealth.cloud ? "The device token authenticated to Legnoova." : localHealth.cloudError === "device_token_rejected" ? "Legnoova rejected this device token. Create a new token and reconfigure the bridge." : localHealth.cloudError === "bridge_credentials_missing" ? "The bridge is missing its cloud URL or device token." : "The bridge could not reach the Legnoova diagnostics API. Check the API URL, network, and bridge terminal output."}/>
             {localHealth.cloud?.checks.map((check) => <DiagnosticRow key={`bridge-${check.id}`} label={`Bridge · ${check.label}`} status={check.status} detail={check.detail}/>) }

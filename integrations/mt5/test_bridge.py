@@ -102,6 +102,24 @@ class BridgeTests(unittest.TestCase):
         self.assertIsNone(result)
         self.assertEqual(error, "cloud_url_must_use_https")
 
+    def test_ea_diagnostic_contract_requires_chart_period_and_boolean_flags(self):
+        payload = {
+            "executionEnabled": False,
+            "terminalTradeAllowed": True,
+            "accountTradeAllowed": True,
+            "expertTradeAllowed": True,
+            "demoAccount": True,
+            "chartM1": True,
+            "liveTradingAllowed": False,
+            "status": "execution_off",
+        }
+        self.assertEqual(bridge.validate_ea_diagnostic(payload), payload)
+        with self.assertRaisesRegex(ValueError, "invalid diagnostic fields"):
+            bridge.validate_ea_diagnostic({key: value for key, value in payload.items() if key != "chartM1"})
+        payload["chartM1"] = "yes"
+        with self.assertRaisesRegex(ValueError, "invalid diagnostic values"):
+            bridge.validate_ea_diagnostic(payload)
+
 
 if __name__ == "__main__":
     unittest.main()

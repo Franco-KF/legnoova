@@ -71,6 +71,7 @@ const analysisSchema = new Schema(
     riskDisclosure: { type: String, default: "" },
     targetsVisible: { type: Boolean, default: false },
     automationEligible: { type: Boolean, default: false, index: true },
+    automationMode: { type: String, enum: ["normal", "scalping"], default: "normal", index: true },
     signalStatus: {
       type: String,
       enum: ["active", "tp1", "tp2", "tp3", "stopped", "closed"],
@@ -84,6 +85,7 @@ const analysisSchema = new Schema(
 
 analysisSchema.index({ userId: 1, createdAt: -1 });
 analysisSchema.index({ userId: 1, published: 1, signalStatus: 1, _id: 1 });
+analysisSchema.index({ userId: 1, automationMode: 1, automationEligible: 1, published: 1, signalStatus: 1, _id: 1 });
 analysisSchema.index({ published: 1, createdAt: -1 });
 
 export type IAnalysis = InferSchemaType<typeof analysisSchema> & {

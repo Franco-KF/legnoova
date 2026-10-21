@@ -178,6 +178,23 @@ The entry must be justified by at least an OB or FVG, with the stop placed beyon
     promptFocus: `Use a conservative trend-and-pullback approach and only judge information visible in the uploaded screenshot. Do not invent higher-timeframe agreement if the screenshot does not show it. Require a clear swing direction, a pullback to a visible level, and a visible price-action trigger. Place the stop beyond the level that invalidates the idea. If no visible target offers at least 1.5 times the entry-to-stop risk, return neutral. If the screenshot is unclear or evidence conflicts, return neutral. The confidence score is an evidence-strength score, not a probability or predicted win rate. Never promise performance.`,
   },
   {
+    id: "scalping-confluence",
+    label: "M1 Scalping (Demo)",
+    short: "M1",
+    tagline: "Short-hold M1 setups · demo only",
+    description:
+      "A demo-only M1 chart setup for testing one bounded MT5 entry at a time. It does not stream prices or create repeated trades.",
+    checklist: [
+      "M1 chart and recent micro-trend are clear",
+      "Entry is anchored to a visible pullback or breakout retest",
+      "A closed candle provides a clear trigger",
+      "Stop-loss is beyond a nearby invalidation point",
+      "A visible target offers at least 1.2R before trading costs",
+      "Spread, nearby levels, or conflicting movement do not make entry obviously unsuitable",
+    ],
+    promptFocus: `Evaluate only the uploaded M1 chart for a short-horizon demo setup. Never imply that the screenshot is a live price feed. Require a visible micro-trend or clean range break, a pullback/retest, and a completed candle trigger; do not infer a tick-level entry from pixels. Use one nearby structural invalidation for the stop and one chart-visible target offering at least 1.2R before spread, commission, slippage, and other costs. If the screenshot does not clearly show M1, the market is choppy, the setup is stale/unclear, or the target is inadequate, return neutral. Do not assume a spread that is not visible; the EA separately checks the live spread before attempting a demo entry. Do not propose repeated entries, grid/martingale sizing, or increasing volume after a loss. The score is evidence strength, not a win probability. This mode is restricted to demo execution with very small, bounded frequency.`,
+  },
+  {
     id: "all",
     label: "Consensus — All Strategies",
     short: "ALL",
@@ -196,6 +213,7 @@ The entry must be justified by at least an OB or FVG, with the stop placed beyon
 ];
 
 export type StrategyId = (typeof STRATEGIES)[number]["id"];
+export type AutomationMode = "normal" | "scalping";
 
 export function getStrategy(id: string): StrategyDef {
   return STRATEGIES.find((s) => s.id === id) || STRATEGIES[STRATEGIES.length - 1];
@@ -257,6 +275,8 @@ export interface Analysis {
   targetsVisible?: boolean;
   /** Server-side automation gate; not a performance or win-probability claim. */
   automationEligible?: boolean;
+  automationMode?: AutomationMode;
+  automationModeMatches?: boolean;
   /** Signal lifecycle — directional calls become signals (default "active"). */
   signalStatus?: SignalStatus;
   /** Journal: did the trader take this signal? default "unset". */

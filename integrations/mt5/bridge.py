@@ -65,6 +65,17 @@ def upstream_diagnostics():
         return None, "cloud_diagnostics_unavailable"
 
 
+def validate_ea_diagnostic(payload):
+    expected = {"executionEnabled", "terminalTradeAllowed", "accountTradeAllowed", "expertTradeAllowed", "demoAccount", "chartM1", "liveTradingAllowed", "status"}
+    if not isinstance(payload, dict) or set(payload) != expected:
+        raise ValueError("invalid diagnostic fields")
+    if any(not isinstance(payload[key], bool) for key in expected - {"status"}):
+        raise ValueError("invalid diagnostic values")
+    if not isinstance(payload["status"], str) or len(payload["status"]) > 40:
+        raise ValueError("invalid diagnostic status")
+    return payload
+
+
 def api(method="GET", payload=None):
     if not API_URL or not DEVICE_TOKEN:
         raise RuntimeError("Set LEGNOOVA_API_URL and LEGNOOVA_DEVICE_TOKEN")
@@ -139,15 +150,7 @@ class Handler(BaseHTTPRequestHandler):
                 length = int(self.headers.get("Content-Length", "0"))
                 if length <= 0 or length > 2048:
                     return self.respond(400, {"error": "invalid request size"})
-                payload = json.loads(self.rfile.read(length))
-                expected = {"executionEnabled", "terminalTradeAllowed", "accountTradeAllowed", "expertTradeAllowed", "demoAccount", "liveTradingAllowed", "status"}
-                if not isinstance(payload, dict) or set(payload) != expected:
-                    return self.respond(400, {"error": "invalid diagnostic fields"})
-                for key in expected - {"status"}:
-                    if not isinstance(payload[key], bool):
-                        return self.respond(400, {"error": "invalid diagnostic values"})
-                if not isinstance(payload["status"], str) or len(payload["status"]) > 40:
-                    return self.respond(400, {"error": "invalid diagnostic status"})
+                payload = validate_ea_diagnostic(json.loads(self.rfile.read(length)))
                 LAST_EA_DIAGNOSTIC = {**payload, "seenAt": time.time()}
                 return self.respond(200, {"recorded": True})
             except (ValueError, TypeError):

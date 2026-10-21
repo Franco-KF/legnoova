@@ -96,8 +96,8 @@ export default function BotPage() {
       </section>
 
       <section className="glass-panel space-y-4 p-5 sm:p-7">
-        <Step number="7" title="Select the strategy and test one chart">
-          Open <strong>Chart Analysis</strong>, upload a chart screenshot, and choose <strong>Trend-Pullback Confluence</strong> from the strategy list. Only a chart review that passes the automation checks can enter your MT5 queue. First verify the bridge is running, select this strategy, and use the demo account.
+        <Step number="7" title="Select a mode, strategy, and test on demo">
+          For normal automation, keep <strong>Normal</strong> selected in the controls above, then choose <strong>Trend-Pullback Confluence</strong> on Chart Analysis. For a bounded scalping test, pause automation, save <strong>M1 Scalping · Demo only</strong> above, then explicitly re-enable it; on Chart Analysis choose <strong>M1 Scalping (Demo)</strong> and keep timeframe at <strong>M1</strong>. Upload a fresh chart after changing modes. To test order placement, set <code>ExecutionEnabled=true</code> in EA Inputs <strong>only while connected to your demo account</strong>; keep <code>AllowLiveAccount=false</code>. The dashboard switch does not change the EA input. Only setups passing the selected mode&apos;s filters can enter the queue.
         </Step>
         <div className="flex items-start gap-3 rounded-xl border border-amber-400/25 bg-amber-400/[0.06] p-4">
           <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />

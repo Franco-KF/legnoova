@@ -21,6 +21,7 @@ export interface IUser extends Document {
   planCurrentPeriodEnd?: Date | null;
   eaTokenHash?: string | null;
   brokerAutomationEnabled?: boolean;
+  brokerAutomationMode?: "normal" | "scalping";
   brokerRiskPercent?: number;
   mt5LastSignalId?: string | null;
   mt5LeaseSignalId?: string | null;
@@ -49,6 +50,7 @@ const UserSchema = new Schema<IUser>(
     planCurrentPeriodEnd: { type: Date, default: null },
     eaTokenHash: { type: String, default: null, select: false, index: true },
     brokerAutomationEnabled: { type: Boolean, default: false },
+    brokerAutomationMode: { type: String, enum: ["normal", "scalping"], default: "normal" },
     brokerRiskPercent: { type: Number, default: 0.5, min: 0.1, max: 0.5 },
     mt5LastSignalId: { type: String, default: null },
     mt5LeaseSignalId: { type: String, default: null },

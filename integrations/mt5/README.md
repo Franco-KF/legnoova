@@ -45,6 +45,12 @@ On first run, the bridge creates a separate local token in your user profile and
 6. Automation must be enabled in the Legnoova dashboard and in the EA input. The first version caps risk at 0.5% of account equity per trade; the EA also has a local maximum-risk cap, maximum-lot cap, maximum-entry-drift limit and one-open-position default. Use a demo account until you have reviewed the code and independently tested it.
 7. From the dashboard, click **Check MT5 connection**. The read-only check verifies cloud access, the current eligible signal queue, the local bridge, a recent EA heartbeat, and MT5 execution/trading-permission inputs. If the EA heartbeat is missing, download and compile the latest EA. A healthy connection does not mean a trade is due: only new signals passing all automation filters are sent, and broker rejections are possible.
 
+## Optional M1 scalping demo test
+
+This is a bounded **demo-only test mode**, not a live-price scalper and not a hundreds-of-orders feature. Chart analysis is still a manual screenshot upload; it does not continuously watch candles or create repeated entries. Pause automation, choose **M1 Scalping · Demo only** in Broker Automation, save the mode (this skips older queued signals), then explicitly re-enable it. On Chart Analysis, choose **M1 Scalping (Demo)**, upload a chart that visibly shows M1, and analyze a new setup. The API only queues signals that pass the M1-specific evidence gate and match the saved mode.
+
+The EA independently refuses scalping signals outside demo accounts or off an M1 chart. Hard limits are one open position, 0.25% maximum risk per entry, 30 points maximum spread, 120-second signal age, three EA entries per broker-server day, and a 1% daily loss stop. M1 scalping signals require a visible target at 1.2R or better before costs; spread, commission, slippage, and execution can still make an outcome negative. This mode will not make hundreds of trades. Test first in Strategy Tester and then on demo; do not use these settings as evidence of profitability or readiness for live trading.
+
 ## Signal and execution rules
 
 - The API only queues the authenticated user's own published, active BUY/SELL signals made with **Trend-Pullback Confluence**; it does not trade neutral or shared market-feed signals.

@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   if (!token) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   await dbConnect();
   const hash = createHash("sha256").update(token).digest("hex");
-  const user = await User.findOne({ eaTokenHash: hash }).select("+eaTokenHash plan planStatus planCurrentPeriodEnd trialEndsAt brokerAutomationEnabled brokerRiskPercent mt5LastSignalId mt5LeaseSignalId mt5LeaseUntil");
+  const user = await User.findOne({ eaTokenHash: hash }).select("+eaTokenHash plan planStatus planCurrentPeriodEnd trialEndsAt brokerAutomationEnabled brokerAutomationMode brokerRiskPercent mt5LastSignalId mt5LeaseSignalId mt5LeaseUntil");
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   return NextResponse.json(await getAutomationDiagnostics(user), { headers: { "Cache-Control": "no-store" } });
 }

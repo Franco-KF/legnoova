@@ -334,7 +334,10 @@ export default function AnalyzePage() {
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => setStrategyId(s.id)}
+                  onClick={() => {
+                    setStrategyId(s.id);
+                    if (s.id === "scalping-confluence") setTimeframe("M1");
+                  }}
                   className={cn(
                     "flex flex-col items-center gap-1 rounded-xl border px-1 py-2 text-center transition-all",
                     strategyId === s.id
@@ -377,17 +380,21 @@ export default function AnalyzePage() {
                     key={tf.id}
                     type="button"
                     onClick={() => setTimeframe(tf.id)}
+                    disabled={strategyId === "scalping-confluence" && tf.id !== "M1"}
                     className={cn(
                       "rounded-lg border px-3 py-1.5 text-xs font-mono font-medium transition-all",
                       timeframe === tf.id
                         ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-300"
-                        : "border-white/[0.1] bg-white/[0.02] text-muted-foreground hover:border-white/[0.2] hover:text-foreground"
+                        : strategyId === "scalping-confluence"
+                          ? "cursor-not-allowed border-white/[0.06] bg-white/[0.01] text-muted-foreground/40"
+                          : "border-white/[0.1] bg-white/[0.02] text-muted-foreground hover:border-white/[0.2] hover:text-foreground"
                     )}
                   >
                     {tf.label}
                   </button>
                 ))}
               </div>
+              {strategyId === "scalping-confluence" && <p className="mt-3 text-xs leading-5 text-amber-200/90">M1 Scalping mode requires M1 to be selected here, M1 visibly shown on your chart, and Scalping mode saved in Broker Automation. It is for demo testing only; each analysis is still a manual upload.</p>}
             </div>
 
             <div>
@@ -436,9 +443,13 @@ export default function AnalyzePage() {
 
         {/* RIGHT — Results */}
         <div>
-          {result && strategyId === "automation-confluence" && !result.automationEligible && (
+          {result && (strategyId === "automation-confluence" || strategyId === "scalping-confluence") && !result.automationEligible && (
             <div className="mb-4 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 text-sm text-amber-100/90">
-              This chart review did not pass the automation checks, so MT5 will not receive it. The filters check visible chart evidence, agreement across strategy reviews, a stop, and at least 1.5R. This is a safety filter, not a win-rate estimate.
+              {result.automationModeMatches === false
+                ? "This setup does not match the mode saved in Broker Automation. Save M1 Scalping mode there before analyzing a scalping chart, or switch back to Normal for Trend-Pullback Confluence."
+                : strategyId === "scalping-confluence"
+                  ? "This M1 chart review did not pass the demo-scalping filters, so MT5 will not receive it. The setup needs clear M1 evidence, a target of at least 1.2R, and strong checklist/confirmation scores."
+                  : "This chart review did not pass the automation checks, so MT5 will not receive it. The filters check visible chart evidence, agreement across strategy reviews, a stop, and at least 1.5R."} This is a safety filter, not a win-rate estimate.
             </div>
           )}
           {loading ? (

@@ -75,7 +75,7 @@ export async function POST(req: Request) {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const [user, usedThisMonth] = await Promise.all([
-      User.findById(session.user.id).select("plan planStatus planCurrentPeriodEnd"),
+      User.findById(session.user.id).select("plan planStatus planCurrentPeriodEnd brokerAutomationMode"),
       Analysis.countDocuments({
         userId: session.user.id,
         createdAt: { $gte: monthStart },
@@ -128,7 +128,13 @@ export async function POST(req: Request) {
 
     await dbConnect();
     const isSignal = data.direction !== "neutral";
-    const automationEligible = isAutomationEligible(parsed.data.strategy, data);
+    const signalAutomationMode = parsed.data.strategy === "scalping-confluence" ? "scalping" : "normal";
+    const userAutomationMode = user?.brokerAutomationMode ?? "normal";
+    const automationModeMatches =
+      parsed.data.strategy === "automation-confluence" || parsed.data.strategy === "scalping-confluence"
+        ? signalAutomationMode === userAutomationMode
+        : false;
+    const automationEligible = automationModeMatches && isAutomationEligible(parsed.data.strategy, parsed.data.timeframe, data);
     const doc = await Analysis.create({
       userId: session.user.id,
       pair: data.pair,
@@ -149,6 +155,7 @@ export async function POST(req: Request) {
       riskDisclosure: data.riskDisclosure,
       targetsVisible: data.targetsVisible ?? false,
       automationEligible,
+      automationMode: signalAutomationMode,
       signalStatus: "active",
       tookIt: "unset",
       published: isSignal && data.confidence >= 60,
@@ -168,6 +175,8 @@ export async function POST(req: Request) {
         tookIt: "unset",
         published: isSignal && data.confidence >= 60,
         automationEligible,
+        automationMode: signalAutomationMode,
+        automationModeMatches,
       },
       id: doc._id.toString(),
       createdAt: new Date().toISOString(),

@@ -19,7 +19,7 @@ async function authorized(req: Request) {
   const hash = tokenHash(req);
   if (!hash) return null;
   await dbConnect();
-  const user = await User.findOne({ eaTokenHash: hash }).select("+eaTokenHash plan planStatus planCurrentPeriodEnd trialEndsAt brokerAutomationEnabled brokerRiskPercent mt5LastSignalId mt5LeaseSignalId mt5LeaseUntil");
+  const user = await User.findOne({ eaTokenHash: hash }).select("+eaTokenHash plan planStatus planCurrentPeriodEnd trialEndsAt brokerAutomationEnabled brokerAutomationMode brokerRiskPercent mt5LastSignalId mt5LeaseSignalId mt5LeaseUntil");
   if (!user || !hasBrokerAutomationAccess(user)) return null;
   return user;
 }
@@ -35,10 +35,15 @@ export async function GET(req: Request) {
     const after = user.mt5LastSignalId && mongoose.isValidObjectId(user.mt5LastSignalId)
       ? new mongoose.Types.ObjectId(user.mt5LastSignalId)
       : null;
+    const mode = user.brokerAutomationMode ?? "normal";
+    const automationModeFilter = mode === "normal"
+      ? { $or: [{ automationMode: "normal" as const }, { automationMode: { $exists: false } }] }
+      : { automationMode: "scalping" as const };
     const signal = await Analysis.findOne({
       userId: user._id,
       published: true,
       automationEligible: true,
+      ...automationModeFilter,
       signalStatus: "active",
       direction: { $in: ["buy", "sell"] },
       ...(after ? { _id: { $gt: after } } : {}),
@@ -54,9 +59,9 @@ export async function GET(req: Request) {
       { new: true }
     );
     if (!leased) return NextResponse.json({ signal: null, enabled: true, busy: true });
-    const automationTarget = signal.takeProfits?.find((target) => target.riskReward >= 1.5);
+    const automationTarget = signal.takeProfits?.find((target) => target.riskReward >= (mode === "scalping" ? 1.2 : 1.5));
     if (!automationTarget) return NextResponse.json({ signal: null, enabled: true });
-    return NextResponse.json({ enabled: true, riskPercent: user.brokerRiskPercent ?? 0.5, signal: { id: signal._id.toString(), symbol: signal.symbol, direction: signal.direction, entryPrice: signal.entryPrice, stopLoss: signal.stopLoss, takeProfit: automationTarget.price, createdAt: Math.floor(new Date(signal.createdAt).getTime() / 1000) } });
+    return NextResponse.json({ enabled: true, riskPercent: user.brokerRiskPercent ?? 0.5, signal: { id: signal._id.toString(), symbol: signal.symbol, direction: signal.direction, entryPrice: signal.entryPrice, stopLoss: signal.stopLoss, takeProfit: automationTarget.price, createdAt: Math.floor(new Date(signal.createdAt).getTime() / 1000), timeframe: signal.timeframe, automationMode: mode } });
   } catch {
     return NextResponse.json({ error: "Bridge request failed" }, { status: 500 });
   }
@@ -73,7 +78,11 @@ export async function POST(req: Request) {
     const prior = await EAcknowledgement.findOne({ userId: user._id, signalId: body.signalId });
     if (prior) return NextResponse.json({ acknowledged: true, status: prior.status });
 
-    const signal = await Analysis.findOne({ _id: body.signalId, userId: user._id, published: true, automationEligible: true, signalStatus: "active", direction: { $in: ["buy", "sell"] } });
+    const mode = user.brokerAutomationMode ?? "normal";
+    const automationModeFilter = mode === "normal"
+      ? { $or: [{ automationMode: "normal" as const }, { automationMode: { $exists: false } }] }
+      : { automationMode: "scalping" as const };
+    const signal = await Analysis.findOne({ _id: body.signalId, userId: user._id, published: true, automationEligible: true, ...automationModeFilter, signalStatus: "active", direction: { $in: ["buy", "sell"] } });
     if (!signal) return NextResponse.json({ error: "Signal not found" }, { status: 404 });
     const after = user.mt5LastSignalId && mongoose.isValidObjectId(user.mt5LastSignalId)
       ? new mongoose.Types.ObjectId(user.mt5LastSignalId)
@@ -82,6 +91,7 @@ export async function POST(req: Request) {
       userId: user._id,
       published: true,
       automationEligible: true,
+      ...automationModeFilter,
       signalStatus: "active",
       direction: { $in: ["buy", "sell"] },
       ...(after ? { _id: { $gt: after } } : {}),
