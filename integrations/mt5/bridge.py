@@ -1,6 +1,7 @@
 """Loopback-only Legnoova signal relay. Configure credentials in environment, never source."""
 import json
 import hmac
+import math
 import os
 import secrets
 import time
@@ -66,24 +67,57 @@ def upstream_diagnostics():
 
 
 def validate_ea_diagnostic(payload):
-    expected = {"executionEnabled", "terminalTradeAllowed", "accountTradeAllowed", "expertTradeAllowed", "demoAccount", "chartM1", "liveTradingAllowed", "status"}
+    expected = {"executionEnabled", "terminalTradeAllowed", "accountTradeAllowed", "expertTradeAllowed", "demoAccount", "chartM1", "liveTradingAllowed", "accountCurrency", "eaOpenPositions", "eaFloatingProfit", "status"}
     if not isinstance(payload, dict) or set(payload) != expected:
         raise ValueError("invalid diagnostic fields")
-    if any(not isinstance(payload[key], bool) for key in expected - {"status"}):
+    bool_fields = expected - {"status", "accountCurrency", "eaOpenPositions", "eaFloatingProfit"}
+    if any(not isinstance(payload[key], bool) for key in bool_fields):
         raise ValueError("invalid diagnostic values")
+    if isinstance(payload["eaOpenPositions"], bool) or not isinstance(payload["eaOpenPositions"], int) or not 0 <= payload["eaOpenPositions"] <= 100:
+        raise ValueError("invalid diagnostic positions")
+    if isinstance(payload["eaFloatingProfit"], bool) or not isinstance(payload["eaFloatingProfit"], (int, float)) or not math.isfinite(payload["eaFloatingProfit"]):
+        raise ValueError("invalid diagnostic floating profit")
+    if not isinstance(payload["accountCurrency"], str) or len(payload["accountCurrency"]) > 10 or any(not (ch.isascii() and (ch.isalnum() or ch in "._-")) for ch in payload["accountCurrency"]):
+        raise ValueError("invalid diagnostic currency")
     if not isinstance(payload["status"], str) or len(payload["status"]) > 40:
         raise ValueError("invalid diagnostic status")
     return payload
 
 
-def api(method="GET", payload=None):
+def validate_trade_event(payload):
+    expected = {"signalId", "dealId", "brokerOrderId", "eventType", "symbol", "currency", "volume", "price", "netProfit", "occurredAt"}
+    if not isinstance(payload, dict) or set(payload) != expected:
+        raise ValueError("invalid trade event fields")
+    if not isinstance(payload["signalId"], str) or len(payload["signalId"]) != 24 or not all(ch in "0123456789abcdefABCDEF" for ch in payload["signalId"]):
+        raise ValueError("invalid trade event signal")
+    if not isinstance(payload["dealId"], str) or not payload["dealId"].isdigit() or len(payload["dealId"]) > 80:
+        raise ValueError("invalid trade event deal id")
+    if not isinstance(payload["brokerOrderId"], str) or len(payload["brokerOrderId"]) > 80:
+        raise ValueError("invalid trade event order id")
+    if payload["eventType"] not in {"entry", "exit"}:
+        raise ValueError("invalid trade event type")
+    if not isinstance(payload["symbol"], str) or not 1 <= len(payload["symbol"]) <= 32 or any(not (ch.isascii() and (ch.isalnum() or ch in "._-")) for ch in payload["symbol"]):
+        raise ValueError("invalid trade event symbol")
+    if not isinstance(payload["currency"], str) or len(payload["currency"]) > 10 or any(not (ch.isascii() and (ch.isalnum() or ch in "._-")) for ch in payload["currency"]):
+        raise ValueError("invalid trade event currency")
+    for field in ("volume", "price", "netProfit"):
+        if isinstance(payload[field], bool) or not isinstance(payload[field], (int, float)) or not math.isfinite(payload[field]):
+            raise ValueError("invalid trade event number")
+    if isinstance(payload["occurredAt"], bool) or not isinstance(payload["occurredAt"], int):
+        raise ValueError("invalid trade event number")
+    if payload["volume"] <= 0 or payload["price"] <= 0 or payload["occurredAt"] <= 0:
+        raise ValueError("invalid trade event values")
+    return payload
+
+
+def api(method="GET", payload=None, path="/api/automation/device"):
     if not API_URL or not DEVICE_TOKEN:
         raise RuntimeError("Set LEGNOOVA_API_URL and LEGNOOVA_DEVICE_TOKEN")
     parsed = urlsplit(API_URL)
     if parsed.scheme != "https" and parsed.hostname not in {"localhost", "127.0.0.1"}:
         raise RuntimeError("LEGNOOVA_API_URL must use HTTPS")
     data = json.dumps(payload).encode() if payload is not None else None
-    request = Request(API_URL + "/api/automation/device", data=data, method=method,
+    request = Request(API_URL + path, data=data, method=method,
                       headers={"Authorization": "Bearer " + DEVICE_TOKEN,
                                "Content-Type": "application/json"})
     with urlopen(request, timeout=8) as response:
@@ -152,9 +186,27 @@ class Handler(BaseHTTPRequestHandler):
                     return self.respond(400, {"error": "invalid request size"})
                 payload = validate_ea_diagnostic(json.loads(self.rfile.read(length)))
                 LAST_EA_DIAGNOSTIC = {**payload, "seenAt": time.time()}
-                return self.respond(200, {"recorded": True})
+                try:
+                    api("POST", payload, "/api/automation/diagnostics/device")
+                except (HTTPError, URLError, RuntimeError, ValueError):
+                    return self.respond(502, {"recorded": True, "cloudReported": False})
+                return self.respond(200, {"recorded": True, "cloudReported": True})
             except (ValueError, TypeError):
                 return self.respond(400, {"error": "invalid diagnostic payload"})
+        if self.path == "/event":
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if length <= 0 or length > 4096:
+                    return self.respond(400, {"error": "invalid request size"})
+                payload = validate_trade_event(json.loads(self.rfile.read(length)))
+            except (ValueError, TypeError):
+                self.respond(400, {"error": "invalid trade event"})
+                return
+            try:
+                self.respond(200, api("POST", payload, "/api/automation/events/device"))
+            except (HTTPError, URLError, RuntimeError, ValueError):
+                self.respond(502, {"error": "upstream unavailable or invalid trade event"})
+            return
         if self.path != "/ack":
             return self.respond(404, {"error": "not found"})
         try:

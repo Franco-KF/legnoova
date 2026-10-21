@@ -21,6 +21,7 @@ import {
   Sparkles,
   Check,
   Loader2,
+  Bot,
 } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
 import { FREE_ANALYSIS_LIMIT, PLAN_BADGES } from "@/config/plans";
@@ -30,7 +31,8 @@ const navItems = [
   { href: "/app", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { href: "/app/signals", label: "Signals", icon: BellRing },
   { href: "/app/analyze", label: "Chart Analysis", icon: LineChart },
-  { href: "/app/bot", label: "MT5 Setup Guide", icon: BookOpen, badge: "$59" },
+  { href: "/app/automation", label: "Broker Automation", icon: Bot, badge: "MT5" },
+  { href: "/app/bot", label: "MT5 Setup Guide", icon: BookOpen },
   { href: "/app/history", label: "History", icon: History },
   { href: "/app/watchlist", label: "Watchlist", icon: Star },
   { href: "/app/pricing", label: "Plans", icon: Sparkles },

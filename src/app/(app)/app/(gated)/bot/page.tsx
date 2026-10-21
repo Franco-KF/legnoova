@@ -1,7 +1,8 @@
 import { ShieldAlert, Monitor, Code2, ListChecks, Download, Terminal } from "lucide-react";
+import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
-import { AutomationControls } from "@/components/mt5/automation-controls";
 import { siteConfig } from "@/config/site";
+import { Button } from "@/components/ui/button";
 
 export const metadata = { title: "MT5 Setup Guide", robots: { index: false, follow: false } };
 
@@ -34,11 +35,11 @@ export default function BotPage() {
         </Step>
 
         <Step number="2" title="Create your Legnoova device token">
-          In the next card, click <strong>Create bridge token</strong>. Copy the long token as soon as it appears. This is your <strong>Legnoova device token</strong>: it lets the bridge fetch your own signals. You will paste it into the Python command in Step 4. It is shown only once; if you lose it, revoke it and make a new one.
+          In <Link className="text-emerald-300 underline" href="/app/automation">Broker Automation</Link>, click <strong>Create bridge token</strong>. Copy the long token as soon as it appears. This is your <strong>Legnoova device token</strong>: it lets the bridge fetch your own signals. You will paste it into the Python command in Step 4. It is shown only once; if you lose it, rotate it and update the bridge.
         </Step>
       </section>
 
-      <AutomationControls />
+      <div className="glass-panel flex flex-wrap items-center justify-between gap-4 p-5"><div><h2 className="font-semibold">Ready to activate or check connection?</h2><p className="mt-1 text-sm text-muted-foreground">Use the Broker Automation dashboard for live MT5 heartbeat, mode activation, signal queue, and trade results.</p></div><Button render={<Link href="/app/automation"/>} className="bg-emerald-500 text-emerald-950 hover:bg-emerald-400">Open Broker Automation</Button></div>
 
       <section className="glass-panel space-y-5 p-5 sm:p-7">
         <Step number="3" title="Download the two files">
@@ -81,7 +82,7 @@ export default function BotPage() {
         <Step number="6" title="Install and attach the Legnoova Expert Advisor">
           In MT5 choose <strong>File → Open Data Folder</strong>. Open <code>MQL5</code>, then <code>Experts</code>. Copy <code>LegnoovaBridgeEA.mq5</code> from Downloads into that folder. In MT5 press <strong>F4</strong> to open MetaEditor, find the file under Expert Advisors, open it, and press <strong>F7</strong> to compile. Check the bottom panel says <strong>0 errors</strong>. Return to MT5, right-click Expert Advisors in Navigator and choose Refresh, then drag LegnoovaBridgeEA onto the chart for the pair you want.
         </Step>
-        <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.05] p-3 text-sm leading-6 text-muted-foreground">After attaching the EA and starting the bridge, return to the controls above and click <strong>Check MT5 connection</strong>. It checks your cloud plan/token/queue and, when your browser permits local access, confirms the bridge heartbeat, EA inputs and MT5 trade permissions. Download and compile the latest EA if it does not report a heartbeat.</p>
+        <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.05] p-3 text-sm leading-6 text-muted-foreground">After attaching the EA and starting the bridge, open <Link className="text-emerald-300 underline" href="/app/automation">Broker Automation</Link>. A cloud-reported heartbeat confirms the bridge and EA inputs; it updates while the bridge is running. Download and compile the latest EA if the heartbeat does not arrive.</p>
         <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
           <h3 className="font-semibold">EA Inputs to set</h3>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
@@ -97,11 +98,11 @@ export default function BotPage() {
 
       <section className="glass-panel space-y-4 p-5 sm:p-7">
         <Step number="7" title="Select a mode, strategy, and test on demo">
-          For normal automation, keep <strong>Normal</strong> selected in the controls above, then choose <strong>Trend-Pullback Confluence</strong> on Chart Analysis. For a bounded scalping test, pause automation, save <strong>M1 Scalping · Demo only</strong> above, then explicitly re-enable it; on Chart Analysis choose <strong>M1 Scalping (Demo)</strong> and keep timeframe at <strong>M1</strong>. Upload a fresh chart after changing modes. To test order placement, set <code>ExecutionEnabled=true</code> in EA Inputs <strong>only while connected to your demo account</strong>; keep <code>AllowLiveAccount=false</code>. The dashboard switch does not change the EA input. Only setups passing the selected mode&apos;s filters can enter the queue.
+          For normal automation, open <Link className="text-emerald-300 underline" href="/app/automation">Broker Automation</Link>, confirm the demo heartbeat, and activate Normal. Then choose <strong>Trend-Pullback Confluence</strong> on Chart Analysis to publish signals. For autonomous scalping, attach the EA to an M1 chart, set <code>ExecutionEnabled=true</code> while connected to demo, keep <code>AllowLiveAccount=false</code>, and activate <strong>M1 Scalping · Demo only</strong> in Broker Automation. No chart screenshot is needed: on each closed M1 candle the EA checks for a large directional body (at least 65% of candle range) closing near its high or low, then sets an ATR-based stop and 1.2R target. It only enters once per new candle and waits for a fresh setup after a trade closes.
         </Step>
         <div className="flex items-start gap-3 rounded-xl border border-amber-400/25 bg-amber-400/[0.06] p-4">
           <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
-          <div><p className="font-semibold text-amber-100">Before enabling execution</p><p className="mt-1 text-sm leading-6 text-muted-foreground">Automation is off by default. After the setup is connected, use the dashboard controls above to turn it on; turn on <code>ExecutionEnabled</code> in the EA only for demo testing. The first version caps risk at 0.5% and one open position. Signals can be wrong and losses are possible. This strategy has no verified 85% win rate or promise of profit.</p></div>
+          <div><p className="font-semibold text-amber-100">Before enabling execution</p><p className="mt-1 text-sm leading-6 text-muted-foreground">Automation is off by default. After the setup is connected, use Broker Automation to arm it; set <code>ExecutionEnabled</code> in the EA only on demo. Normal mode allows up to 0.5% risk; autonomous scalping risks about $4 per entry on $8,000 equity (0.05%), allows at most 40 entries/day and 10 in two minutes, and has a 0.5% daily loss stop. The two-minute rate is a safety ceiling, not a trade target. Signals can be wrong; slippage can exceed the planned loss and no profit is promised.</p></div>
         </div>
       </section>
 

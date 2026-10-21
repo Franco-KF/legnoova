@@ -26,6 +26,20 @@ export interface IUser extends Document {
   mt5LastSignalId?: string | null;
   mt5LeaseSignalId?: string | null;
   mt5LeaseUntil?: Date | null;
+  mt5LastHeartbeatAt?: Date | null;
+  mt5Runtime?: {
+    executionEnabled: boolean;
+    terminalTradeAllowed: boolean;
+    accountTradeAllowed: boolean;
+    expertTradeAllowed: boolean;
+    demoAccount: boolean;
+    chartM1: boolean;
+    liveTradingAllowed: boolean;
+    accountCurrency: string;
+    eaOpenPositions: number;
+    eaFloatingProfit: number;
+    status: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,10 +65,24 @@ const UserSchema = new Schema<IUser>(
     eaTokenHash: { type: String, default: null, select: false, index: true },
     brokerAutomationEnabled: { type: Boolean, default: false },
     brokerAutomationMode: { type: String, enum: ["normal", "scalping"], default: "normal" },
-    brokerRiskPercent: { type: Number, default: 0.5, min: 0.1, max: 0.5 },
+    brokerRiskPercent: { type: Number, default: 0.5, min: 0.05, max: 0.5 },
     mt5LastSignalId: { type: String, default: null },
     mt5LeaseSignalId: { type: String, default: null },
     mt5LeaseUntil: { type: Date, default: null },
+    mt5LastHeartbeatAt: { type: Date, default: null },
+    mt5Runtime: {
+      executionEnabled: { type: Boolean, default: false },
+      terminalTradeAllowed: { type: Boolean, default: false },
+      accountTradeAllowed: { type: Boolean, default: false },
+      expertTradeAllowed: { type: Boolean, default: false },
+      demoAccount: { type: Boolean, default: false },
+      chartM1: { type: Boolean, default: false },
+      liveTradingAllowed: { type: Boolean, default: false },
+      accountCurrency: { type: String, default: "", maxlength: 10 },
+      eaOpenPositions: { type: Number, default: 0, min: 0 },
+      eaFloatingProfit: { type: Number, default: 0 },
+      status: { type: String, default: "unknown", maxlength: 40 },
+    },
   },
   { timestamps: true }
 );

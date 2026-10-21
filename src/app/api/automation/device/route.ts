@@ -19,23 +19,31 @@ async function authorized(req: Request) {
   const hash = tokenHash(req);
   if (!hash) return null;
   await dbConnect();
-  const user = await User.findOne({ eaTokenHash: hash }).select("+eaTokenHash plan planStatus planCurrentPeriodEnd trialEndsAt brokerAutomationEnabled brokerAutomationMode brokerRiskPercent mt5LastSignalId mt5LeaseSignalId mt5LeaseUntil");
+  const user = await User.findOne({ eaTokenHash: hash }).select("+eaTokenHash plan planStatus planCurrentPeriodEnd trialEndsAt brokerAutomationEnabled brokerAutomationMode brokerRiskPercent mt5LastSignalId mt5LeaseSignalId mt5LeaseUntil mt5LastHeartbeatAt mt5Runtime");
   if (!user || !hasBrokerAutomationAccess(user)) return null;
   return user;
 }
 
 export async function GET(req: Request) {
   try {
-    const limited = rateLimitResponse(rateLimit(req, { key: "mt5-automation", limit: 60, windowMs: 60_000 }));
+    const limited = rateLimitResponse(rateLimit(req, { key: "mt5-automation", limit: 120, windowMs: 60_000 }));
     if (limited) return limited;
     const user = await authorized(req);
     if (!user) return NextResponse.json({ error: "Unauthorized or Broker plan required" }, { status: 401 });
-    if (!user.brokerAutomationEnabled) return NextResponse.json({ signal: null, enabled: false });
-    if (user.mt5LeaseUntil && user.mt5LeaseUntil > new Date()) return NextResponse.json({ signal: null, enabled: true, busy: true });
+    const mode = user.brokerAutomationMode ?? "normal";
+    const base = { automationMode: mode, riskPercent: mode === "scalping" ? Math.min(user.brokerRiskPercent ?? 0.05, 0.05) : user.brokerRiskPercent ?? 0.5 };
+    if (!user.brokerAutomationEnabled) return NextResponse.json({ ...base, signal: null, enabled: false, status: "dashboard_disabled" });
+    const heartbeatFresh = !!user.mt5LastHeartbeatAt && Date.now() - user.mt5LastHeartbeatAt.getTime() <= 45_000;
+    const runtime = user.mt5Runtime;
+    const runtimeReady = heartbeatFresh && !!runtime?.executionEnabled
+      && !!runtime.terminalTradeAllowed && !!runtime.accountTradeAllowed && !!runtime.expertTradeAllowed
+      && !!runtime.demoAccount && !runtime.liveTradingAllowed
+      && (mode !== "scalping" || !!runtime.chartM1);
+    if (!runtimeReady) return NextResponse.json({ ...base, signal: null, enabled: true, status: "mt5_not_ready" });
+    if (user.mt5LeaseUntil && user.mt5LeaseUntil > new Date()) return NextResponse.json({ ...base, signal: null, enabled: true, status: "signal_leased", busy: true });
     const after = user.mt5LastSignalId && mongoose.isValidObjectId(user.mt5LastSignalId)
       ? new mongoose.Types.ObjectId(user.mt5LastSignalId)
       : null;
-    const mode = user.brokerAutomationMode ?? "normal";
     const automationModeFilter = mode === "normal"
       ? { $or: [{ automationMode: "normal" as const }, { automationMode: { $exists: false } }] }
       : { automationMode: "scalping" as const };
@@ -48,7 +56,9 @@ export async function GET(req: Request) {
       direction: { $in: ["buy", "sell"] },
       ...(after ? { _id: { $gt: after } } : {}),
     }).sort({ _id: 1 }).lean();
-    if (!signal) return NextResponse.json({ signal: null, enabled: true });
+    if (!signal) return NextResponse.json({ ...base, signal: null, enabled: true, status: "waiting_for_signal" });
+    const automationTarget = signal.takeProfits?.find((target) => target.riskReward >= (mode === "scalping" ? 1.2 : 1.5));
+    if (!automationTarget) return NextResponse.json({ ...base, signal: null, enabled: true, status: "no_eligible_target" });
     const leased = await User.findOneAndUpdate(
       {
         _id: user._id,
@@ -58,10 +68,10 @@ export async function GET(req: Request) {
       { $set: { mt5LeaseSignalId: signal._id.toString(), mt5LeaseUntil: new Date(Date.now() + 60_000) } },
       { new: true }
     );
-    if (!leased) return NextResponse.json({ signal: null, enabled: true, busy: true });
-    const automationTarget = signal.takeProfits?.find((target) => target.riskReward >= (mode === "scalping" ? 1.2 : 1.5));
-    if (!automationTarget) return NextResponse.json({ signal: null, enabled: true });
-    return NextResponse.json({ enabled: true, riskPercent: user.brokerRiskPercent ?? 0.5, signal: { id: signal._id.toString(), symbol: signal.symbol, direction: signal.direction, entryPrice: signal.entryPrice, stopLoss: signal.stopLoss, takeProfit: automationTarget.price, createdAt: Math.floor(new Date(signal.createdAt).getTime() / 1000), timeframe: signal.timeframe, automationMode: mode } });
+    if (!leased) return NextResponse.json({ ...base, signal: null, enabled: true, status: "signal_leased", busy: true });
+    // The EA parses a flat JSON contract. Keep signal fields at the top level;
+    // nesting them under `signal` makes an otherwise healthy EA miss every order.
+    return NextResponse.json({ ...base, enabled: true, id: signal._id.toString(), symbol: signal.symbol, direction: signal.direction, entryPrice: signal.entryPrice, stopLoss: signal.stopLoss, takeProfit: automationTarget.price, createdAt: Math.floor(new Date(signal.createdAt).getTime() / 1000), timeframe: signal.timeframe }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "Bridge request failed" }, { status: 500 });
   }
@@ -69,7 +79,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const limited = rateLimitResponse(rateLimit(req, { key: "mt5-automation", limit: 60, windowMs: 60_000 }));
+    const limited = rateLimitResponse(rateLimit(req, { key: "mt5-automation", limit: 120, windowMs: 60_000 }));
     if (limited) return limited;
     const user = await authorized(req);
     if (!user) return NextResponse.json({ error: "Unauthorized or Broker plan required" }, { status: 401 });

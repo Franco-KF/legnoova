@@ -37,6 +37,21 @@ class BridgeTests(unittest.TestCase):
             bridge.api("POST", payload)
         self.assertEqual(json.loads(open_url.call_args.args[0].data), payload)
 
+    def test_api_can_forward_heartbeat_and_trade_events_to_separate_routes(self):
+        bridge.API_URL = "https://example.test"
+        bridge.DEVICE_TOKEN = "token"
+
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+            def read(self): return b'{"recorded":true}'
+
+        with patch.object(bridge, "urlopen", return_value=Response()) as open_url:
+            bridge.api("POST", {"status": "polling"}, "/api/automation/diagnostics/device")
+            self.assertTrue(open_url.call_args.args[0].full_url.endswith("/api/automation/diagnostics/device"))
+            bridge.api("POST", {"dealId": "123"}, "/api/automation/events/device")
+            self.assertTrue(open_url.call_args.args[0].full_url.endswith("/api/automation/events/device"))
+
     def test_local_bridge_requires_its_separate_token(self):
         handler = object.__new__(bridge.Handler)
         bridge.LOCAL_BRIDGE_TOKEN = "local-secret"
@@ -111,6 +126,9 @@ class BridgeTests(unittest.TestCase):
             "demoAccount": True,
             "chartM1": True,
             "liveTradingAllowed": False,
+            "accountCurrency": "USD",
+            "eaOpenPositions": 0,
+            "eaFloatingProfit": 0.0,
             "status": "execution_off",
         }
         self.assertEqual(bridge.validate_ea_diagnostic(payload), payload)
@@ -119,6 +137,26 @@ class BridgeTests(unittest.TestCase):
         payload["chartM1"] = "yes"
         with self.assertRaisesRegex(ValueError, "invalid diagnostic values"):
             bridge.validate_ea_diagnostic(payload)
+
+    def test_trade_event_validation_requires_real_mt5_fields(self):
+        payload = {
+            "signalId": "0123456789abcdef01234567",
+            "dealId": "123456",
+            "brokerOrderId": "654321",
+            "eventType": "exit",
+            "symbol": "EURUSD.a",
+            "currency": "USD",
+            "volume": 0.02,
+            "price": 1.085,
+            "netProfit": -1.25,
+            "occurredAt": 1_800_000_000,
+        }
+        self.assertEqual(bridge.validate_trade_event(payload), payload)
+        with self.assertRaisesRegex(ValueError, "invalid trade event fields"):
+            bridge.validate_trade_event({key: value for key, value in payload.items() if key != "currency"})
+        payload["netProfit"] = True
+        with self.assertRaisesRegex(ValueError, "invalid trade event number"):
+            bridge.validate_trade_event(payload)
 
 
 if __name__ == "__main__":

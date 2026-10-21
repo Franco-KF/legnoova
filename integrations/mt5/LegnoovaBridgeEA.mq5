@@ -1,5 +1,5 @@
 #property strict
-#property version "0.4"
+#property version "0.5"
 #property description "Legnoova MT5 bridge. Demo-only and disabled until explicitly configured."
 
 input bool ExecutionEnabled = false;
@@ -16,18 +16,42 @@ input int PollSeconds = 15;
 bool g_busy = false;
 string g_diagnosticStatus = "starting";
 const ulong EA_MAGIC = 741205;
-const double SCALPING_MAX_RISK_PERCENT = 0.25;
-const double SCALPING_MAX_DAILY_LOSS_PERCENT = 1.0;
+const double SCALPING_MAX_RISK_PERCENT = 0.05;
+const double SCALPING_MAX_DAILY_LOSS_PERCENT = 0.5;
 const double SCALPING_MAX_SPREAD_POINTS = 30.0;
-const int SCALPING_MAX_ENTRIES_PER_DAY = 3;
+const int SCALPING_MAX_ENTRIES_PER_DAY = 40;
+const int SCALPING_MAX_ENTRIES_PER_2MIN = 10;
 const int SCALPING_MAX_SIGNAL_AGE_SECONDS = 120;
+int g_atrHandle = INVALID_HANDLE;
+
+int JsonValueStart(const string json, const string key)
+{
+   string marker = "\"" + key + "\"";
+   int start = StringFind(json, marker);
+   if(start < 0) return -1;
+   start += StringLen(marker);
+   while(start < StringLen(json))
+   {
+      ushort ch = StringGetCharacter(json, start);
+      if(ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') start++;
+      else break;
+   }
+   if(start >= StringLen(json) || StringGetCharacter(json, start) != ':') return -1;
+   start++;
+   while(start < StringLen(json))
+   {
+      ushort ch = StringGetCharacter(json, start);
+      if(ch == ' ' || ch == '\t' || ch == '\r' || ch == '\n') start++;
+      else break;
+   }
+   return start;
+}
 
 string JsonString(const string json, const string key)
 {
-   string marker = "\"" + key + "\":\"";
-   int start = StringFind(json, marker);
-   if(start < 0) return "";
-   start += StringLen(marker);
+   int start = JsonValueStart(json, key);
+   if(start < 0 || StringGetCharacter(json, start) != '"') return "";
+   start++;
    int end = StringFind(json, "\"", start);
    if(end < 0) return "";
    return StringSubstr(json, start, end - start);
@@ -35,27 +59,34 @@ string JsonString(const string json, const string key)
 
 double JsonNumber(const string json, const string key)
 {
-   string marker = "\"" + key + "\":";
-   int start = StringFind(json, marker);
+   int start = JsonValueStart(json, key);
    if(start < 0) return 0.0;
-   start += StringLen(marker);
    int end = start;
    while(end < StringLen(json))
    {
       ushort ch = StringGetCharacter(json, end);
-      if((ch >= '0' && ch <= '9') || ch == '.' || ch == '-') end++;
+      if((ch >= '0' && ch <= '9') || ch == '.' || ch == '-' || ch == '+' || ch == 'e' || ch == 'E') end++;
       else break;
    }
    if(end == start) return 0.0;
    return StringToDouble(StringSubstr(json, start, end - start));
 }
 
+string NewScalpingSignalId(const datetime barTime)
+{
+   ulong symbolHash = 2166136261;
+   for(int i = 0; i < StringLen(_Symbol); i++)
+   {
+      symbolHash = (symbolHash ^ (uint)StringGetCharacter(_Symbol, i)) * 16777619;
+      symbolHash %= 4294967296;
+   }
+   return StringFormat("%08X%08X%08X", (uint)barTime, (uint)AccountInfoInteger(ACCOUNT_LOGIN), (uint)symbolHash);
+}
+
 bool JsonBool(const string json, const string key)
 {
-   string marker = "\"" + key + "\":";
-   int start = StringFind(json, marker);
+   int start = JsonValueStart(json, key);
    if(start < 0) return false;
-   start += StringLen(marker);
    return StringSubstr(json, start, 4) == "true";
 }
 
@@ -85,6 +116,17 @@ bool Ack(const string id, const string status, const string orderId="")
 
 void SendDiagnostic()
 {
+   int openPositions = 0;
+   double floatingProfit = 0.0;
+   for(int i = 0; i < PositionsTotal(); i++)
+   {
+      ulong positionTicket = PositionGetTicket(i);
+      if(positionTicket > 0 && (ulong)PositionGetInteger(POSITION_MAGIC) == EA_MAGIC)
+      {
+         openPositions++;
+         floatingProfit += PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
+      }
+   }
    string payload = "{\"executionEnabled\":" + (ExecutionEnabled ? "true" : "false")
       + ",\"terminalTradeAllowed\":" + (TerminalInfoInteger(TERMINAL_TRADE_ALLOWED) ? "true" : "false")
       + ",\"accountTradeAllowed\":" + (AccountInfoInteger(ACCOUNT_TRADE_ALLOWED) ? "true" : "false")
@@ -92,6 +134,9 @@ void SendDiagnostic()
       + ",\"demoAccount\":" + (AccountInfoInteger(ACCOUNT_TRADE_MODE) == ACCOUNT_TRADE_MODE_DEMO ? "true" : "false")
       + ",\"chartM1\":" + (Period() == PERIOD_M1 ? "true" : "false")
       + ",\"liveTradingAllowed\":" + (AllowLiveAccount ? "true" : "false")
+      + ",\"accountCurrency\":\"" + AccountInfoString(ACCOUNT_CURRENCY) + "\""
+      + ",\"eaOpenPositions\":" + IntegerToString(openPositions)
+      + ",\"eaFloatingProfit\":" + DoubleToString(floatingProfit, 8)
       + ",\"status\":\"" + g_diagnosticStatus + "\"}";
    string response;
    Request("POST", "/diagnostic", payload, response);
@@ -129,7 +174,88 @@ string ResolveSymbol(const string requested)
 
 string SignalComment(const string id)
 {
-   return "LV" + StringSubstr(id, 0, 20);
+   return "LV" + StringSubstr(id, 0, 24);
+}
+
+string SignalIdFromComment(const string comment)
+{
+   if(StringLen(comment) != 26 || StringSubstr(comment, 0, 2) != "LV") return "";
+   return StringSubstr(comment, 2, 24);
+}
+
+void SendTradeEvent(const ulong deal)
+{
+   if(deal == 0 || !HistoryDealSelect(deal)) return;
+   long magic = HistoryDealGetInteger(deal, DEAL_MAGIC);
+   long entry = HistoryDealGetInteger(deal, DEAL_ENTRY);
+   string eventType;
+   if(entry == DEAL_ENTRY_IN || entry == DEAL_ENTRY_INOUT) eventType = "entry";
+   else if(entry == DEAL_ENTRY_OUT || entry == DEAL_ENTRY_OUT_BY) eventType = "exit";
+   else return;
+
+   string signalId = (ulong)magic == EA_MAGIC ? SignalIdFromComment(HistoryDealGetString(deal, DEAL_COMMENT)) : "";
+   ulong positionId = (ulong)HistoryDealGetInteger(deal, DEAL_POSITION_ID);
+   if(signalId == "" && HistorySelect(TimeCurrent() - 30 * 86400, TimeCurrent()))
+   {
+      for(int i = HistoryDealsTotal() - 1; i >= 0; i--)
+      {
+         ulong relatedDeal = HistoryDealGetTicket(i);
+         if(relatedDeal == 0 || (ulong)HistoryDealGetInteger(relatedDeal, DEAL_POSITION_ID) != positionId) continue;
+         long relatedEntry = HistoryDealGetInteger(relatedDeal, DEAL_ENTRY);
+         if(((ulong)HistoryDealGetInteger(relatedDeal, DEAL_MAGIC) != EA_MAGIC)
+            || (relatedEntry != DEAL_ENTRY_IN && relatedEntry != DEAL_ENTRY_INOUT)) continue;
+         signalId = SignalIdFromComment(HistoryDealGetString(relatedDeal, DEAL_COMMENT));
+         if(signalId != "") break;
+      }
+   }
+   if(signalId == "")
+   {
+      GlobalVariableSet("LVDealReported." + IntegerToString((long)deal), 1.0);
+      return;
+   }
+
+   string symbol = HistoryDealGetString(deal, DEAL_SYMBOL);
+   string currency = AccountInfoString(ACCOUNT_CURRENCY);
+   string dealId = IntegerToString((long)deal);
+   string orderId = IntegerToString((long)HistoryDealGetInteger(deal, DEAL_ORDER));
+   double volume = HistoryDealGetDouble(deal, DEAL_VOLUME);
+   double price = HistoryDealGetDouble(deal, DEAL_PRICE);
+   double netProfit = HistoryDealGetDouble(deal, DEAL_PROFIT)
+      + HistoryDealGetDouble(deal, DEAL_COMMISSION)
+      + HistoryDealGetDouble(deal, DEAL_SWAP)
+      + HistoryDealGetDouble(deal, DEAL_FEE);
+   long occurredAt = HistoryDealGetInteger(deal, DEAL_TIME) - (TimeCurrent() - TimeGMT());
+   string payload = "{\"signalId\":\"" + signalId + "\",\"dealId\":\"" + dealId
+      + "\",\"brokerOrderId\":\"" + orderId + "\",\"eventType\":\"" + eventType
+      + "\",\"symbol\":\"" + symbol + "\",\"currency\":\"" + currency + "\",\"volume\":" + DoubleToString(volume, 8)
+      + ",\"price\":" + DoubleToString(price, 10) + ",\"netProfit\":" + DoubleToString(netProfit, 8)
+      + ",\"occurredAt\":" + IntegerToString(occurredAt) + "}";
+   string response;
+   if(Request("POST", "/event", payload, response) && JsonBool(response, "recorded"))
+      GlobalVariableSet("LVDealReported." + dealId, 1.0);
+}
+
+void ReconcileRecentTradeEvents()
+{
+   if(!HistorySelect(TimeCurrent() - 30 * 86400, TimeCurrent())) return;
+   ulong pendingDeals[];
+   for(int i = HistoryDealsTotal() - 1; i >= 0; i--)
+   {
+      ulong deal = HistoryDealGetTicket(i);
+      if(deal == 0) continue;
+      long entry = HistoryDealGetInteger(deal, DEAL_ENTRY);
+      bool ownEntry = (ulong)HistoryDealGetInteger(deal, DEAL_MAGIC) == EA_MAGIC
+         && (entry == DEAL_ENTRY_IN || entry == DEAL_ENTRY_INOUT);
+      bool possibleExit = entry == DEAL_ENTRY_OUT || entry == DEAL_ENTRY_OUT_BY;
+      if(!ownEntry && !possibleExit) continue;
+      string key = "LVDealReported." + IntegerToString((long)deal);
+      if(GlobalVariableCheck(key)) continue;
+      int size = ArraySize(pendingDeals);
+      ArrayResize(pendingDeals, size + 1);
+      pendingDeals[size] = deal;
+      if(size >= 4) break; // bounded catch-up after a temporary bridge/cloud outage
+   }
+   for(int i = 0; i < ArraySize(pendingDeals); i++) SendTradeEvent(pendingDeals[i]);
 }
 
 bool AlreadyExecuted(const string id)
@@ -157,36 +283,60 @@ bool ScalpingLimitsAllow(string &status)
    today.min = 0;
    today.sec = 0;
    datetime dayStart = StructToTime(today);
-   if(!HistorySelect(dayStart, TimeCurrent()))
+   datetime twoMinutesAgo = TimeCurrent() - 120;
+   datetime historyStart = twoMinutesAgo < dayStart ? twoMinutesAgo : dayStart;
+   if(!HistorySelect(historyStart, TimeCurrent()))
    {
       status = "scalp_history_unavailable";
       return false;
    }
 
    ulong entryOrders[];
+   ulong recentEntryOrders[];
    double dayProfit = 0.0;
    for(int i = 0; i < HistoryDealsTotal(); i++)
    {
       ulong deal = HistoryDealGetTicket(i);
       if(deal == 0 || (ulong)HistoryDealGetInteger(deal, DEAL_MAGIC) != EA_MAGIC) continue;
-      dayProfit += HistoryDealGetDouble(deal, DEAL_PROFIT)
-         + HistoryDealGetDouble(deal, DEAL_COMMISSION)
-         + HistoryDealGetDouble(deal, DEAL_SWAP)
-         + HistoryDealGetDouble(deal, DEAL_FEE);
+      datetime dealTime = (datetime)HistoryDealGetInteger(deal, DEAL_TIME);
       long entry = HistoryDealGetInteger(deal, DEAL_ENTRY);
-      if(entry != DEAL_ENTRY_IN && entry != DEAL_ENTRY_INOUT) continue;
-      ulong order = (ulong)HistoryDealGetInteger(deal, DEAL_ORDER);
-      bool seen = false;
-      for(int j = 0; j < ArraySize(entryOrders); j++)
+      if(entry == DEAL_ENTRY_IN || entry == DEAL_ENTRY_INOUT)
       {
-         if(entryOrders[j] == order) { seen = true; break; }
+         ulong order = (ulong)HistoryDealGetInteger(deal, DEAL_ORDER);
+         if(dealTime >= dayStart)
+         {
+            bool seen = false;
+            for(int j = 0; j < ArraySize(entryOrders); j++)
+            {
+               if(entryOrders[j] == order) { seen = true; break; }
+            }
+            if(!seen)
+            {
+               int size = ArraySize(entryOrders);
+               ArrayResize(entryOrders, size + 1);
+               entryOrders[size] = order;
+            }
+         }
+         if(dealTime >= twoMinutesAgo)
+         {
+            bool seenRecently = false;
+            for(int j = 0; j < ArraySize(recentEntryOrders); j++)
+            {
+               if(recentEntryOrders[j] == order) { seenRecently = true; break; }
+            }
+            if(!seenRecently)
+            {
+               int size = ArraySize(recentEntryOrders);
+               ArrayResize(recentEntryOrders, size + 1);
+               recentEntryOrders[size] = order;
+            }
+         }
       }
-      if(!seen)
-      {
-         int size = ArraySize(entryOrders);
-         ArrayResize(entryOrders, size + 1);
-         entryOrders[size] = order;
-      }
+      if(dealTime >= dayStart)
+         dayProfit += HistoryDealGetDouble(deal, DEAL_PROFIT)
+            + HistoryDealGetDouble(deal, DEAL_COMMISSION)
+            + HistoryDealGetDouble(deal, DEAL_SWAP)
+            + HistoryDealGetDouble(deal, DEAL_FEE);
    }
 
    for(int i = 0; i < PositionsTotal(); i++)
@@ -199,6 +349,11 @@ bool ScalpingLimitsAllow(string &status)
    if(ArraySize(entryOrders) >= SCALPING_MAX_ENTRIES_PER_DAY)
    {
       status = "scalp_daily_trade_cap";
+      return false;
+   }
+   if(ArraySize(recentEntryOrders) >= SCALPING_MAX_ENTRIES_PER_2MIN)
+   {
+      status = "scalp_rate_cap";
       return false;
    }
    double dailyLossLimit = AccountInfoDouble(ACCOUNT_BALANCE) * SCALPING_MAX_DAILY_LOSS_PERCENT / 100.0;
@@ -314,6 +469,64 @@ bool ExecuteSignal(const string json, string &status, string &orderId)
    return true;
 }
 
+bool TryAutonomousScalp(const double riskPercent, string &status, string &orderId)
+{
+   status = "scalp_waiting_for_bar";
+   orderId = "";
+   if(Period() != PERIOD_M1) { status = "chart_not_m1"; return false; }
+   if(g_atrHandle == INVALID_HANDLE)
+   {
+      status = "scalp_indicators_unavailable";
+      return false;
+   }
+   MqlRates closedBar[1];
+   if(CopyRates(_Symbol, PERIOD_M1, 1, 1, closedBar) != 1) { status = "scalp_waiting_for_history"; return false; }
+   string barKey = "LVScalpBar." + IntegerToString((long)AccountInfoInteger(ACCOUNT_LOGIN));
+   double lastBar = GlobalVariableCheck(barKey) ? GlobalVariableGet(barKey) : 0.0;
+   if((double)closedBar[0].time <= lastBar) return false;
+   GlobalVariableSet(barKey, (double)closedBar[0].time); // at most one evaluation per closed M1 candle, including after terminal restart
+
+   double atr[1];
+   if(CopyBuffer(g_atrHandle, 0, 1, 1, atr) != 1)
+   {
+      status = "scalp_indicators_unavailable";
+      return false;
+   }
+   if(PositionsTotal() > 0) { status = "scalp_position_open"; return false; }
+   if(!ScalpingLimitsAllow(status)) return false;
+
+   MqlTick tick;
+   if(!SymbolInfoTick(_Symbol, tick)) { status = "quote_unavailable"; return false; }
+   double point = SymbolInfoDouble(_Symbol, SYMBOL_POINT);
+   int digits = (int)SymbolInfoInteger(_Symbol, SYMBOL_DIGITS);
+   if(point <= 0 || (tick.ask - tick.bid) / point > SCALPING_MAX_SPREAD_POINTS) { status = "scalp_spread_high"; return false; }
+   double candleRange = closedBar[0].high - closedBar[0].low;
+   double candleBody = MathAbs(closedBar[0].close - closedBar[0].open);
+   if(candleRange <= 0) { status = "scalp_invalid_candle"; return false; }
+   double bodyRatio = candleBody / candleRange;
+   bool buy = closedBar[0].close > closedBar[0].open
+      && bodyRatio >= 0.65 && (closedBar[0].high - closedBar[0].close) / candleRange <= 0.20;
+   bool sell = closedBar[0].close < closedBar[0].open
+      && bodyRatio >= 0.65 && (closedBar[0].close - closedBar[0].low) / candleRange <= 0.20;
+   if(!buy && !sell) { status = "scalp_no_setup"; return false; }
+   if(atr[0] <= 0) { status = "scalp_atr_unavailable"; return false; }
+
+   int minimumStopPoints = (int)SymbolInfoInteger(_Symbol, SYMBOL_TRADE_STOPS_LEVEL)
+      + (int)SymbolInfoInteger(_Symbol, SYMBOL_TRADE_FREEZE_LEVEL) + 2;
+   double stopDistance = MathMax(atr[0] * 1.2, (double)minimumStopPoints * point);
+   double price = buy ? tick.ask : tick.bid;
+   double stop = buy ? price - stopDistance : price + stopDistance;
+   double target = buy ? price + stopDistance * 1.2 : price - stopDistance * 1.2;
+   string id = NewScalpingSignalId(closedBar[0].time);
+   string payload = "{\"id\":\"" + id + "\",\"symbol\":\"" + _Symbol + "\",\"direction\":\"" + (buy ? "buy" : "sell")
+      + "\",\"entryPrice\":" + DoubleToString(price, digits)
+      + ",\"stopLoss\":" + DoubleToString(stop, digits)
+      + ",\"takeProfit\":" + DoubleToString(target, digits)
+      + ",\"createdAt\":" + IntegerToString((long)TimeCurrent())
+      + ",\"timeframe\":\"M1\",\"automationMode\":\"scalping\",\"riskPercent\":" + DoubleToString(riskPercent, 2) + "}";
+   return ExecuteSignal(payload, status, orderId);
+}
+
 void OnTimer()
 {
    if(g_busy) return;
@@ -350,19 +563,45 @@ void OnTimer()
          if(!Ack(id, status, orderId)) g_diagnosticStatus = "ack_failed";
          Comment("Legnoova MT5: signal ", id, " — ", status);
       }
-      else if(!JsonBool(json, "enabled")) g_diagnosticStatus = "dashboard_disabled";
-      else g_diagnosticStatus = "waiting_for_signal";
+       else if(JsonBool(json, "enabled") && JsonString(json, "automationMode") == "scalping" && !JsonBool(json, "busy"))
+       {
+          string status, orderId;
+          TryAutonomousScalp(JsonNumber(json, "riskPercent"), status, orderId);
+          g_diagnosticStatus = status;
+          if(status == "executed" || status == "partial_fill" || status == "order_placed")
+             Comment("Legnoova M1 scalping: ", status, " · order ", orderId);
+          else Comment("Legnoova M1 scalping: ", status);
+       }
+       else
+       {
+          g_diagnosticStatus = JsonString(json, "status");
+          if(g_diagnosticStatus == "")
+             g_diagnosticStatus = JsonBool(json, "enabled") ? "waiting_for_signal" : "dashboard_disabled";
+          Comment("Legnoova MT5: ", g_diagnosticStatus);
+       }
    }
    else g_diagnosticStatus = "bridge_unavailable";
+   ReconcileRecentTradeEvents();
    SendDiagnostic();
    g_busy = false;
+}
+
+void OnTradeTransaction(const MqlTradeTransaction &trans, const MqlTradeRequest &request, const MqlTradeResult &result)
+{
+   if(trans.type == TRADE_TRANSACTION_DEAL_ADD && trans.deal > 0)
+      SendTradeEvent(trans.deal);
 }
 
 int OnInit()
 {
    if(PollSeconds < 2 || MaximumRiskPercent <= 0 || MaximumRiskPercent > 2 || MaximumLots <= 0 || MaximumOpenPositions < 1) return INIT_PARAMETERS_INCORRECT;
+   g_atrHandle = iATR(_Symbol, PERIOD_M1, 14);
    EventSetTimer(PollSeconds);
    return INIT_SUCCEEDED;
 }
 
-void OnDeinit(const int reason) { EventKillTimer(); }
+void OnDeinit(const int reason)
+{
+   EventKillTimer();
+   if(g_atrHandle != INVALID_HANDLE) IndicatorRelease(g_atrHandle);
+}

@@ -9,7 +9,7 @@ import { hasBrokerAutomationAccess } from "@/lib/mt5-access";
 
 const schema = z.object({
   enabled: z.boolean(),
-  riskPercent: z.number().min(0.1).max(0.5),
+  riskPercent: z.number().min(0.05).max(0.5),
   mode: z.enum(["normal", "scalping"]).optional(),
 });
 
@@ -28,7 +28,9 @@ export async function GET() {
     hasBrokerPlan: hasBrokerAutomationAccess(user),
     enabled: !!user.brokerAutomationEnabled,
     mode: user.brokerAutomationMode ?? "normal",
-    riskPercent: user.brokerRiskPercent ?? 0.5,
+    riskPercent: (user.brokerAutomationMode ?? "normal") === "scalping"
+      ? Math.min(user.brokerRiskPercent ?? 0.05, 0.05)
+      : user.brokerRiskPercent ?? 0.5,
     tokenIssued: !!tokenRecord?.eaTokenHash,
   });
 }
@@ -38,19 +40,29 @@ export async function PATCH(req: Request) {
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!hasBrokerAutomationAccess(user)) return NextResponse.json({ error: "Broker plan required" }, { status: 403 });
   const parsed = schema.safeParse(await req.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: "Risk must be between 0.1% and 0.5%" }, { status: 400 });
+  if (!parsed.success) return NextResponse.json({ error: "Risk must be between 0.05% and 0.5%" }, { status: 400 });
   const mode = parsed.data.mode ?? user.brokerAutomationMode ?? "normal";
   const modeChanged = mode !== (user.brokerAutomationMode ?? "normal");
-  if (modeChanged && parsed.data.enabled) {
-    return NextResponse.json({ error: "Pause automation while changing modes. Save the new mode, then explicitly re-enable it." }, { status: 409 });
-  }
-  if (mode === "scalping" && parsed.data.riskPercent > 0.25) {
-    return NextResponse.json({ error: "Demo scalping mode is capped at 0.25% risk per trade" }, { status: 400 });
+  if (mode === "scalping" && parsed.data.riskPercent > 0.05) {
+    return NextResponse.json({ error: "Candle-based demo scalping is capped at 0.05% risk per trade" }, { status: 400 });
   }
   if (parsed.data.enabled) {
     const credential = await User.findById(user._id).select("+eaTokenHash");
     if (!credential?.eaTokenHash) {
       return NextResponse.json({ error: "Create an MT5 device token before enabling automation" }, { status: 400 });
+    }
+    const heartbeatFresh = !!user.mt5LastHeartbeatAt && Date.now() - user.mt5LastHeartbeatAt.getTime() <= 45_000;
+    if (!heartbeatFresh) return NextResponse.json({ error: "MT5 is not connected right now. Start the bridge and EA, then wait for a fresh heartbeat before activating." }, { status: 409 });
+    const runtime = user.mt5Runtime;
+    if (!runtime?.executionEnabled) return NextResponse.json({ error: "EA execution is off. Set ExecutionEnabled=true in the MT5 EA inputs on your demo account, then wait for its heartbeat." }, { status: 409 });
+    if (!runtime.terminalTradeAllowed || !runtime.accountTradeAllowed || !runtime.expertTradeAllowed) {
+      return NextResponse.json({ error: "MT5 trade permissions are off. Enable Algo Trading and account/Expert Advisor trading permissions, then retry." }, { status: 409 });
+    }
+    if (!runtime.demoAccount || runtime.liveTradingAllowed) {
+      return NextResponse.json({ error: "Activation requires an MT5 demo account with AllowLiveAccount=false." }, { status: 409 });
+    }
+    if (mode === "scalping" && !runtime.chartM1) {
+      return NextResponse.json({ error: "M1 Scalping activation requires the EA attached to an M1 chart." }, { status: 409 });
     }
   }
   if (modeChanged) {
@@ -64,15 +76,7 @@ export async function PATCH(req: Request) {
     user.mt5LastSignalId = latestSignal?._id.toString() ?? null;
     user.mt5LeaseSignalId = null;
     user.mt5LeaseUntil = null;
-    user.brokerAutomationEnabled = false;
-    user.brokerRiskPercent = mode === "scalping" ? Math.min(parsed.data.riskPercent, 0.25) : parsed.data.riskPercent;
-    await user.save();
-    return NextResponse.json({
-      enabled: false,
-      mode: user.brokerAutomationMode,
-      riskPercent: user.brokerRiskPercent,
-      warning: "Mode changed, automation paused, and older queued signals skipped. Review the demo safeguards before re-enabling.",
-    });
+    user.brokerRiskPercent = mode === "scalping" ? Math.min(parsed.data.riskPercent, 0.05) : parsed.data.riskPercent;
   }
   user.brokerAutomationMode = mode;
   user.brokerAutomationEnabled = parsed.data.enabled;
@@ -96,6 +100,7 @@ export async function POST() {
   user.mt5LastSignalId = latestSignal?._id.toString() ?? null;
   user.mt5LeaseSignalId = null;
   user.mt5LeaseUntil = null;
+  user.mt5LastHeartbeatAt = null;
   user.brokerAutomationEnabled = false;
   await user.save();
   return NextResponse.json({ token, warning: "Copy this token now. It cannot be shown again." });
@@ -108,6 +113,7 @@ export async function DELETE() {
   user.brokerAutomationEnabled = false;
   user.mt5LeaseSignalId = null;
   user.mt5LeaseUntil = null;
+  user.mt5LastHeartbeatAt = null;
   await user.save();
   return NextResponse.json({ revoked: true, enabled: false });
 }
