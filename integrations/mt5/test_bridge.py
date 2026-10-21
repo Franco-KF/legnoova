@@ -73,6 +73,35 @@ class BridgeTests(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "HTTPS"):
             bridge.api()
 
+    def test_health_origin_matches_configured_site_origin(self):
+        bridge.API_URL = "https://legnoova.com/"
+        self.assertEqual(bridge.app_origin(), "https://legnoova.com")
+
+    def test_diagnostics_call_is_read_only_and_keeps_token_out_of_url(self):
+        bridge.API_URL = "https://legnoova.com"
+        bridge.DEVICE_TOKEN = "diagnostic-secret"
+
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+            def read(self): return b'{"queuedSignals":0}'
+
+        with patch.object(bridge, "urlopen", return_value=Response()) as open_url:
+            result, error = bridge.upstream_diagnostics()
+        self.assertEqual(result, {"queuedSignals": 0})
+        self.assertIsNone(error)
+        request = open_url.call_args.args[0]
+        self.assertTrue(request.full_url.endswith("/api/automation/diagnostics/device"))
+        self.assertEqual(request.get_header("Authorization"), "Bearer diagnostic-secret")
+        self.assertNotIn("diagnostic-secret", request.full_url)
+
+    def test_diagnostics_reject_plain_http_for_remote_cloud(self):
+        bridge.API_URL = "http://example.com"
+        bridge.DEVICE_TOKEN = "test-secret"
+        result, error = bridge.upstream_diagnostics()
+        self.assertIsNone(result)
+        self.assertEqual(error, "cloud_url_must_use_https")
+
 
 if __name__ == "__main__":
     unittest.main()

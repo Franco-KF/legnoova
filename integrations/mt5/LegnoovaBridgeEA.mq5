@@ -1,5 +1,5 @@
 #property strict
-#property version "0.2"
+#property version "0.3"
 #property description "Legnoova MT5 bridge. Demo-only and disabled until explicitly configured."
 
 input bool ExecutionEnabled = false;
@@ -14,6 +14,7 @@ input string LocalBridgeToken = "";
 input int PollSeconds = 15;
 
 bool g_busy = false;
+string g_diagnosticStatus = "starting";
 
 string JsonString(const string json, const string key)
 {
@@ -43,6 +44,15 @@ double JsonNumber(const string json, const string key)
    return StringToDouble(StringSubstr(json, start, end - start));
 }
 
+bool JsonBool(const string json, const string key)
+{
+   string marker = "\"" + key + "\":";
+   int start = StringFind(json, marker);
+   if(start < 0) return false;
+   start += StringLen(marker);
+   return StringSubstr(json, start, 4) == "true";
+}
+
 bool Request(const string method, const string path, const string payload, string &response)
 {
    if(StringLen(LocalBridgeToken) < 32) return false;
@@ -65,6 +75,19 @@ bool Ack(const string id, const string status, const string orderId="")
    string payload = "{\"signalId\":\"" + id + "\",\"status\":\"" + status + "\",\"brokerOrderId\":\"" + orderId + "\"}";
    string response;
    return Request("POST", "/ack", payload, response);
+}
+
+void SendDiagnostic()
+{
+   string payload = "{\"executionEnabled\":" + (ExecutionEnabled ? "true" : "false")
+      + ",\"terminalTradeAllowed\":" + (TerminalInfoInteger(TERMINAL_TRADE_ALLOWED) ? "true" : "false")
+      + ",\"accountTradeAllowed\":" + (AccountInfoInteger(ACCOUNT_TRADE_ALLOWED) ? "true" : "false")
+      + ",\"expertTradeAllowed\":" + (AccountInfoInteger(ACCOUNT_TRADE_EXPERT) ? "true" : "false")
+      + ",\"demoAccount\":" + (AccountInfoInteger(ACCOUNT_TRADE_MODE) == ACCOUNT_TRADE_MODE_DEMO ? "true" : "false")
+      + ",\"liveTradingAllowed\":" + (AllowLiveAccount ? "true" : "false")
+      + ",\"status\":\"" + g_diagnosticStatus + "\"}";
+   string response;
+   Request("POST", "/diagnostic", payload, response);
 }
 
 string NormalizeSymbol(const string value)
@@ -215,6 +238,10 @@ void OnTimer()
 {
    if(g_busy) return;
    g_busy = true;
+   if(!ExecutionEnabled) g_diagnosticStatus = "execution_off";
+   else if(!TerminalInfoInteger(TERMINAL_TRADE_ALLOWED) || !AccountInfoInteger(ACCOUNT_TRADE_ALLOWED) || !AccountInfoInteger(ACCOUNT_TRADE_EXPERT)) g_diagnosticStatus = "trading_disabled";
+   else if(!AllowLiveAccount && AccountInfoInteger(ACCOUNT_TRADE_MODE) != ACCOUNT_TRADE_MODE_DEMO) g_diagnosticStatus = "demo_only";
+   else g_diagnosticStatus = "polling";
    string json;
    if(Request("GET", "/signal", "", json))
    {
@@ -223,22 +250,31 @@ void OnTimer()
       {
          if(!ExecutionEnabled)
          {
+            g_diagnosticStatus = "execution_off";
             Comment("Legnoova MT5: execution is OFF; signal is left queued.");
+            SendDiagnostic();
             g_busy = false;
             return;
          }
          if(!AllowLiveAccount && AccountInfoInteger(ACCOUNT_TRADE_MODE) != ACCOUNT_TRADE_MODE_DEMO)
          {
+            g_diagnosticStatus = "demo_only";
             Comment("Legnoova MT5: demo-only mode; signal is left queued.");
+            SendDiagnostic();
             g_busy = false;
             return;
          }
          string status, orderId;
          ExecuteSignal(json, status, orderId);
-         Ack(id, status, orderId);
+         g_diagnosticStatus = status;
+         if(!Ack(id, status, orderId)) g_diagnosticStatus = "ack_failed";
          Comment("Legnoova MT5: signal ", id, " — ", status);
       }
+      else if(!JsonBool(json, "enabled")) g_diagnosticStatus = "dashboard_disabled";
+      else g_diagnosticStatus = "waiting_for_signal";
    }
+   else g_diagnosticStatus = "bridge_unavailable";
+   SendDiagnostic();
    g_busy = false;
 }
 

@@ -43,6 +43,7 @@ On first run, the bridge creates a separate local token in your user profile and
 4. Attach **LegnoovaBridgeEA** to a chart. Set `BridgeUrl` to `http://127.0.0.1:8765` and `LocalBridgeToken` to the local bridge token from step 2. The default poll interval is 15 seconds to limit app requests; reduce it only after checking hosting quotas and considering request load.
 5. Leave `ExecutionEnabled=false` and `AllowLiveAccount=false` for the first test. Confirm the terminal is a demo account, Algo Trading is enabled, polling works, and the signal/symbol/risk checks behave as expected.
 6. Automation must be enabled in the Legnoova dashboard and in the EA input. The first version caps risk at 0.5% of account equity per trade; the EA also has a local maximum-risk cap, maximum-lot cap, maximum-entry-drift limit and one-open-position default. Use a demo account until you have reviewed the code and independently tested it.
+7. From the dashboard, click **Check MT5 connection**. The read-only check verifies cloud access, the current eligible signal queue, the local bridge, a recent EA heartbeat, and MT5 execution/trading-permission inputs. If the EA heartbeat is missing, download and compile the latest EA. A healthy connection does not mean a trade is due: only new signals passing all automation filters are sent, and broker rejections are possible.
 
 ## Signal and execution rules
 

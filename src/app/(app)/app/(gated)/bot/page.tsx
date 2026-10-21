@@ -81,6 +81,7 @@ export default function BotPage() {
         <Step number="6" title="Install and attach the Legnoova Expert Advisor">
           In MT5 choose <strong>File → Open Data Folder</strong>. Open <code>MQL5</code>, then <code>Experts</code>. Copy <code>LegnoovaBridgeEA.mq5</code> from Downloads into that folder. In MT5 press <strong>F4</strong> to open MetaEditor, find the file under Expert Advisors, open it, and press <strong>F7</strong> to compile. Check the bottom panel says <strong>0 errors</strong>. Return to MT5, right-click Expert Advisors in Navigator and choose Refresh, then drag LegnoovaBridgeEA onto the chart for the pair you want.
         </Step>
+        <p className="rounded-lg border border-emerald-500/20 bg-emerald-500/[0.05] p-3 text-sm leading-6 text-muted-foreground">After attaching the EA and starting the bridge, return to the controls above and click <strong>Check MT5 connection</strong>. It checks your cloud plan/token/queue and, when your browser permits local access, confirms the bridge heartbeat, EA inputs and MT5 trade permissions. Download and compile the latest EA if it does not report a heartbeat.</p>
         <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
           <h3 className="font-semibold">EA Inputs to set</h3>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
