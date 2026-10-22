@@ -1,5 +1,5 @@
 #property strict
-#property version "0.6"
+#property version "0.7"
 #property description "Legnoova MT5 bridge. Demo-only and disabled until explicitly configured."
 
 input bool ExecutionEnabled = false;
@@ -11,7 +11,7 @@ input int MaximumSignalAgeSeconds = 300;
 input int MaximumEntryDriftPoints = 150;
 input string BridgeUrl = "http://127.0.0.1:8765";
 input string LocalBridgeToken = "";
-input int PollSeconds = 15;
+input int PollSeconds = 10;
 
 bool g_busy = false;
 string g_diagnosticStatus = "starting";
@@ -23,6 +23,9 @@ const int SCALPING_MAX_ENTRIES_PER_DAY = 40;
 const int SCALPING_MAX_ENTRIES_PER_2MIN = 10;
 const int SCALPING_MAX_SIGNAL_AGE_SECONDS = 120;
 int g_atrHandle = INVALID_HANDLE;
+int g_pollSeconds = 10;
+int g_consecutiveFailures = 0;
+datetime g_lastSuccessTime = 0;
 
 int JsonValueStart(const string json, const string key)
 {
@@ -90,11 +93,12 @@ bool JsonBool(const string json, const string key)
    return StringSubstr(json, start, 4) == "true";
 }
 
-bool Request(const string method, const string path, const string payload, string &response)
+bool Request(const string method, const string path, const string payload, string &response, int &httpCode)
 {
    if(StringLen(LocalBridgeToken) < 32)
    {
       Print("Legnoova: LocalBridgeToken is missing or too short; set the local token from bridge.py in EA Inputs.");
+      httpCode = 0;
       return false;
    }
    char data[], result[];
@@ -105,8 +109,11 @@ bool Request(const string method, const string path, const string payload, strin
    }
    string headers = "Authorization: Bearer " + LocalBridgeToken + "\r\nContent-Type: application/json\r\n";
    string responseHeaders;
+   int timeoutMs = 10000 + (g_consecutiveFailures * 2000);
+   if(timeoutMs > 30000) timeoutMs = 30000;
    ResetLastError();
-   int code = WebRequest(method, BridgeUrl + path, headers, 10000, data, result, responseHeaders);
+   int code = WebRequest(method, BridgeUrl + path, headers, timeoutMs, data, result, responseHeaders);
+   httpCode = code;
    if(code == -1)
    {
       int terminalError = GetLastError();
@@ -125,11 +132,23 @@ bool Request(const string method, const string path, const string payload, strin
    return true;
 }
 
+bool Request(const string method, const string path, const string payload, string &response)
+{
+   int code;
+   return Request(method, path, payload, response, code);
+}
+
 bool Ack(const string id, const string status, const string orderId="")
 {
    string payload = "{\"signalId\":\"" + id + "\",\"status\":\"" + status + "\",\"brokerOrderId\":\"" + orderId + "\"}";
    string response;
-   return Request("POST", "/ack", payload, response);
+   int code;
+   bool ok = Request("POST", "/ack", payload, response, code);
+   if(!ok && code == 0)
+   {
+      Print("Legnoova: ack failed, bridge unreachable; will retry on next poll.");
+   }
+   return ok;
 }
 
 void SendDiagnostic()
@@ -157,7 +176,12 @@ void SendDiagnostic()
       + ",\"eaFloatingProfit\":" + DoubleToString(floatingProfit, 8)
       + ",\"status\":\"" + g_diagnosticStatus + "\"}";
    string response;
-   Request("POST", "/diagnostic", payload, response);
+   int code;
+   bool ok = Request("POST", "/diagnostic", payload, response, code);
+   if(ok && code >= 200 && code < 300)
+      g_consecutiveFailures = 0;
+   else
+      g_consecutiveFailures++;
 }
 
 string NormalizeSymbol(const string value)
@@ -249,8 +273,11 @@ void SendTradeEvent(const ulong deal)
       + ",\"price\":" + DoubleToString(price, 10) + ",\"netProfit\":" + DoubleToString(netProfit, 8)
       + ",\"occurredAt\":" + IntegerToString(occurredAt) + "}";
    string response;
-   if(Request("POST", "/event", payload, response) && JsonBool(response, "recorded"))
+   int code;
+   if(Request("POST", "/event", payload, response, code) && code >= 200 && code < 300)
       GlobalVariableSet("LVDealReported." + dealId, 1.0);
+   else
+      Print("Legnoova: trade event for deal ", dealId, " could not be sent (HTTP ", code, "); will retry on next cycle.");
 }
 
 void ReconcileRecentTradeEvents()
@@ -271,7 +298,7 @@ void ReconcileRecentTradeEvents()
       int size = ArraySize(pendingDeals);
       ArrayResize(pendingDeals, size + 1);
       pendingDeals[size] = deal;
-      if(size >= 4) break; // bounded catch-up after a temporary bridge/cloud outage
+      if(size >= 4) break;
    }
    for(int i = 0; i < ArraySize(pendingDeals); i++) SendTradeEvent(pendingDeals[i]);
 }
@@ -404,7 +431,7 @@ double VolumeForRisk(const string symbol, const ENUM_ORDER_TYPE side, const doub
    if(step <= 0.0 || maxLots < minLots) return 0.0;
    double lots = MathFloor(rawLots / step) * step;
    if(lots > maxLots) lots = MathFloor(maxLots / step) * step;
-   if(lots < minLots) return 0.0; // Never round upward past the user's risk cap.
+   if(lots < minLots) return 0.0;
    return NormalizeDouble(lots, VolumeDigits(step));
 }
 
@@ -502,7 +529,7 @@ bool TryAutonomousScalp(const double riskPercent, string &status, string &orderI
    string barKey = "LVScalpBar." + IntegerToString((long)AccountInfoInteger(ACCOUNT_LOGIN));
    double lastBar = GlobalVariableCheck(barKey) ? GlobalVariableGet(barKey) : 0.0;
    if((double)closedBar[0].time <= lastBar) return false;
-   GlobalVariableSet(barKey, (double)closedBar[0].time); // at most one evaluation per closed M1 candle, including after terminal restart
+   GlobalVariableSet(barKey, (double)closedBar[0].time);
 
    double atr[1];
    if(CopyBuffer(g_atrHandle, 0, 1, 1, atr) != 1)
@@ -549,13 +576,21 @@ void OnTimer()
 {
    if(g_busy) return;
    g_busy = true;
+
+   int effectivePoll = g_pollSeconds;
+   if(g_consecutiveFailures > 0) effectivePoll = MathMin(g_pollSeconds * (1 + g_consecutiveFailures), 60);
+
    if(!ExecutionEnabled) g_diagnosticStatus = "execution_off";
    else if(!TerminalInfoInteger(TERMINAL_TRADE_ALLOWED) || !AccountInfoInteger(ACCOUNT_TRADE_ALLOWED) || !AccountInfoInteger(ACCOUNT_TRADE_EXPERT)) g_diagnosticStatus = "trading_disabled";
    else if(!AllowLiveAccount && AccountInfoInteger(ACCOUNT_TRADE_MODE) != ACCOUNT_TRADE_MODE_DEMO) g_diagnosticStatus = "demo_only";
    else g_diagnosticStatus = "polling";
+
    string json;
-   if(Request("GET", "/signal", "", json))
+   int code;
+   bool ok = Request("GET", "/signal", "", json, code);
+   if(ok && code >= 200 && code < 300)
    {
+      g_consecutiveFailures = 0;
       string id = JsonString(json, "id");
       if(id != "")
       {
@@ -581,30 +616,32 @@ void OnTimer()
          if(!Ack(id, status, orderId)) g_diagnosticStatus = "ack_failed";
          Comment("Legnoova MT5: signal ", id, " — ", status);
       }
-       else if(JsonBool(json, "enabled") && JsonString(json, "automationMode") == "scalping" && !JsonBool(json, "busy"))
-       {
-          string status, orderId;
-          TryAutonomousScalp(JsonNumber(json, "riskPercent"), status, orderId);
-          g_diagnosticStatus = status;
-          if(status == "executed" || status == "partial_fill" || status == "order_placed")
-             Comment("Legnoova M1 scalping: ", status, " · order ", orderId);
-          else Comment("Legnoova M1 scalping: ", status);
-       }
-       else
-       {
-          g_diagnosticStatus = JsonString(json, "status");
-          if(g_diagnosticStatus == "")
-             g_diagnosticStatus = JsonBool(json, "enabled") ? "waiting_for_signal" : "dashboard_disabled";
-          Comment("Legnoova MT5: ", g_diagnosticStatus);
-       }
+      else if(JsonBool(json, "enabled") && JsonString(json, "automationMode") == "scalping" && !JsonBool(json, "busy"))
+      {
+         string status, orderId;
+         TryAutonomousScalp(JsonNumber(json, "riskPercent"), status, orderId);
+         g_diagnosticStatus = status;
+         if(status == "executed" || status == "partial_fill" || status == "order_placed")
+            Comment("Legnoova M1 scalping: ", status, " · order ", orderId);
+         else Comment("Legnoova M1 scalping: ", status);
+      }
+      else
+      {
+         g_diagnosticStatus = JsonString(json, "status");
+         if(g_diagnosticStatus == "")
+            g_diagnosticStatus = JsonBool(json, "enabled") ? "waiting_for_signal" : "dashboard_disabled";
+         Comment("Legnoova MT5: ", g_diagnosticStatus);
+      }
    }
    else
    {
+      g_consecutiveFailures++;
       g_diagnosticStatus = "bridge_unavailable";
-      Comment("Legnoova MT5: bridge request failed; check the MT5 Experts tab for the HTTP or WebRequest error.");
+      Comment("Legnoova MT5: bridge request failed (HTTP ", code, "); check the MT5 Experts tab for the HTTP or WebRequest error.");
    }
    ReconcileRecentTradeEvents();
    SendDiagnostic();
+   EventSetTimer(effectivePoll);
    g_busy = false;
 }
 
@@ -617,6 +654,7 @@ void OnTradeTransaction(const MqlTradeTransaction &trans, const MqlTradeRequest 
 int OnInit()
 {
    if(PollSeconds < 2 || MaximumRiskPercent <= 0 || MaximumRiskPercent > 2 || MaximumLots <= 0 || MaximumOpenPositions < 1) return INIT_PARAMETERS_INCORRECT;
+   g_pollSeconds = PollSeconds;
    g_atrHandle = iATR(_Symbol, PERIOD_M1, 14);
    EventSetTimer(PollSeconds);
    return INIT_SUCCEEDED;

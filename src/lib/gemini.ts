@@ -12,27 +12,32 @@ import type {
   FindingTone,
 } from "./analysis/types";
 import { getStrategy } from "./analysis/types";
+import { aiResilience } from "@/lib/resilience/ai-fallback";
 
-const MODEL = "gemini-3.8-flash";
+const MODELS: Array<{ name: string; model: string }> = [
+  { name: "gemini-3.8-flash", model: "gemini-3.8-flash" },
+  { name: "gemini-2.5-flash", model: "gemini-2.5-flash" },
+  { name: "gemini-2.0-flash", model: "gemini-2.0-flash" },
+];
 
-let cachedModel: GenerativeModel | null = null;
+const modelCache = new Map<string, GenerativeModel>();
 
-function getModel(): GenerativeModel {
+function getModel(modelName: string): GenerativeModel {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not configured");
   }
-  if (!cachedModel) {
+  if (!modelCache.has(modelName)) {
     const genAI = new GoogleGenerativeAI(apiKey);
-    cachedModel = genAI.getGenerativeModel({
-      model: MODEL,
+    modelCache.set(modelName, genAI.getGenerativeModel({
+      model: modelName,
       generationConfig: {
         temperature: 0.2,
         responseMimeType: "application/json",
       },
-    });
+    }));
   }
-  return cachedModel;
+  return modelCache.get(modelName)!;
 }
 
 export const GEMINI_IMAGE_ERROR =
@@ -308,9 +313,9 @@ function parseAnalysis(raw: string, strategyId: string): Analysis {
 }
 
 export async function analyzeChart(
-  options: AnalyzeChartOptions
+  options: AnalyzeChartOptions,
+  preferredModel?: string
 ): Promise<Analysis> {
-  const model = getModel();
   const strategy = getStrategy(options.strategy);
 
   const strategySection = `
@@ -394,39 +399,55 @@ Return ONLY a valid JSON object, no markdown, matching this exact shape:
     },
   };
 
-  let result;
-  try {
-    result = await model.generateContent([prompt, imagePart]);
-  } catch (err) {
-    const status = (err as { status?: number })?.status;
-    const message = err instanceof Error ? err.message : "";
-    if (status === 429 || /QUOTA|RESOURCE_EXHAUSTED|RATE.LIMIT/i.test(message)) {
-      throw new Error(GEMINI_BUSY_ERROR);
+  const runOnModel = async (modelName: string): Promise<Analysis> => {
+    const model = getModel(modelName);
+    let result;
+    try {
+      result = await model.generateContent([prompt, imagePart]);
+    } catch (err) {
+      const status = (err as { status?: number })?.status;
+      const message = err instanceof Error ? err.message : "";
+      if (status === 429 || /QUOTA|RESOURCE_EXHAUSTED|RATE.LIMIT/i.test(message)) {
+        throw new Error(GEMINI_BUSY_ERROR);
+      }
+      if (/API_KEY_INVALID|API key not valid|key.*invalid/i.test(message)) {
+        throw new Error(GEMINI_KEY_ERROR);
+      }
+      if (/image/i.test(message)) {
+        throw new Error(GEMINI_IMAGE_ERROR);
+      }
+      throw err;
     }
-    if (/API_KEY_INVALID|API key not valid|key.*invalid/i.test(message)) {
-      throw new Error(GEMINI_KEY_ERROR);
-    }
-    if (/image/i.test(message)) {
-      throw new Error(GEMINI_IMAGE_ERROR);
-    }
-    throw err;
-  }
 
-  let text = "";
-  try {
-    text = result.response.text();
-  } catch {
-    const finish = result.response?.candidates?.[0]?.finishReason;
-    const reason = finish ? String(finish) : "empty";
-    if (/SAFETY|BLOCK/.test(reason)) {
+    let text = "";
+    try {
+      text = result.response.text();
+    } catch {
+      const finish = result.response?.candidates?.[0]?.finishReason;
+      const reason = finish ? String(finish) : "empty";
+      if (/SAFETY|BLOCK/.test(reason)) {
+        throw new Error(GEMINI_BLOCKED_ERROR);
+      }
+      throw new Error(GEMINI_UNREADABLE_ERROR);
+    }
+
+    if (!text.trim()) {
       throw new Error(GEMINI_BLOCKED_ERROR);
     }
-    throw new Error(GEMINI_UNREADABLE_ERROR);
+
+    return parseAnalysis(text, options.strategy);
+  };
+
+  let analysis: Analysis;
+  if (preferredModel) {
+    analysis = await runOnModel(preferredModel);
+  } else {
+    const { result, model } = await aiResilience.executeWithFallback(runOnModel, {
+      preferredModel: MODELS[0].name,
+    });
+    analysis = result;
+    console.log(`[Legnoova] Analysis served by model: ${model}`);
   }
 
-  if (!text.trim()) {
-    throw new Error(GEMINI_BLOCKED_ERROR);
-  }
-
-  return parseAnalysis(text, options.strategy);
+  return analysis;
 }

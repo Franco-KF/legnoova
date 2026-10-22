@@ -1,23 +1,38 @@
-"""Loopback-only Legnoova signal relay. Configure credentials in environment, never source."""
+"""Loopback-only Legnoova signal relay with WebSocket, retry, and offline queue.
+
+Configure credentials via environment variables. Never commit secrets.
+"""
 import json
 import hmac
 import math
 import os
 import secrets
+import ssl
 import time
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
+try:
+    import websocket  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    websocket = None
+
 API_URL = os.environ.get("LEGNOOVA_API_URL", "").rstrip("/")
 DEVICE_TOKEN = os.environ.get("LEGNOOVA_DEVICE_TOKEN", "")
+WS_URL = os.environ.get("LEGNOOVA_WS_URL", "")
 HOST, PORT = "127.0.0.1", 8765
+OFFLINE_QUEUE_DIR = Path.home() / ".legnoova" / "mt5-offline-queue"
+MAX_QUEUE_ATTEMPTS = 5
+RETRY_BASE_DELAY = 1.0
+RETRY_MAX_DELAY = 30.0
+HEALTH_STALE_SECONDS = 45
 
 
 def load_or_create_local_token(path=None):
-    """Persist a per-computer secret so restarting the relay does not break MT5."""
     override = os.environ.get("LEGNOOVA_BRIDGE_LOCAL_TOKEN")
     if override:
         return override
@@ -30,7 +45,7 @@ def load_or_create_local_token(path=None):
         try:
             token_path.chmod(0o600)
         except OSError:
-            pass  # Windows uses the current user's profile directory ACL.
+            pass
         print(f"A local bridge token was saved to {token_path}. Copy its contents into the EA LocalBridgeToken input. Keep it private.")
     except FileExistsError:
         token = token_path.read_text(encoding="utf-8").strip()
@@ -44,11 +59,115 @@ LAST_EA_DIAGNOSTIC = None
 LAST_EA_LOCAL_ERROR = None
 LAST_EA_CLOUD_REPORTED = False
 LAST_EA_CLOUD_ERROR = None
+QUEUE_LOCK = threading.Lock()
+
+
+def ensure_queue_dir():
+    OFFLINE_QUEUE_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def queue_item(type_name, payload):
+    ensure_queue_dir()
+    item = {
+        "id": f"{type_name}-{int(time.time()*1000)}-{secrets.token_hex(4)}",
+        "type": type_name,
+        "payload": payload,
+        "createdAt": time.time(),
+        "attempts": 0,
+    }
+    file_path = OFFLINE_QUEUE_DIR / f"{item['id']}.json"
+    with file_path.open("w", encoding="utf-8") as f:
+        json.dump(item, f)
+    return item["id"]
+
+
+def list_queue():
+    ensure_queue_dir()
+    items = []
+    try:
+        for f in sorted(OFFLINE_QUEUE_DIR.iterdir()):
+            if f.suffix != ".json":
+                continue
+            try:
+                item = json.loads(f.read_text(encoding="utf-8"))
+                item["path"] = str(f)
+                items.append(item)
+            except Exception:
+                continue
+    except FileNotFoundError:
+        pass
+    return sorted(items, key=lambda x: x.get("createdAt", 0))
+
+
+def remove_queue_item(item_id):
+    try:
+        (OFFLINE_QUEUE_DIR / f"{item_id}.json").unlink()
+    except FileNotFoundError:
+        pass
 
 
 def app_origin():
     parsed = urlsplit(API_URL)
     return f"{parsed.scheme}://{parsed.netloc}" if parsed.scheme and parsed.netloc else ""
+
+
+def api(method="GET", payload=None, path="/api/automation/device", retries=3):
+    if not API_URL or not DEVICE_TOKEN:
+        raise RuntimeError("Set LEGNOOVA_API_URL and LEGNOOVA_DEVICE_TOKEN")
+    parsed = urlsplit(API_URL)
+    if parsed.scheme != "https" and parsed.hostname not in {"localhost", "127.0.0.1"}:
+        raise RuntimeError("LEGNOOVA_API_URL must use HTTPS")
+    data = json.dumps(payload).encode() if payload is not None else None
+    request = Request(API_URL + path, data=data, method=method,
+                      headers={"Authorization": "Bearer " + DEVICE_TOKEN,
+                               "Content-Type": "application/json"})
+    last_error = None
+    for attempt in range(1, retries + 1):
+        try:
+            with urlopen(request, timeout=8) as response:
+                return json.loads(response.read().decode())
+        except HTTPError as error:
+            last_error = error
+            if error.code in (400, 401, 403, 404, 409):
+                raise
+            if attempt == retries:
+                raise
+        except (URLError, TimeoutError) as error:
+            last_error = error
+            if attempt == retries:
+                raise
+        delay = min(RETRY_BASE_DELAY * (2 ** (attempt - 1)), RETRY_MAX_DELAY)
+        time.sleep(delay)
+    raise last_error if last_error else RuntimeError("api request failed")
+
+
+def flush_queue():
+    """Attempt to deliver any queued offline items to the cloud."""
+    with QUEUE_LOCK:
+        for item in list_queue():
+            try:
+                attempts = item.get("attempts", 0) + 1
+                if attempts > MAX_QUEUE_ATTEMPTS:
+                    remove_queue_item(item["id"])
+                    continue
+                item["attempts"] = attempts
+                file_path = item.get("path")
+                if file_path:
+                    try:
+                        with open(file_path, "w", encoding="utf-8") as f:
+                            json.dump(item, f)
+                    except Exception:
+                        pass
+                if item["type"] == "diagnostic":
+                    api("POST", item["payload"], "/api/automation/diagnostics/device")
+                elif item["type"] == "event":
+                    api("POST", item["payload"], "/api/automation/events/device")
+                elif item["type"] == "ack":
+                    api("POST", item["payload"], "/api/automation/device")
+                remove_queue_item(item["id"])
+            except Exception:
+                # leave in queue for next flush
+                continue
 
 
 def upstream_diagnostics():
@@ -113,23 +232,8 @@ def validate_trade_event(payload):
     return payload
 
 
-def api(method="GET", payload=None, path="/api/automation/device"):
-    if not API_URL or not DEVICE_TOKEN:
-        raise RuntimeError("Set LEGNOOVA_API_URL and LEGNOOVA_DEVICE_TOKEN")
-    parsed = urlsplit(API_URL)
-    if parsed.scheme != "https" and parsed.hostname not in {"localhost", "127.0.0.1"}:
-        raise RuntimeError("LEGNOOVA_API_URL must use HTTPS")
-    data = json.dumps(payload).encode() if payload is not None else None
-    request = Request(API_URL + path, data=data, method=method,
-                      headers={"Authorization": "Bearer " + DEVICE_TOKEN,
-                               "Content-Type": "application/json"})
-    with urlopen(request, timeout=8) as response:
-        return json.loads(response.read().decode())
-
-
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):
-        # Keep request diagnostics, but never log headers or credential material.
         print("bridge", self.client_address[0], fmt % args)
 
     def respond(self, code, value):
@@ -140,7 +244,7 @@ class Handler(BaseHTTPRequestHandler):
         origin = self.headers.get("Origin", "")
         if origin and origin == app_origin():
             self.send_header("Access-Control-Allow-Origin", origin)
-            self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
+            self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
             self.send_header("Access-Control-Allow-Private-Network", "true")
             self.send_header("Vary", "Origin")
         self.end_headers()
@@ -160,10 +264,11 @@ class Handler(BaseHTTPRequestHandler):
             diagnostics, error = upstream_diagnostics()
             last = LAST_EA_DIAGNOSTIC
             age = max(0, int(time.time() - last["seenAt"])) if last else None
+            queue_len = len(list_queue())
             return self.respond(200, {
                 "bridgeRunning": True,
                 "configurationReady": bool(API_URL and DEVICE_TOKEN and LOCAL_BRIDGE_TOKEN),
-                "eaConnected": age is not None and age <= 45,
+                "eaConnected": age is not None and age <= HEALTH_STALE_SECONDS,
                 "eaLastSeenSecondsAgo": age,
                 "ea": {key: value for key, value in last.items() if key != "seenAt"} if last else None,
                 "eaLocalError": LAST_EA_LOCAL_ERROR,
@@ -171,15 +276,19 @@ class Handler(BaseHTTPRequestHandler):
                 "eaCloudError": LAST_EA_CLOUD_ERROR,
                 "cloud": diagnostics,
                 "cloudError": error,
+                "offlineQueueLength": queue_len,
+                "wsUrl": WS_URL or None,
             })
         if not self.authorized_local_client():
             return self.respond(401, {"error": "unauthorized"})
-        if self.path != "/signal":
+        if self.path == "/signal":
+            try:
+                flush_queue()
+                self.respond(200, api())
+            except (HTTPError, URLError, RuntimeError, ValueError) as error:
+                self.respond(502, {"error": "upstream unavailable", "detail": str(error)[:120]})
+        else:
             return self.respond(404, {"error": "not found"})
-        try:
-            self.respond(200, api())
-        except (HTTPError, URLError, RuntimeError, ValueError):
-            self.respond(502, {"error": "upstream unavailable"})
 
     def do_POST(self):
         if not self.authorized_local_client():
@@ -205,12 +314,14 @@ class Handler(BaseHTTPRequestHandler):
             except HTTPError as error:
                 LAST_EA_CLOUD_REPORTED = False
                 LAST_EA_CLOUD_ERROR = f"cloud_http_{error.code}"
-                return self.respond(502, {"recorded": True, "cloudReported": False, "cloudError": LAST_EA_CLOUD_ERROR})
-            except (URLError, RuntimeError, ValueError):
+                queue_item("diagnostic", payload)
+                return self.respond(502, {"recorded": True, "cloudReported": False, "cloudError": LAST_EA_CLOUD_ERROR, "queued": True})
+            except (URLError, RuntimeError, ValueError) as error:
                 LAST_EA_CLOUD_REPORTED = False
                 LAST_EA_CLOUD_ERROR = "cloud_unavailable"
-                return self.respond(502, {"recorded": True, "cloudReported": False, "cloudError": LAST_EA_CLOUD_ERROR})
-        if self.path == "/event":
+                queue_item("diagnostic", payload)
+                return self.respond(502, {"recorded": True, "cloudReported": False, "cloudError": LAST_EA_CLOUD_ERROR, "queued": True})
+        elif self.path == "/event":
             try:
                 length = int(self.headers.get("Content-Length", "0"))
                 if length <= 0 or length > 4096:
@@ -221,19 +332,22 @@ class Handler(BaseHTTPRequestHandler):
                 return
             try:
                 self.respond(200, api("POST", payload, "/api/automation/events/device"))
-            except (HTTPError, URLError, RuntimeError, ValueError):
-                self.respond(502, {"error": "upstream unavailable or invalid trade event"})
+            except (HTTPError, URLError, RuntimeError, ValueError) as error:
+                queue_item("event", payload)
+                self.respond(502, {"error": "upstream unavailable", "queued": True, "detail": str(error)[:120]})
             return
-        if self.path != "/ack":
+        elif self.path == "/ack":
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                if length <= 0 or length > 4096:
+                    return self.respond(400, {"error": "invalid request size"})
+                payload = json.loads(self.rfile.read(length))
+                self.respond(200, api("POST", payload))
+            except (HTTPError, URLError, RuntimeError, ValueError) as error:
+                queue_item("ack", payload)
+                self.respond(502, {"error": "upstream unavailable", "queued": True, "detail": str(error)[:120]})
+        else:
             return self.respond(404, {"error": "not found"})
-        try:
-            length = int(self.headers.get("Content-Length", "0"))
-            if length <= 0 or length > 4096:
-                return self.respond(400, {"error": "invalid request size"})
-            payload = json.loads(self.rfile.read(length))
-            self.respond(200, api("POST", payload))
-        except (HTTPError, URLError, RuntimeError, ValueError):
-            self.respond(502, {"error": "upstream unavailable or invalid acknowledgement"})
 
     def do_OPTIONS(self):
         origin = self.headers.get("Origin", "")
@@ -241,8 +355,8 @@ class Handler(BaseHTTPRequestHandler):
             return self.respond(403, {"error": "origin_not_allowed"})
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", origin)
-        self.send_header("Access-Control-Allow-Methods", "GET, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Accept")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Accept, Content-Type, Authorization")
         self.send_header("Access-Control-Allow-Private-Network", "true")
         self.send_header("Access-Control-Max-Age", "600")
         self.send_header("Vary", "Origin")
@@ -250,12 +364,43 @@ class Handler(BaseHTTPRequestHandler):
 
 
 class BridgeHTTPServer(ThreadingHTTPServer):
-    """Keep a slow cloud poll from blocking EA heartbeat and event requests."""
     daemon_threads = True
-    request_queue_size = 16
+    request_queue_size = 64
+
+
+def ws_loop():
+    """Optional WebSocket client for real-time signal streaming from cloud."""
+    if websocket is None or not WS_URL:
+        return
+    while True:
+        try:
+            ws = websocket.create_connection(WS_URL, header=[f"Authorization: Bearer {DEVICE_TOKEN}"], timeout=10)
+            print("Legnoova WebSocket connected:", WS_URL)
+            while True:
+                try:
+                    msg = ws.recv()
+                    if msg is None:
+                        break
+                    data = json.loads(msg)
+                    if data.get("type") == "signal":
+                        flush_queue()
+                        try:
+                            api("GET", path="/api/automation/device")
+                        except Exception:
+                            pass
+                except Exception:
+                    break
+            ws.close()
+        except Exception:
+            pass
+        time.sleep(5)
 
 
 if __name__ == "__main__":
     if not LOCAL_BRIDGE_TOKEN:
         LOCAL_BRIDGE_TOKEN = load_or_create_local_token()
+    if WS_URL and websocket:
+        threading.Thread(target=ws_loop, daemon=True).start()
+    # Flush any pending offline queue items on startup
+    flush_queue()
     BridgeHTTPServer((HOST, PORT), Handler).serve_forever()

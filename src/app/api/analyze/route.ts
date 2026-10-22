@@ -9,6 +9,7 @@ import { USAGE_LIMITS, FREE_ANALYSIS_LIMIT } from "@/config/plans";
 import { notifySignalAlert } from "@/lib/signals/notify";
 import { isAutomationEligible } from "@/lib/analysis/automation-eligibility";
 import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { responseCache, cacheKey } from "@/lib/cache/ttl-cache";
 import {
   STRATEGIES,
   TIMEFRAMES,
@@ -67,6 +68,19 @@ export async function POST(req: Request) {
         { error: "Image is too large (max ~9MB)" },
         { status: 413 }
       );
+    }
+
+    // Cache identical chart analyses for 10 minutes to reduce AI cost and latency
+    const imageHash = Buffer.from(parsed.data.image, "base64")
+      .slice(0, 2048)
+      .toString("base64");
+    const cacheKeyStr = cacheKey("analyze", imageHash, parsed.data.strategy, parsed.data.timeframe, parsed.data.symbolHint);
+    const cached = responseCache.get(cacheKeyStr);
+    if (cached) {
+      return NextResponse.json({
+        ...cached,
+        cached: true,
+      });
     }
 
     // Plan enforcement: free tier gets FREE_ANALYSIS_LIMIT per calendar
@@ -168,7 +182,7 @@ export async function POST(req: Request) {
       );
     }
 
-    return NextResponse.json({
+    const responseBody = {
       analysis: {
         ...data,
         signalStatus: "active",
@@ -180,7 +194,13 @@ export async function POST(req: Request) {
       },
       id: doc._id.toString(),
       createdAt: new Date().toISOString(),
-    });
+      cached: false,
+    };
+
+    // Cache successful analysis result for 10 minutes
+    responseCache.set(cacheKeyStr, responseBody, 600_000);
+
+    return NextResponse.json(responseBody);
   } catch (error) {
     console.error("Analyze error:", error);
     const message =
