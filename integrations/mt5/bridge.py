@@ -4,6 +4,7 @@ Configure credentials via environment variables. Never commit secrets.
 """
 import json
 import hmac
+import hashlib
 import math
 import os
 import secrets
@@ -117,10 +118,25 @@ def api(method="GET", payload=None, path="/api/automation/device", retries=3):
     parsed = urlsplit(API_URL)
     if parsed.scheme != "https" and parsed.hostname not in {"localhost", "127.0.0.1"}:
         raise RuntimeError("LEGNOOVA_API_URL must use HTTPS")
-    data = json.dumps(payload).encode() if payload is not None else None
-    request = Request(API_URL + path, data=data, method=method,
-                      headers={"Authorization": "Bearer " + DEVICE_TOKEN,
-                               "Content-Type": "application/json"})
+
+    body = json.dumps(payload).encode() if payload is not None else b""
+    body_str = body.decode("utf-8")
+
+    # HMAC signing: key = SHA256(device_token), message = timestamp.nonce.body
+    timestamp = int(time.time())
+    nonce = secrets.token_hex(16)
+    signing_key = hashlib.sha256(DEVICE_TOKEN.encode("utf-8")).digest()
+    message = f"{timestamp}.{nonce}.{body_str}".encode("utf-8")
+    signature = hmac.new(signing_key, message, hashlib.sha256).hexdigest()
+
+    headers = {
+        "Authorization": "Bearer " + DEVICE_TOKEN,
+        "Content-Type": "application/json",
+        "X-MT5-Timestamp": str(timestamp),
+        "X-MT5-Nonce": nonce,
+        "X-MT5-Signature": signature,
+    }
+    request = Request(API_URL + path, data=body or None, method=method, headers=headers)
     last_error = None
     for attempt in range(1, retries + 1):
         try:
@@ -176,9 +192,20 @@ def upstream_diagnostics():
     parsed = urlsplit(API_URL)
     if parsed.scheme != "https" and parsed.hostname not in {"localhost", "127.0.0.1"}:
         return None, "cloud_url_must_use_https"
+
+    # Sign the diagnostics GET request.
+    timestamp = int(time.time())
+    nonce = secrets.token_hex(16)
+    signing_key = hashlib.sha256(DEVICE_TOKEN.encode("utf-8")).digest()
+    message = f"{timestamp}.{nonce}.".encode("utf-8")
+    signature = hmac.new(signing_key, message, hashlib.sha256).hexdigest()
+
     request = Request(API_URL + "/api/automation/diagnostics/device", method="GET",
                       headers={"Authorization": "Bearer " + DEVICE_TOKEN,
-                               "Accept": "application/json"})
+                               "Accept": "application/json",
+                               "X-MT5-Timestamp": str(timestamp),
+                               "X-MT5-Nonce": nonce,
+                               "X-MT5-Signature": signature})
     try:
         with urlopen(request, timeout=8) as response:
             return json.loads(response.read().decode()), None

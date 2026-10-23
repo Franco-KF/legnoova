@@ -1,39 +1,7 @@
 import type { NextConfig } from "next";
+import { securityHeaders } from "@/lib/security/headers";
 
-const securityHeaders = [
-  {
-    key: "X-Content-Type-Options",
-    value: "nosniff",
-  },
-  {
-    key: "X-Frame-Options",
-    value: "DENY",
-  },
-  {
-    key: "Referrer-Policy",
-    value: "strict-origin-when-cross-origin",
-  },
-  {
-    key: "X-DNS-Prefetch-Control",
-    value: "on",
-  },
-  {
-    key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), browsing-topics=()",
-  },
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains; preload",
-  },
-  {
-    key: "Cross-Origin-Opener-Policy",
-    value: "same-origin-allow-popups",
-  },
-  {
-    key: "Origin-Agent-Cluster",
-    value: "?1",
-  },
-];
+const isDev = process.env.NODE_ENV === "development";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
@@ -41,13 +9,12 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/:path*",
-        headers: securityHeaders,
+        headers: securityHeaders(isDev),
       },
       {
-        // Never cache API responses at the edge/shared caches.
         source: "/api/:path*",
         headers: [
-          { key: "Cache-Control", value: "no-store, max-age=0" },
+          { key: "Cache-Control", value: "no-store, no-cache, must-revalidate, proxy-revalidate" },
         ],
       },
     ];
