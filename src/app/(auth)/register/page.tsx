@@ -9,22 +9,10 @@ import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { AuthDivider } from "@/components/auth/auth-divider";
 import { PasswordInput } from "@/components/auth/password-input";
 
-function getSearchParams() {
-  if (typeof window === "undefined") return new URLSearchParams();
-  return new URLSearchParams(window.location.search);
-}
-
 export default function RegisterPage() {
   const router = useRouter();
-  const searchParams = getSearchParams();
-  const planParam = searchParams.get("plan");
-  const plan = planParam === "analyze" || planParam === "broker" ? planParam : null;
-  const postAuthUrl = plan
-    ? `/app/billing/checkout?plan=${plan}`
-    : "/app";
-  const loginHref = plan
-    ? `/login?callbackUrl=${encodeURIComponent(postAuthUrl)}`
-    : "/login";
+  const postAuthUrl = "/app";
+  const loginHref = "/login";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");

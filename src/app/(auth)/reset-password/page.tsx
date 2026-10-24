@@ -7,15 +7,9 @@ import { toast } from "sonner";
 import { Lock, CheckCircle2 } from "lucide-react";
 import { PasswordInput } from "@/components/auth/password-input";
 
-function getSearchParams() {
-  if (typeof window === "undefined") return new URLSearchParams();
-  return new URLSearchParams(window.location.search);
-}
-
 export default function ResetPasswordPage() {
   const router = useRouter();
-  const searchParams = getSearchParams();
-  const token = searchParams.get("token");
+  const token = null;
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

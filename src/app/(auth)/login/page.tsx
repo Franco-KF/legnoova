@@ -9,11 +9,6 @@ import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { AuthDivider } from "@/components/auth/auth-divider";
 import { PasswordInput } from "@/components/auth/password-input";
 
-function getSearchParams() {
-  if (typeof window === "undefined") return new URLSearchParams();
-  return new URLSearchParams(window.location.search);
-}
-
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   CredentialsSignin: "Invalid email or password. Please try again.",
   OAuthSignin: "Could not start Google sign-in. Please try again.",
@@ -36,9 +31,8 @@ function authErrorMessage(code: string | null) {
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = getSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/app";
-  const errorParam = searchParams.get("error");
+  const callbackUrl = "/app";
+  const errorParam = null;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
