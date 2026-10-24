@@ -13,7 +13,7 @@ export function buildCsp(isDev: boolean): string {
     "style-src 'self' 'unsafe-inline'", // Tailwind inline styles injected at runtime
     "img-src 'self' data: https:",
     "font-src 'self'",
-    "connect-src 'self' https://generativelanguage.googleapis.com https://*.googleapis.com",
+    "connect-src 'self' https://generativelanguage.googleapis.com https://*.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com",
     "frame-ancestors 'none'", // clickjacking
     "base-uri 'self'",
     "form-action 'self'",
