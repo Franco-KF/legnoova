@@ -1,23 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 import { Lock, CheckCircle2 } from "lucide-react";
 import { PasswordInput } from "@/components/auth/password-input";
 
-export default function ResetPasswordPage() {
-  return (
-    <Suspense fallback={<div className="min-h-[500px] flex flex-col items-center justify-center text-muted-foreground">Loading reset link…</div>}>
-      <ResetPasswordForm />
-    </Suspense>
-  );
+function getSearchParams() {
+  if (typeof window === "undefined") return new URLSearchParams();
+  return new URLSearchParams(window.location.search);
 }
 
-function ResetPasswordForm() {
+export default function ResetPasswordPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = getSearchParams();
   const token = searchParams.get("token");
 
   const [password, setPassword] = useState("");

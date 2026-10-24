@@ -1,24 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { AuthDivider } from "@/components/auth/auth-divider";
 import { PasswordInput } from "@/components/auth/password-input";
 
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div className="min-h-[500px] flex flex-col items-center justify-center text-muted-foreground">Loading account…</div>}>
-      <LoginForm />
-    </Suspense>
-  );
+function getSearchParams() {
+  if (typeof window === "undefined") return new URLSearchParams();
+  return new URLSearchParams(window.location.search);
 }
 
-// Human-readable messages for the Auth.js error codes that redirect
-// back to /login?error=...
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   CredentialsSignin: "Invalid email or password. Please try again.",
   OAuthSignin: "Could not start Google sign-in. Please try again.",
@@ -39,9 +34,9 @@ function authErrorMessage(code: string | null) {
   return (code && AUTH_ERROR_MESSAGES[code]) || AUTH_ERROR_MESSAGES.Default;
 }
 
-function LoginForm() {
+export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = getSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/app";
   const errorParam = searchParams.get("error");
 

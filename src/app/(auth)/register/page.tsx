@@ -1,25 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 import { AuthDivider } from "@/components/auth/auth-divider";
 import { PasswordInput } from "@/components/auth/password-input";
 
-export default function RegisterPage() {
-  return (
-    <Suspense fallback={<div className="min-h-[500px] flex flex-col items-center justify-center text-muted-foreground">Creating account…</div>}>
-      <RegisterForm />
-    </Suspense>
-  );
+function getSearchParams() {
+  if (typeof window === "undefined") return new URLSearchParams();
+  return new URLSearchParams(window.location.search);
 }
 
-function RegisterForm() {
+export default function RegisterPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = getSearchParams();
   const planParam = searchParams.get("plan");
   const plan = planParam === "analyze" || planParam === "broker" ? planParam : null;
   const postAuthUrl = plan
