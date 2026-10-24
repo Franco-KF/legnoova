@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Suspense, useState } from "react";
+import { useState, Suspense } from "react";
 import { toast } from "sonner";
 import { Lock, CheckCircle2 } from "lucide-react";
 import { PasswordInput } from "@/components/auth/password-input";
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div className="min-h-[500px] flex flex-col items-center justify-center text-muted-foreground">Loading reset link…</div>}>
       <ResetPasswordForm />
     </Suspense>
   );

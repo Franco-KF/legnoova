@@ -77,7 +77,7 @@ export default function AdminLoginPage() {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="flex h-11 w-full rounded-xl border border-white/[0.14] bg-white/[0.08] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10"
+                className="flex h-11 w-full rounded-xl border border-white/[0.28] bg-white/[0.18] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20"
                 placeholder="admin@example.com"
                 required
               />
@@ -96,7 +96,7 @@ export default function AdminLoginPage() {
                 autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="flex h-11 w-full rounded-xl border border-white/[0.14] bg-white/[0.08] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10"
+                className="flex h-11 w-full rounded-xl border border-white/[0.28] bg-white/[0.18] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20"
                 placeholder="Enter your password"
                 required
               />

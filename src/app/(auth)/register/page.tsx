@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { toast } from "sonner";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
@@ -11,7 +11,7 @@ import { PasswordInput } from "@/components/auth/password-input";
 
 export default function RegisterPage() {
   return (
-    <Suspense>
+    <Suspense fallback={<div className="min-h-[500px] flex flex-col items-center justify-center text-muted-foreground">Creating account…</div>}>
       <RegisterForm />
     </Suspense>
   );
@@ -138,8 +138,8 @@ function RegisterForm() {
             placeholder="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={`flex h-11 w-full rounded-xl border border-white/[0.14] bg-white/[0.08] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10 ${
-              errors.name ? "border-red-500/50" : "border-white/[0.1]"
+            className={`flex h-11 w-full rounded-xl border border-white/[0.28] bg-white/[0.18] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20 ${
+              errors.name ? "border-red-500/60" : "border-white/[0.20]"
             }`}
           />
           {errors.name && (
@@ -161,8 +161,8 @@ function RegisterForm() {
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className={`flex h-11 w-full rounded-xl border border-white/[0.14] bg-white/[0.08] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10 ${
-              errors.email ? "border-red-500/50" : "border-white/[0.1]"
+            className={`flex h-11 w-full rounded-xl border border-white/[0.28] bg-white/[0.18] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20 ${
+              errors.email ? "border-red-500/60" : "border-white/[0.20]"
             }`}
           />
           {errors.email && (

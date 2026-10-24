@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
             setSent(false);
             setEmail("");
           }}
-          className="flex h-11 w-full items-center justify-center rounded-xl border border-white/[0.16] bg-white/[0.08] px-4 text-sm font-medium transition-all hover:bg-white/[0.12]"
+          className="flex h-11 w-full items-center justify-center rounded-xl border border-white/[0.28] bg-white/[0.12] px-4 text-sm font-medium transition-all hover:bg-white/[0.20]"
         >
           Send another link
         </button>
@@ -118,8 +118,8 @@ export default function ForgotPasswordPage() {
               setEmail(e.target.value);
               setError("");
             }}
-            className={`flex h-11 w-full rounded-xl border border-white/[0.14] bg-white/[0.08] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10 ${
-              error ? "border-red-500/50" : "border-white/[0.1]"
+            className={`flex h-11 w-full rounded-xl border border-white/[0.28] bg-white/[0.18] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/60 focus:ring-2 focus:ring-emerald-500/20 ${
+              error ? "border-red-500/60" : "border-white/[0.20]"
             }`}
           />
         </div>

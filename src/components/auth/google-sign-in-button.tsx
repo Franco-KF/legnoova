@@ -24,7 +24,7 @@ export function GoogleSignInButton({ callbackUrl = "/app" }: { callbackUrl?: str
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/[0.16] bg-white/[0.08] px-4 py-3 text-sm font-medium transition-all hover:bg-white/[0.12] hover:border-white/[0.22] active:scale-[0.99] disabled:opacity-50"
+      className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/[0.28] bg-white/[0.12] px-4 py-3 text-sm font-medium transition-all hover:bg-white/[0.20] hover:border-white/[0.35] active:scale-[0.99] disabled:opacity-50"
     >
       {loading ? (
         <svg className="h-5 w-5 animate-spin text-muted-foreground" viewBox="0 0 24 24" fill="none">
