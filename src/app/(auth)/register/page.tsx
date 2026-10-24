@@ -138,7 +138,7 @@ function RegisterForm() {
             placeholder="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={`flex h-11 w-full rounded-xl border bg-white/[0.04] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10 ${
+            className={`flex h-11 w-full rounded-xl border border-white/[0.14] bg-white/[0.08] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10 ${
               errors.name ? "border-red-500/50" : "border-white/[0.1]"
             }`}
           />
@@ -161,7 +161,7 @@ function RegisterForm() {
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className={`flex h-11 w-full rounded-xl border bg-white/[0.04] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10 ${
+            className={`flex h-11 w-full rounded-xl border border-white/[0.14] bg-white/[0.08] px-4 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none transition-all focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/10 ${
               errors.email ? "border-red-500/50" : "border-white/[0.1]"
             }`}
           />

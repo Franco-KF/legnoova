@@ -31,7 +31,7 @@ export default function AuthLayout({
         </div>
 
         {/* Main card */}
-        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-8 shadow-xl backdrop-blur-xl">
+        <div className="rounded-2xl border border-white/[0.14] bg-white/[0.10] p-8 shadow-[0_0_40px_rgba(16,185,129,0.15)] backdrop-blur-xl">
           {children}
         </div>
 
