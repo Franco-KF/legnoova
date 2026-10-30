@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import { signIn } from "@/lib/auth/client";
 import { toast } from "sonner";
 
 export function GoogleSignInButton({ callbackUrl = "/app" }: { callbackUrl?: string }) {

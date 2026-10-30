@@ -6,6 +6,14 @@ import {
   createAdminToken,
   verifyAdminCredentials,
 } from "@/lib/admin/auth";
+import { rejectCrossOrigin, requestMeta } from "@/lib/auth/request";
+import {
+  rateLimitAsync,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
+import { recordSecurityEvent } from "@/models/AuditLog";
+
+export const runtime = "nodejs";
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -13,6 +21,18 @@ const loginSchema = z.object({
 });
 
 export async function POST(req: Request) {
+  const crossOrigin = rejectCrossOrigin(req);
+  if (crossOrigin) return crossOrigin;
+
+  const limited = rateLimitResponse(
+    await rateLimitAsync(req, {
+      key: "auth:admin-login",
+      limit: 5,
+      windowMs: 15 * 60 * 1000,
+    })
+  );
+  if (limited) return limited;
+
   const body = await req.json().catch(() => null);
   const parsed = loginSchema.safeParse(body);
   if (!parsed.success) {
@@ -24,6 +44,18 @@ export async function POST(req: Request) {
     parsed.data.password
   );
   if (!valid) {
+    const { ip, userAgent } = requestMeta(req);
+    try {
+      await recordSecurityEvent({
+        type: "login_failure",
+        ip,
+        userAgent,
+        details: { scope: "admin", email: parsed.data.email.toLowerCase() },
+        severity: "high",
+      });
+    } catch {
+      /* non-critical */
+    }
     return NextResponse.json(
       { error: "Invalid email or password" },
       { status: 401 }

@@ -9,7 +9,11 @@
 export function buildCsp(isDev: boolean): string {
   const directives: string[] = [
     "default-src 'self'",
-    "script-src 'self'",
+    // Next.js streams hydration/RSC bootstrap through inline <script> tags.
+    // Blocking inline scripts prevents React from hydrating, which makes the
+    // whole page static (buttons/forms do nothing). 'unsafe-inline' is required
+    // unless a nonce-based CSP is wired through middleware.
+    "script-src 'self' 'unsafe-inline'" + (isDev ? " 'unsafe-eval'" : ""),
     "style-src 'self' 'unsafe-inline'", // Tailwind inline styles injected at runtime
     "img-src 'self' data: https:",
     "font-src 'self'",

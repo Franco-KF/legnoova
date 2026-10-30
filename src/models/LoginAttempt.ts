@@ -16,7 +16,6 @@ const loginAttemptSchema = new Schema(
 );
 
 loginAttemptSchema.index({ identifier: 1, createdAt: -1 });
-loginAttemptSchema.index({ lockedUntil: 1 });
 
 export type ILoginAttempt = InferSchemaType<typeof loginAttemptSchema> & {
   _id: mongoose.Types.ObjectId;

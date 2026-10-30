@@ -3,7 +3,14 @@ import { z } from "zod";
 import { dbConnect } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { hashPassword } from "@/lib/auth/password";
-import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import {
+  rateLimitAsync,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
+import { rejectCrossOrigin, requestMeta } from "@/lib/auth/request";
+import { recordSecurityEvent } from "@/models/AuditLog";
+
+export const runtime = "nodejs";
 
 const registerSchema = z.object({
   name: z
@@ -11,7 +18,7 @@ const registerSchema = z.object({
     .trim()
     .min(2, "Name must be at least 2 characters")
     .max(50, "Name must be at most 50 characters"),
-  email: z.string().email("Please enter a valid email address"),
+  email: z.string().trim().toLowerCase().email("Please enter a valid email address"),
   password: z
     .string()
     .min(8, "Password must be at least 8 characters")
@@ -21,17 +28,27 @@ const registerSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  try {
-    const limited = rateLimitResponse(
-      rateLimit(req, { key: "register", limit: 5, windowMs: 15 * 60 * 1000 })
-    );
-    if (limited) return limited;
+  const crossOrigin = rejectCrossOrigin(req);
+  if (crossOrigin) return crossOrigin;
 
+  const limited = rateLimitResponse(
+    await rateLimitAsync(req, {
+      key: "auth:register",
+      limit: 5,
+      windowMs: 15 * 60 * 1000,
+    })
+  );
+  if (limited) return limited;
+
+  try {
     const body = await req.json().catch(() => null);
     const parsed = registerSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten().fieldErrors },
+        {
+          error: "Validation failed",
+          details: parsed.error.flatten().fieldErrors,
+        },
         { status: 400 }
       );
     }
@@ -42,27 +59,34 @@ export async function POST(req: Request) {
 
     const existing = await User.findOne({ email });
     if (existing) {
-      // If user exists via OAuth but has no password, allow them to add a password
-      if (existing.passwordHash) {
-        return NextResponse.json(
-          { error: "An account with this email already exists" },
-          { status: 409 }
-        );
-      }
+      return NextResponse.json(
+        { error: "An account with this email already exists" },
+        { status: 409 }
+      );
     }
 
     const passwordHash = await hashPassword(password);
+    const user = await User.create({ name, email, passwordHash });
 
-    let user;
-    if (existing && !existing.passwordHash) {
-      existing.passwordHash = passwordHash;
-      user = await existing.save();
-    } else {
-      user = await User.create({
-        name,
-        email,
-        passwordHash,
+    if (!user) {
+      return NextResponse.json(
+        { error: "Something went wrong" },
+        { status: 500 }
+      );
+    }
+
+    const { ip, userAgent } = requestMeta(req);
+    try {
+      await recordSecurityEvent({
+        type: "token_created",
+        userId: user._id.toString(),
+        ip,
+        userAgent,
+        details: { action: "register", provider: "credentials" },
+        severity: "low",
       });
+    } catch {
+      /* non-critical */
     }
 
     return NextResponse.json(
@@ -77,6 +101,10 @@ export async function POST(req: Request) {
     );
   } catch (error) {
     console.error("Register error:", error);
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Something went wrong" },
+      { status: 500 }
+    );
   }
 }
+

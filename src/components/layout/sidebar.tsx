@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "@/lib/auth/client";
 import { toast } from "sonner";
 import {
   LayoutDashboard,

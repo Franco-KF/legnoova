@@ -50,10 +50,10 @@ export async function recordLoginFailure(
         updatedAt: now,
       },
     },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: "after" }
   );
 
-  const failures = (record?.failures ?? 0) + 1;
+  const failures = record?.failures ?? 1;
   if (failures >= SECURITY.LOGIN_MAX_FAILURES) {
     const lockedUntil = new Date(
       now.getTime() + SECURITY.LOGIN_LOCKOUT_MINUTES * 60 * 1000
@@ -92,7 +92,7 @@ export async function recordLoginSuccess(
     {
       $set: { failures: 0, lockedUntil: null, lastSuccessAt: now, ip, userAgent, updatedAt: now },
     },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: "after" }
   );
   await recordSecurityEvent({
     type: "login_success",

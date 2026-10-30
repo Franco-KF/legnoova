@@ -1,39 +1,25 @@
 import crypto from "node:crypto";
 import { cookies } from "next/headers";
+import { AUTH } from "@/lib/auth/config";
+import { signJwt, verifyJwt } from "@/lib/auth/jwt";
 import { verifyPassword } from "@/lib/auth/password";
+import type { AdminClaims } from "@/lib/auth/types";
 
 /**
  * Standalone admin session.
  *
- * Kept independent from the end-user NextAuth session: a signed, HMAC-protected
- * cookie identifies the admin. Credentials come from the environment so no
- * admin account has to exist in the user database.
+ * Kept independent from the end-user session: a signed JWT identifies the
+ * admin. Credentials come from the environment so no admin account has to exist
+ * in the user database.
  */
 
-export const ADMIN_COOKIE = "legnoova_admin";
-export const ADMIN_MAX_AGE = 60 * 60 * 8; // 8 hours
-
-type AdminPayload = {
-  sub: string;
-  iat: number;
-  exp: number;
-};
-
-function getSecret(): string {
-  const secret = process.env.AUTH_SECRET;
-  if (!secret) throw new Error("AUTH_SECRET is not set");
-  return secret;
-}
-
-function sign(value: string): string {
-  return crypto.createHmac("sha256", getSecret()).update(value).digest("base64url");
-}
+export const ADMIN_COOKIE = AUTH.adminCookieName;
+export const ADMIN_MAX_AGE = AUTH.adminTtlSeconds;
 
 function safeEqual(a: string, b: string): boolean {
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  if (bufA.length !== bufB.length) return false;
-  return crypto.timingSafeEqual(bufA, bufB);
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && crypto.timingSafeEqual(left, right);
 }
 
 export function adminEmail(): string {
@@ -45,7 +31,7 @@ export async function verifyAdminCredentials(
   password: string
 ): Promise<boolean> {
   const expectedEmail = adminEmail();
-  if (!expectedEmail || email.trim().toLowerCase() !== expectedEmail) {
+  if (!expectedEmail || !safeEqual(email.trim().toLowerCase(), expectedEmail)) {
     return false;
   }
 
@@ -59,29 +45,27 @@ export async function verifyAdminCredentials(
 }
 
 export function createAdminToken(): string {
-  const payload: AdminPayload = {
-    sub: adminEmail(),
-    iat: Date.now(),
-    exp: Date.now() + ADMIN_MAX_AGE * 1000,
-  };
-  const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
-  return `${body}.${sign(body)}`;
+  return signJwt(
+    {
+      sub: adminEmail(),
+      typ: "admin",
+      iss: AUTH.issuer,
+      aud: AUTH.adminAudience,
+    },
+    ADMIN_MAX_AGE
+  );
 }
 
 export function verifyAdminToken(token: string | undefined): boolean {
-  if (!token) return false;
-  const [body, signature] = token.split(".");
-  if (!body || !signature) return false;
-  if (!safeEqual(signature, sign(body))) return false;
-
-  try {
-    const payload = JSON.parse(
-      Buffer.from(body, "base64url").toString("utf8")
-    ) as AdminPayload;
-    return payload.exp > Date.now() && payload.sub === adminEmail();
-  } catch {
-    return false;
-  }
+  const claims = verifyJwt<AdminClaims>(token, {
+    audience: AUTH.adminAudience,
+    issuer: AUTH.issuer,
+  });
+  return (
+    !!claims &&
+    claims.typ === "admin" &&
+    claims.sub === adminEmail()
+  );
 }
 
 export async function isAdmin(): Promise<boolean> {

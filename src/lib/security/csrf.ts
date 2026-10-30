@@ -1,4 +1,4 @@
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { SECURITY } from "@/lib/security/config";
 
@@ -15,16 +15,21 @@ import { SECURITY } from "@/lib/security/config";
  * read the HttpOnly cookie, and therefore cannot forge the matching header.
  */
 
-const CSRF_SECRET = process.env.CSRF_SECRET;
-if (!CSRF_SECRET || CSRF_SECRET.length < 32) {
-  throw new Error(
-    "CSRF_SECRET must be set to at least 32 random characters (openssl rand -hex 32)"
-  );
+function csrfSecret(): string {
+  // Fall back to AUTH_SECRET so existing deployments without CSRF_SECRET keep
+  // working. The secret is only read when a token is actually generated.
+  const secret = process.env.CSRF_SECRET || process.env.AUTH_SECRET;
+  if (!secret || secret.length < 32) {
+    throw new Error(
+      "CSRF_SECRET (or AUTH_SECRET) must be set to at least 32 random characters (openssl rand -hex 32)"
+    );
+  }
+  return secret;
 }
 
 function generateToken(): string {
   return createHash("sha256")
-    .update(CSRF_SECRET + crypto.randomUUID() + Date.now().toString())
+    .update(csrfSecret() + randomUUID() + Date.now().toString())
     .digest("hex");
 }
 
@@ -63,7 +68,12 @@ export function validateCsrf(
   if (!headerToken || headerToken.length < 8) {
     return { ok: false, reason: "missing_csrf_header" };
   }
-  if (!timingSafeEqual(Buffer.from(headerToken), Buffer.from(cookieToken))) {
+  const headerBuf = Buffer.from(headerToken);
+  const cookieBuf = Buffer.from(cookieToken);
+  if (
+    headerBuf.length !== cookieBuf.length ||
+    !timingSafeEqual(headerBuf, cookieBuf)
+  ) {
     return { ok: false, reason: "csrf_token_mismatch" };
   }
   return { ok: true, token: cookieToken };

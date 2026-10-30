@@ -18,7 +18,6 @@ const PasswordResetTokenSchema = new Schema<IPasswordResetToken>(
   { timestamps: true }
 );
 
-PasswordResetTokenSchema.index({ token: 1 }, { unique: true });
 PasswordResetTokenSchema.index({ expires: 1 }, { expireAfterSeconds: 0 });
 
 export const PasswordResetToken: Model<IPasswordResetToken> =
