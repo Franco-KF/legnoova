@@ -179,7 +179,9 @@ export async function POST(req: Request) {
       automationMode: signalAutomationMode,
       signalStatus: "active",
       tookIt: "unset",
-      published: isSignal && data.confidence >= 60,
+      // Publish directional setups from 45% evidence upward for trader review.
+      // This is not a win-rate promise; automation remains stricter.
+      published: isSignal && data.confidence >= 45,
     });
 
     // Fire-and-forget email alert when this signal matches a watchlist pair.
@@ -194,7 +196,7 @@ export async function POST(req: Request) {
         ...data,
         signalStatus: "active",
         tookIt: "unset",
-        published: isSignal && data.confidence >= 60,
+        published: isSignal && data.confidence >= 45,
         automationEligible,
         automationMode: signalAutomationMode,
         automationModeMatches,

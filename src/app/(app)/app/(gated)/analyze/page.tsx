@@ -223,9 +223,9 @@ export default function AnalyzePage() {
   return (
     <div className="mx-auto max-w-6xl">
       <PageHeader
-        eyebrow="Analyse Panel"
-        title="Chart Analysis"
-        description="Pick a chart, choose your strategy lens and timeframe — Legnoova AI returns a structured signal with entry, stop-loss and take-profit targets."
+        eyebrow="Your trading desk"
+        title="Analyse a chart"
+        description="Upload one clear chart. Choose a timeframe and strategy, then get a structured setup you can review before deciding."
       />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
@@ -233,16 +233,12 @@ export default function AnalyzePage() {
         <div className="space-y-5">
           {/* Step 1 — Choose chart */}
           <div className="glass-panel p-5">
-            <div className="mb-4 flex items-center gap-2.5">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/15 text-[11px] font-bold text-emerald-400 ring-1 ring-emerald-500/30">
-                1
-              </span>
-              <h2 className="font-heading text-sm font-semibold">
-                Choose chart
-              </h2>
-              <span className="ml-auto text-[11px] text-muted-foreground">
-                PNG · JPEG · WEBP · GIF
-              </span>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/15 text-xs font-bold text-emerald-300 ring-1 ring-emerald-500/30">1</span>
+                <div><h2 className="font-heading text-sm font-semibold">Upload your chart</h2><p className="text-xs text-muted-foreground">Use a clear screenshot with the pair and timeframe visible</p></div>
+              </div>
+              <span className="hidden text-[11px] text-muted-foreground sm:block">PNG · JPEG · WEBP</span>
             </div>
             <div
             role="button"
@@ -318,16 +314,9 @@ export default function AnalyzePage() {
 
           {/* Step 2 — Choose strategy */}
           <div className="glass-panel p-5">
-            <div className="mb-4 flex items-center gap-2.5">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/15 text-[11px] font-bold text-emerald-400 ring-1 ring-emerald-500/30">
-                2
-              </span>
-              <h2 className="font-heading text-sm font-semibold">
-                Choose strategy
-              </h2>
-              <span className="ml-auto text-[11px] text-muted-foreground">
-                {strategy.label}
-              </span>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5"><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/15 text-xs font-bold text-emerald-300 ring-1 ring-emerald-500/30">2</span><div><h2 className="font-heading text-sm font-semibold">Choose your trading view</h2><p className="text-xs text-muted-foreground">Start with All Strategies for the clearest overview</p></div></div>
+              <span className="hidden text-[11px] text-emerald-300 sm:block">{strategy.label}</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -366,14 +355,7 @@ export default function AnalyzePage() {
 
           {/* Step 3 — Set timeframe */}
           <div className="glass-panel p-5">
-            <div className="mb-4 flex items-center gap-2.5">
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/15 text-[11px] font-bold text-emerald-400 ring-1 ring-emerald-500/30">
-                3
-              </span>
-              <h2 className="font-heading text-sm font-semibold">
-                Set timeframe
-              </h2>
-            </div>
+            <div className="mb-4 flex items-center gap-2.5"><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/15 text-xs font-bold text-emerald-300 ring-1 ring-emerald-500/30">3</span><div><h2 className="font-heading text-sm font-semibold">Set your timeframe</h2><p className="text-xs text-muted-foreground">Match this to the timeframe shown on your chart</p></div></div>
             <div>
               <div className="flex flex-wrap gap-2">
                 {TIMEFRAMES.map((tf) => (
@@ -507,11 +489,9 @@ function NeutralResult({ analysis }: { analysis: Analysis }) {
   return (
     <div className="glass-panel animate-fade-in-up p-6 text-center">
       <ShieldAlert className="mx-auto mb-3 h-8 w-8 text-amber-400" />
-      <h3 className="font-heading text-lg font-semibold">No Trade — sit out</h3>
+      <h3 className="font-heading text-lg font-semibold">No clear trade setup</h3>
       <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-        Through the {analysis.strategy} lens, Legnoova AI couldn&apos;t find a
-        high-probability setup in this chart. No signal is published — this is a
-        risk-first result. Better to sit out than force a trade.
+        Through the {analysis.strategy} lens, the chart does not show enough evidence for a directional setup. Try a clearer chart or wait for price to improve.
       </p>
       {analysis.summary && (
         <p className="mx-auto mt-4 max-w-md rounded-xl border border-white/[0.06] bg-white/[0.02] p-4 text-sm text-muted-foreground">

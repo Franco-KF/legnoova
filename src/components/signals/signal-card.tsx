@@ -132,6 +132,7 @@ export function SignalCard({ signal, onUpdate, market }: SignalCardProps) {
   const side: "buy" | "sell" = signal.direction;
   const stopPips = pipsBetween(signal.entryPrice, signal.stopLoss, signal.symbol);
   const signalNo = `#${signal.id.slice(-4).toUpperCase()}`;
+  const confidenceTone = signal.confidence >= 70 ? "strong" : signal.confidence >= 55 ? "developing" : "early";
 
   const apply = async (patch: {
     tookIt?: TookIt;
@@ -173,7 +174,7 @@ export function SignalCard({ signal, onUpdate, market }: SignalCardProps) {
   return (
     <div className="glass-panel overflow-hidden animate-fade-in-up">
       {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] p-5">
+      <div className="flex flex-col gap-4 border-b border-white/[0.06] p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div className="flex items-center gap-3">
           <div
             className={cn(
@@ -235,6 +236,9 @@ export function SignalCard({ signal, onUpdate, market }: SignalCardProps) {
             )}
             {side === "buy" ? "BUY" : "SELL"} · {signal.confidence}%
           </span>
+          <span className="hidden rounded-full border border-white/[0.1] bg-white/[0.03] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground sm:inline-flex">
+            {confidenceTone} evidence
+          </span>
           <StatusBadge status={signal.signalStatus} />
           <button
             type="button"
@@ -250,6 +254,11 @@ export function SignalCard({ signal, onUpdate, market }: SignalCardProps) {
             )}
           </button>
         </div>
+      </div>
+
+      {/* Decision note */}
+      <div className="border-b border-white/[0.06] bg-white/[0.015] px-5 py-3 text-xs text-muted-foreground">
+        <span className="font-semibold text-foreground">Your call:</span> this is an evidence score, not a guaranteed win rate. Check the levels, spread and your risk before entering.
       </div>
 
       {/* Summary */}
