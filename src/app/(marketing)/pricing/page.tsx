@@ -1,30 +1,30 @@
 import type { Metadata } from "next";
 import { PLANS } from "@/config/plans";
-import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
+import { MONEY_BACK_DAYS } from "@/config/billing";
 import { PricingCard } from "@/components/marketing/pricing-card";
 import { SubpageHero } from "@/components/marketing/subpage-hero";
 import { FAQ } from "@/components/marketing/faq";
 import { CTASection } from "@/components/marketing/cta-section";
 import { JsonLd } from "@/components/seo/json-ld";
-import { BadgeCheck, CalendarDays, ShieldCheck } from "lucide-react";
+import { BadgeCheck, ShieldCheck } from "lucide-react";
 import { siteUrl } from "@/config/site";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: `Get clear chart reviews, signals and trading tools in one place. Try Legnoova free for ${TRIAL_DAYS} days. Cancel anytime.`,
+  description: "Get clear chart reviews, signals and trading tools in one place with secure monthly billing. Cancel anytime.",
   alternates: {
     canonical: `${siteUrl}/pricing`,
   },
   openGraph: {
     type: "website",
     title: "Pricing — Legnoova AI",
-    description: `Start with a ${TRIAL_DAYS}-day free trial. Your next trade deserves a second opinion.`,
+    description: "Secure monthly billing. Your next trade deserves a second opinion.",
     url: `${siteUrl}/pricing`,
   },
   twitter: {
     card: "summary_large_image",
     title: "Pricing — Legnoova AI",
-    description: `Start with a ${TRIAL_DAYS}-day free trial. Your next trade deserves a second opinion.`,
+    description: "Secure monthly billing. Your next trade deserves a second opinion.",
   },
 };
 
@@ -62,7 +62,7 @@ export default function PricingPage() {
       <SubpageHero
         eyebrow="Pricing"
         title={<>Forex Tools for $29.<br className="hidden sm:block" /> Broker Automation for $59.</>}
-        subtitle={`Try a plan free for ${TRIAL_DAYS} days. Add a payment method to start. Cancel before the trial ends to avoid a charge. Cancel anytime after that, too.`}
+        subtitle="Choose a plan and subscribe securely through Paddle. Cancel anytime, and your 14-day money-back guarantee applies."
       />
       <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -80,7 +80,7 @@ export default function PricingPage() {
 
           <div className="mx-auto mt-10 grid max-w-3xl gap-3 sm:grid-cols-3">
             {[
-              { icon: CalendarDays, label: `${TRIAL_DAYS} days free, then monthly billing` },
+              { icon: ShieldCheck, label: "Secure monthly billing" },
               { icon: BadgeCheck, label: `${MONEY_BACK_DAYS}-day money-back guarantee` },
               { icon: ShieldCheck, label: "Pay monthly · cancel anytime" },
             ].map(({ icon: Icon, label }) => (

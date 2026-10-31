@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 const TRUST = [
-  { icon: CalendarDays, label: `${TRIAL_DAYS}-day free trial` },
+  { icon: CalendarDays, label: `${TRIAL_DAYS}-day subscription` },
   { icon: ShieldCheck, label: "Encrypted card storage" },
   { icon: BadgeCheck, label: `${MONEY_BACK_DAYS}-day money-back guarantee` },
   { icon: Lock, label: "Cancel anytime, no fees" },
@@ -59,7 +59,7 @@ export default async function UpgradePage({
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
           <p>
             <strong className="font-semibold">Choose a plan to continue.</strong>{" "}
-            Start with a {TRIAL_DAYS}-day free trial — your workspace unlocks
+            Start with a {TRIAL_DAYS}-day subscription — your workspace unlocks
             the moment it begins, and you won&apos;t be charged until the trial
             ends.
           </p>
@@ -72,7 +72,7 @@ export default async function UpgradePage({
         description={
           hasPlan
             ? "You have full access. Manage your subscription or switch plans below."
-            : `Every plan starts with a ${TRIAL_DAYS}-day free trial. Upgrade, cancel, or switch anytime.`
+            : `Every plan starts with a ${TRIAL_DAYS}-day subscription. Upgrade, cancel, or switch anytime.`
         }
         actions={
           hasPlan ? (

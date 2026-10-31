@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { CalendarDays, Check, ShieldCheck, Sparkles, Lock } from "lucide-react";
+import { Check, ShieldCheck, Sparkles, Lock } from "lucide-react";
 import type { Plan } from "@/config/plans";
-import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
+import { MONEY_BACK_DAYS } from "@/config/billing";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -77,8 +77,8 @@ export function PricingCard({
       </div>
 
       <p className="mt-3 inline-flex items-center gap-1.5 self-start rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-        <CalendarDays className="h-3.5 w-3.5" />
-        {TRIAL_DAYS}-day free trial
+        <ShieldCheck className="h-3.5 w-3.5" />
+        Cancel anytime
       </p>
 
       <div className="mt-8 flex-1">

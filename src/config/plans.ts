@@ -11,7 +11,7 @@ export interface Plan {
   highlight: boolean;
   features: string[];
   cta: string;
-  /** Length of the free trial in days before the first charge. */
+  /** Length of the subscription in days before the first charge. */
   trialDays: number;
   /** Optional marketing note shown on the public pricing cards. */
   note?: string;
@@ -45,7 +45,7 @@ export const PLANS: Plan[] = [
       "Past chart reviews and watchlists",
       "Faster chart reviews",
     ],
-    cta: `Start ${TRIAL_DAYS}-day free trial`,
+    cta: `Start ${TRIAL_DAYS}-day subscription`,
     priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_ANALYZE,
   },
   {
@@ -62,7 +62,7 @@ export const PLANS: Plan[] = [
       "Connect your MT5 demo terminal and automate qualifying setups",
       "Choose risk rules, pause new orders and view trade activity",
     ],
-    cta: `Start ${TRIAL_DAYS}-day free trial`,
+    cta: `Start ${TRIAL_DAYS}-day subscription`,
     priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_BROKER,
   },
 ];

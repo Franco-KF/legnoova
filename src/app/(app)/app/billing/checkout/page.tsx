@@ -3,9 +3,9 @@
 import { Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, CalendarDays, Check, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Check, ShieldCheck } from "lucide-react";
 import { PLANS } from "@/config/plans";
-import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
+import { MONEY_BACK_DAYS } from "@/config/billing";
 import { PaddleInlineCheckout } from "@/components/billing/paddle-inline-checkout";
 
 export default function CheckoutPage() {
@@ -35,7 +35,7 @@ function CheckoutContent() {
 
       <header className="max-w-3xl">
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-400">Secure checkout</p>
-        <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight sm:text-4xl">Start your {TRIAL_DAYS}-day free trial</h1>
+        <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight sm:text-4xl">Subscribe to {plan.name}</h1>
         <p className="mt-3 text-muted-foreground">Complete your subscription securely through Paddle. Legnoova does not collect or store your payment card details.</p>
       </header>
 
@@ -54,13 +54,9 @@ function CheckoutContent() {
 
           <div className="space-y-5 p-6 sm:p-8">
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4">
-                <p className="flex items-center gap-2 text-sm font-semibold text-emerald-200"><CalendarDays className="h-4 w-4"/>{TRIAL_DAYS} days free</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">$0 during the trial. Paddle shows the first charge date before you confirm.</p>
-              </div>
-              <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4">
-                <p className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck className="h-4 w-4 text-emerald-400"/>You stay in control</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">Cancel before the trial ends to avoid the first charge. Your plan renews monthly if you keep it.</p>
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.06] p-4 sm:col-span-2">
+                <p className="flex items-center gap-2 text-sm font-semibold text-emerald-200"><ShieldCheck className="h-4 w-4"/>Secure monthly subscription</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">Your monthly price and first payment date are shown by Paddle before confirmation. Cancel anytime to stop future renewals.</p>
               </div>
             </div>
 

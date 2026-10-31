@@ -1,7 +1,7 @@
 import { PLANS } from "@/config/plans";
-import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
+import { MONEY_BACK_DAYS } from "@/config/billing";
 import { PricingCard } from "./pricing-card";
-import { BadgeCheck, CalendarDays, ShieldCheck } from "lucide-react";
+import { BadgeCheck, ShieldCheck } from "lucide-react";
 
 export function Pricing() {
   return (
@@ -16,14 +16,14 @@ export function Pricing() {
           </h2>
           <p className="mt-4 text-muted-foreground">
             Get clear chart reviews, signals and a trading journal for $29 a month.
-            Add simple demo-first MT5 tools for $59 when you are ready. Start with
-            a trial, choose your plan and stay in control. Trading always carries risk.
+            Add simple demo-first MT5 tools for $59 when you are ready. Choose your
+            plan and stay in control. Trading always carries risk.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 text-sm font-semibold text-emerald-400">
-              <CalendarDays className="h-4 w-4" />
-              {TRIAL_DAYS}-day free trial on every plan
+              <ShieldCheck className="h-4 w-4" />
+              Secure monthly billing
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-white/[0.1] bg-white/[0.03] px-3.5 py-1.5 text-sm text-muted-foreground">
               <ShieldCheck className="h-4 w-4 text-emerald-400" />
@@ -46,7 +46,7 @@ export function Pricing() {
 
         <div className="mx-auto mt-10 grid max-w-3xl gap-3 sm:grid-cols-3">
           {[
-            { icon: CalendarDays, label: `Try free for ${TRIAL_DAYS} days` },
+            { icon: ShieldCheck, label: "Secure monthly billing" },
             { icon: BadgeCheck, label: `${MONEY_BACK_DAYS}-day money-back guarantee` },
             { icon: ShieldCheck, label: "Cancel anytime, no hidden fees" },
           ].map(({ icon: Icon, label }) => (

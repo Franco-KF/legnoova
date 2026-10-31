@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./logo";
-import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
+import { MONEY_BACK_DAYS } from "@/config/billing";
 import { siteConfig } from "@/config/site";
 
 const columns = [
@@ -40,7 +40,7 @@ export function Footer() {
               you decide what to do next. You stay in control of every trade.
             </p>
             <p className="mt-4 text-xs font-medium text-emerald-400/90">
-              {TRIAL_DAYS}-day free trial · {MONEY_BACK_DAYS}-day money-back
+              Secure monthly billing · {MONEY_BACK_DAYS}-day money-back
               guarantee · Cancel anytime
             </p>
             <a

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { SubpageHero } from "@/components/marketing/subpage-hero";
-import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
+import { MONEY_BACK_DAYS } from "@/config/billing";
 import { siteConfig, siteUrl } from "@/config/site";
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ const sections = [
   },
   {
     title: "4. Free Trial",
-    body: `New subscribers may start with a ${TRIAL_DAYS}-day free trial. A valid payment method is required to begin the trial, but you will not be charged during the trial period. We will remind you before the trial ends. If you cancel before the trial ends, you will not be charged and the subscription will not continue. If you do not cancel, your paid subscription begins automatically when the trial ends and you will be charged the then-current monthly price for your selected plan, and thereafter on a recurring basis.`,
+    body: "Subscriptions are billed monthly at the price shown for the selected plan. By subscribing, you authorize recurring charges until you cancel. Prices may include applicable taxes. If a payment fails, access may be suspended until the balance is settled."
   },
   {
     title: "5. Billing, Auto-Renewal and Payment",
@@ -39,7 +39,7 @@ const sections = [
   },
   {
     title: "7. Refunds and Money-Back Guarantee",
-    body: `If you are not satisfied, you may request a full refund of your first paid charge within ${MONEY_BACK_DAYS} days of the date that charge was made (the day your free trial ended). Refund requests can be made by contacting ${siteConfig.contactEmail} from the email address on your account. Approved refunds are returned to the original payment method. After the ${MONEY_BACK_DAYS}-day window, payments are non-refundable, but you may still cancel at any time to prevent future charges. Nothing in this section limits any non-waivable statutory rights you may have under applicable consumer law.`,
+    body: `If you are not satisfied, you may request a full refund of your first paid charge within ${MONEY_BACK_DAYS} days. Contact ${siteConfig.contactEmail} from your account email. Approved refunds are returned to the original payment method. You may still cancel at any time to prevent future charges.`,
   },
   {
     title: "8. Acceptable Use",
@@ -69,7 +69,7 @@ export default function TermsPage() {
       <SubpageHero
         eyebrow="Legal"
         title="Terms of Service"
-        subtitle="Plain-language terms covering your free trial, billing, cancellation and money-back guarantee."
+        subtitle="Plain-language terms covering billing, cancellation and the money-back guarantee."
       />
       <section className="py-16">
         <div className="mx-auto max-w-3xl space-y-8 px-4 sm:px-6 lg:px-8">

@@ -1,5 +1,5 @@
 import { Ban, Eye, Clock3, ScanLine } from "lucide-react";
-import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
+import { MONEY_BACK_DAYS } from "@/config/billing";
 
 const principles = [
   {
@@ -29,7 +29,7 @@ const principles = [
   {
     icon: Clock3,
     title: "Easy to try",
-    description: `Try it free for ${TRIAL_DAYS} days. Cancel anytime. The ${MONEY_BACK_DAYS}-day money-back guarantee also applies.`,
+    description: `Subscribe monthly with secure billing. Cancel anytime. The ${MONEY_BACK_DAYS}-day money-back guarantee also applies.`,
     accent: "text-amber-400",
     tint: "bg-amber-500/10",
   },

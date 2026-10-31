@@ -1,9 +1,9 @@
-import { MONEY_BACK_DAYS, TRIAL_DAYS } from "./billing";
+import { MONEY_BACK_DAYS } from "./billing";
 
 export const faqs = [
   {
-    question: "How does the free trial work?",
-    answer: `Start with a ${TRIAL_DAYS}-day free trial. You need to add a payment method, but we won't charge you during the trial. Cancel before it ends to avoid the monthly charge. If you keep your plan, it will renew at its listed price.`,
+    question: "How does the subscription work?",
+    answer: `Subscribe monthly. You need to add a payment method, but we won't charge you during the trial. Cancel before it ends to avoid the monthly charge. If you keep your plan, it will renew at its listed price.`,
   },
   {
     question: "Is Legnoova financial advice?",

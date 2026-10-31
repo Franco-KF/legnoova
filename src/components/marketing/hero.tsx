@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Sparkles, ShieldCheck, GitCompareArrows } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { TRIAL_DAYS } from "@/config/billing";
+
 import { HeroMockAnalysis } from "./hero-mock-analysis";
 
 export function Hero() {
@@ -25,7 +25,7 @@ export function Hero() {
             </span>
             <span className="hidden h-3.5 w-px bg-emerald-500/30 sm:block" />
             <span className="hidden text-sm font-semibold text-emerald-300 sm:block">
-              {TRIAL_DAYS}-day free trial
+              Cancel anytime
             </span>
           </div>
         </div>
@@ -93,7 +93,7 @@ export function Hero() {
           <div className="hidden h-4 w-px bg-white/[0.1] sm:block" />
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <ShieldCheck className="h-4 w-4 text-cyan-400" />
-            {TRIAL_DAYS}-day trial · Payment method required
+            Secure Paddle checkout · Payment method required
           </div>
         </div>
 
