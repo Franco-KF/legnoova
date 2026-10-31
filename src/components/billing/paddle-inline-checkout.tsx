@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { startCheckout } from "@/lib/paddle-client";
 import type { PlanId } from "@/config/plans";
@@ -76,13 +76,6 @@ export function PaddleInlineCheckout({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-4">
-        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" />
-        <div className="text-sm">
-          <p className="font-semibold text-foreground">Secure payment by Paddle</p>
-          <p className="mt-1 text-muted-foreground">Your payment details go directly into Paddle&apos;s protected checkout frame. Legnoova does not receive or store your card number or security code.</p>
-        </div>
-      </div>
       {loading && <div className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Loading secure checkout…</div>}
       <div
         id="paddle-inline-checkout"

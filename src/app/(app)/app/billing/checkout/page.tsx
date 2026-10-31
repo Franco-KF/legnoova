@@ -3,7 +3,7 @@
 import { Suspense, useMemo } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, BadgeCheck, CalendarDays, Check, ShieldCheck } from "lucide-react";
+import { ArrowLeft, CalendarDays, Check, ShieldCheck } from "lucide-react";
 import { PLANS } from "@/config/plans";
 import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
 import { PaddleInlineCheckout } from "@/components/billing/paddle-inline-checkout";
@@ -77,17 +77,13 @@ function CheckoutContent() {
             </div>
 
             <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-white/[0.08] pt-4 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5"><BadgeCheck className="h-3.5 w-3.5 text-emerald-400"/>{MONEY_BACK_DAYS}-day money-back guarantee</span>
-              <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-emerald-400"/>Secure payment by Paddle</span>
+              <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-3.5 w-3.5 text-emerald-400"/>{MONEY_BACK_DAYS}-day money-back guarantee · Secure payment by Paddle</span>
             </div>
           </div>
         </section>
 
         <section className="glass-panel min-w-0 rounded-2xl border border-white/[0.08] p-4 sm:p-6">
-          <div className="mb-5 flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-300"><ShieldCheck className="h-5 w-5"/></span>
-            <div><h2 className="font-heading text-lg font-semibold">Checkout with Paddle</h2><p className="mt-1 text-sm text-muted-foreground">Enter your payment method in Paddle&apos;s secure checkout to start your plan.</p></div>
-          </div>
+          <div className="mb-4"><h2 className="font-heading text-lg font-semibold">Payment details</h2><p className="mt-1 text-sm text-muted-foreground">Secure checkout by Paddle</p></div>
           <PaddleInlineCheckout planId={plan.id} planName={plan.name}/>
         </section>
       </div>
