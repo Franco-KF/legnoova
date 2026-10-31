@@ -45,52 +45,51 @@ const MAX_DIMENSION = 1600;
 
 function prepareImage(file: File): Promise<{ base64: string; mimeType: string }> {
   return new Promise((resolve, reject) => {
-    const inputMime = normalizeMime(file.type);
-    const isGif = inputMime === "image/gif";
-    const url = URL.createObjectURL(file);
+    const reader = new FileReader();
     const image = document.createElement("img");
+    const sourceUrl = "";
+
+    const fail = (message: string) => {
+      if (sourceUrl) URL.revokeObjectURL(sourceUrl);
+      reject(new Error(message));
+    };
+
+    reader.onerror = () => fail("The browser could not read this file. Please export the screenshot again as PNG or JPEG.");
+    reader.onabort = () => fail("Image reading was cancelled. Please try the screenshot again.");
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === "string" ? reader.result : "";
+      if (!dataUrl) return fail("The screenshot contains no readable image data.");
+      image.src = dataUrl;
+    };
 
     image.onload = () => {
       try {
-        const scale = Math.min(
-          1,
-          MAX_DIMENSION / Math.max(image.naturalWidth, image.naturalHeight)
-        );
-        const width = Math.max(1, Math.round(image.naturalWidth * scale));
-        const height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const sourceWidth = image.naturalWidth || image.width;
+        const sourceHeight = image.naturalHeight || image.height;
+        if (!sourceWidth || !sourceHeight) return fail("The screenshot has no readable dimensions. Export it again as PNG or JPEG.");
+        const scale = Math.min(1, MAX_DIMENSION / Math.max(sourceWidth, sourceHeight));
+        const width = Math.max(1, Math.round(sourceWidth * scale));
+        const height = Math.max(1, Math.round(sourceHeight * scale));
         const canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext("2d");
-        if (!ctx) {
-          throw new Error("Canvas is not supported in this browser.");
-        }
+        if (!ctx) return fail("Your browser cannot process this image. Try Chrome, Edge or Firefox.");
         ctx.drawImage(image, 0, 0, width, height);
-
-        // GIF becomes a static frame (Gemini rejects animated images);
-        // everything else keeps its format, just downscaled.
-        const outputMime = isGif ? "image/jpeg" : inputMime;
-        const dataUrl = canvas.toDataURL(
-          outputMime === "image/png" ? "image/png" : "image/jpeg",
-          0.9
-        );
-        resolve({
-          base64: String(dataUrl.split(",")[1] || ""),
-          mimeType: outputMime === "image/png" ? "image/png" : "image/jpeg",
-        });
-      } catch (err) {
-        reject(err);
-      } finally {
-        URL.revokeObjectURL(url);
+        // Always send a compressed JPEG to keep screenshots below request limits.
+        // PNG screenshots can expand into a very large base64 JSON body.
+        const outputMime = "image/jpeg";
+        const output = canvas.toDataURL(outputMime, 0.82);
+        const base64 = output.split(",")[1] || "";
+        if (!base64) return fail("The screenshot could not be converted. Export it again as PNG or JPEG.");
+        if (sourceUrl) URL.revokeObjectURL(sourceUrl);
+        resolve({ base64, mimeType: outputMime });
+      } catch {
+        fail("Could not process this screenshot. Please export it as PNG or JPEG and try again.");
       }
     };
-
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Could not read this image. Please use a PNG, JPEG or WEBP screenshot exported from your charting app."));
-    };
-
-    image.src = url;
+    image.onerror = () => fail("Could not decode this screenshot. Please use a normal PNG or JPEG chart screenshot.");
+    reader.readAsDataURL(file);
   });
 }
 

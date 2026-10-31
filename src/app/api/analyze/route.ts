@@ -62,12 +62,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Guard: image should be base64 and not absurdly large
-    if (parsed.data.image.length > 12_000_000) {
+    // The browser sends raw base64 without a data-url prefix. Limit the
+    // decoded payload as well as the text length to avoid oversized requests.
+    const estimatedBytes = Math.ceil(parsed.data.image.length * 3 / 4);
+    if (estimatedBytes > 9 * 1024 * 1024) {
       return NextResponse.json(
-        { error: "Image is too large (max ~9MB)" },
+        { error: "Image is too large after conversion. Use a smaller chart screenshot." },
         { status: 413 }
       );
+    }
+    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(parsed.data.image)) {
+      return NextResponse.json({ error: "Invalid image data. Please choose the screenshot again." }, { status: 400 });
     }
 
     // Cache identical chart analyses for 10 minutes to reduce AI cost and latency
