@@ -153,21 +153,6 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* Friendly setup shortcut */}
-      {!compact && (
-        <div className="mx-3 mb-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-300">New to automation?</p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">Connect MT5 in 3 simple steps. Start on demo and pause anytime.</p>
-          <Link
-            href="/app/bot"
-            onClick={onNavigate}
-            className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-300 hover:text-emerald-200"
-          >
-            Open the guide <span aria-hidden="true">→</span>
-          </Link>
-        </div>
-      )}
-
       {/* Usage meter + plan */}
       {!compact && (
         <div className="mx-3 mb-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
@@ -206,32 +191,39 @@ function SidebarContent({
         </div>
       )}
 
-      {/* User section */}
-      {!compact && (
-        <div className="border-t border-white/[0.06] px-3 pb-3">
-          <button
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-300 disabled:cursor-wait disabled:opacity-60"
+      {/* Account section */}
+      <div className={cn("border-t border-white/[0.06] px-3 py-3", compact && "px-2")}>
+        {!compact && (
+          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Account</p>
+        )}
+        <div className="space-y-1">
+          <Link
+            href="/app/bot"
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground",
+              compact && "justify-center px-0"
+            )}
+            title={compact ? "Automation Guide" : undefined}
           >
-            {signingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
-            {signingOut ? "Signing out…" : "Log out"}
-          </button>
-        </div>
-      )}
-      {compact && (
-        <div className="border-t border-white/[0.06] px-2 pb-3 pt-2">
+            <BookOpen className="h-4 w-4 shrink-0" />
+            {!compact && <span>Automation Guide</span>}
+          </Link>
           <button
             onClick={handleSignOut}
             disabled={signingOut}
-            className="flex w-full justify-center rounded-xl p-2.5 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-300 disabled:cursor-wait disabled:opacity-60"
-            title="Log out"
+            className={cn(
+              "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-300 disabled:cursor-wait disabled:opacity-60",
+              compact && "justify-center px-0"
+            )}
+            title={compact ? "Log out" : undefined}
             aria-label="Log out"
           >
             {signingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+            {!compact && (signingOut ? "Signing out…" : "Log out")}
           </button>
         </div>
-      )}
+      </div>
 
       <div
         className={cn(

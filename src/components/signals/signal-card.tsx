@@ -262,7 +262,7 @@ export function SignalCard({ signal, onUpdate, market }: SignalCardProps) {
       )}
 
       {/* Levels grid */}
-      <div className="grid grid-cols-2 gap-3 p-5 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 sm:p-5">
         <Metric
           label="Entry"
           value={formatPrice(signal.entryPrice, signal.symbol)}
@@ -429,7 +429,7 @@ export function SignalCard({ signal, onUpdate, market }: SignalCardProps) {
                 <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                   Key Levels
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <p className="mb-1 text-xs font-medium text-red-400">
                       Resistance

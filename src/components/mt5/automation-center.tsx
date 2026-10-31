@@ -461,7 +461,7 @@ export function AutomationCenter() {
           </div>
         </div>
 
-        <div className="border-t border-white/[0.06] px-6 py-4 grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-3 border-t border-white/[0.06] px-4 py-4 sm:grid-cols-3 sm:px-6">
           <MetricCard
             icon={<Bot className="h-4 w-4" />}
             label="Legnoova switch"
@@ -647,7 +647,7 @@ export function AutomationCenter() {
       </section>
 
       {/* Trade activity */}
-      <section className="glass-panel p-6">
+      <section className="glass-panel min-w-0 p-4 sm:p-6">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">From MT5 deal history</p>
@@ -657,9 +657,10 @@ export function AutomationCenter() {
             </p>
           </div>
         </div>
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
+        <div className="overflow-x-auto rounded-xl border border-white/[0.06] bg-white/[0.02]">
+          <div className="min-w-[720px]">
           <div className="border-b border-white/[0.06] px-5 py-3">
-            <div className="grid grid-cols-7 text-xs text-muted-foreground font-medium">
+            <div className="hidden grid-cols-7 text-xs font-medium text-muted-foreground sm:grid">
               <div className="text-left">Time</div>
               <div className="text-left">Deal</div>
               <div className="text-left">Symbol</div>
@@ -671,16 +672,16 @@ export function AutomationCenter() {
           </div>
           <div className="divide-y divide-white/[0.04]">
             {(activity?.events?.slice(0, 20) ?? []).map((event) => (
-              <div key={event._id} className="px-5 py-3 text-sm grid grid-cols-7">
-                <div className="text-left text-muted-foreground">{new Date(event.occurredAt).toLocaleTimeString()}</div>
-                <div className="text-left font-mono">{event.dealId}</div>
+              <div key={event._id} className="grid gap-2 px-4 py-3 text-sm sm:grid-cols-7 sm:px-5">
+                <div className="text-left text-muted-foreground sm:col-span-1">{new Date(event.occurredAt).toLocaleTimeString()}</div>
+                <div className="hidden text-left font-mono sm:block">{event.dealId}</div>
                 <div className="text-left font-medium">{event.symbol}</div>
-                <div className="text-left font-mono">{event.volume}</div>
-                <div className="text-left font-mono">{event.price}</div>
-                <div className={`text-right font-mono ${event.netProfit < 0 ? "text-red-400" : "text-emerald-400"}`}>
+                <div className="hidden text-left font-mono sm:block">{event.volume}</div>
+                <div className="hidden text-left font-mono sm:block">{event.price}</div>
+                <div className={`text-left font-mono sm:text-right ${event.netProfit < 0 ? "text-red-400" : "text-emerald-400"}`}>
                   {event.netProfit >= 0 ? "+" : ""}{event.netProfit.toFixed(2)} {event.currency || currency}
                 </div>
-                <div className="text-left">
+                <div className="text-left sm:text-left">
                   <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${event.eventType === "entry" ? "bg-sky-500/10 text-sky-300 border border-sky-500/20" : "bg-violet-500/10 text-violet-300 border border-violet-500/20"}`}>
                     {event.eventType === "entry" ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
                     {event.eventType}
@@ -694,6 +695,7 @@ export function AutomationCenter() {
                 <p className="mt-1 text-xs text-muted-foreground">When an EA-managed order is filled or closed, its deal event appears here.</p>
               </div>
             )}
+          </div>
           </div>
         </div>
         {activity?.acknowledgements?.length && (

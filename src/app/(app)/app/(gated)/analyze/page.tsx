@@ -330,7 +330,7 @@ export default function AnalyzePage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {STRATEGIES.map((s) => (
                 <button
                   key={s.id}
@@ -579,7 +579,7 @@ function ResultSkeleton({ strategy }: { strategy: ReturnType<typeof getStrategy>
           <div className="h-4 w-full rounded bg-white/[0.06]" />
           <div className="h-4 w-3/4 rounded bg-white/[0.06]" />
         </div>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <div className="h-20 rounded-xl bg-white/[0.06]" />
           <div className="h-20 rounded-xl bg-white/[0.06]" />
           <div className="h-20 rounded-xl bg-white/[0.06]" />

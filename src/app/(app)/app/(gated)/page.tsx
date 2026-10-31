@@ -61,7 +61,7 @@ export default function DashboardPage() {
   const hasRecord = stats && (stats.closedSignals > 0 || (stats.signalsTraded || 0) > 0);
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto w-full max-w-5xl">
       <PageHeader
         className="mb-10"
         eyebrow={greeting}
@@ -72,9 +72,9 @@ export default function DashboardPage() {
       {/* Primary CTA */}
       <Link
         href="/app/analyze"
-        className="group mb-10 flex items-center justify-between rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/[0.08] to-transparent p-6 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/[0.12] sm:p-8"
+        className="group mb-8 flex min-w-0 flex-col gap-4 rounded-2xl sm:mb-10 sm:flex-row sm:items-center sm:justify-between border border-emerald-500/30 bg-gradient-to-r from-emerald-500/[0.08] to-transparent p-6 transition-all hover:border-emerald-500/50 hover:bg-emerald-500/[0.12] sm:p-8"
       >
-        <div className="flex items-center gap-4">
+        <div className="flex min-w-0 items-center gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/15 ring-1 ring-emerald-500/30">
             <Upload className="h-6 w-6 text-emerald-400" />
           </div>
