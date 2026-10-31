@@ -23,7 +23,7 @@ import {
   Bot,
 } from "lucide-react";
 import { Logo } from "@/components/layout/logo";
-import { FREE_ANALYSIS_LIMIT, PLAN_BADGES } from "@/config/plans";
+import { PLAN_BADGES } from "@/config/plans";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -47,7 +47,6 @@ interface SidebarContentProps {
   initials: string;
   showCollapse: boolean;
   compact: boolean;
-  signalsThisMonth: number | null;
   plan: string | null;
 }
 
@@ -61,7 +60,6 @@ function SidebarContent({
   initials,
   showCollapse,
   compact,
-  signalsThisMonth,
   plan,
 }: SidebarContentProps) {
   const router = useRouter();
@@ -118,7 +116,7 @@ function SidebarContent({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 space-y-1 px-3 py-4">
         {navItems.map((item) => {
           const active = isActive(item.href, item.exact);
           return (
@@ -153,28 +151,11 @@ function SidebarContent({
         })}
       </nav>
 
-      {/* Usage meter + plan */}
+      {/* Plan status */}
       {!compact && (
         <div className="mx-3 mb-3 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Signals this month</span>
-            <span className="font-mono text-emerald-400">
-              {signalsThisMonth === null ? "—" : signalsThisMonth}
-            </span>
-          </div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-400"
-              style={{
-                width: `${Math.min(
-                  100,
-                  ((signalsThisMonth || 0) / FREE_ANALYSIS_LIMIT) * 100
-                )}%`,
-              }}
-            />
-          </div>
           {plan ? (
-            <div className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-emerald-400">
+            <div className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400">
               <Check className="h-3 w-3" />
               {PLAN_BADGES[plan as keyof typeof PLAN_BADGES] ?? plan}
             </div>
@@ -182,7 +163,7 @@ function SidebarContent({
             <Link
               href="/app/pricing"
               onClick={onNavigate}
-              className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-500 px-2 py-1.5 text-xs font-semibold text-emerald-950 transition-colors hover:bg-emerald-400"
+              className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-emerald-500 px-2 py-1.5 text-xs font-semibold text-emerald-950 transition-colors hover:bg-emerald-400"
             >
               <Sparkles className="h-3 w-3" />
               Upgrade plan
@@ -197,18 +178,6 @@ function SidebarContent({
           <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Account</p>
         )}
         <div className="space-y-1">
-          <Link
-            href="/app/bot"
-            onClick={onNavigate}
-            className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-white/[0.04] hover:text-foreground",
-              compact && "justify-center px-0"
-            )}
-            title={compact ? "Automation Guide" : undefined}
-          >
-            <BookOpen className="h-4 w-4 shrink-0" />
-            {!compact && <span>Automation Guide</span>}
-          </Link>
           <button
             onClick={handleSignOut}
             disabled={signingOut}
@@ -255,27 +224,7 @@ export function Sidebar() {
   const { data: session } = useSession();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [signalsThisMonth, setSignalsThisMonth] = useState<number | null>(null);
   const [plan, setPlan] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/signals/stats");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (active) {
-          setSignalsThisMonth(data.stats?.signalsThisMonth ?? 0);
-        }
-      } catch {
-        /* keep the meter silent on failure */
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
 
   useEffect(() => {
     let active = true;
@@ -326,7 +275,6 @@ export function Sidebar() {
           initials={initials}
           showCollapse
           compact={collapsed}
-          signalsThisMonth={signalsThisMonth}
           plan={plan}
         />
       </aside>
@@ -359,7 +307,6 @@ export function Sidebar() {
               initials={initials}
               showCollapse={false}
               compact={false}
-              signalsThisMonth={signalsThisMonth}
               plan={plan}
             />
           </aside>
