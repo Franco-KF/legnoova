@@ -1,0 +1,2 @@
+export const metadata = { title: "Refund Policy — LetterLift" };
+export default function RefundsPage() { return <main className="mx-auto max-w-3xl px-4 py-16"><h1 className="font-heading text-3xl font-bold">Refund Policy</h1><p className="mt-6 text-sm leading-7 text-muted-foreground">If LetterLift is not right for you, contact support within 14 days of your first payment. We will review the request and return eligible refunds to the original payment method. Cancel anytime to prevent future renewal charges.</p></main>; }

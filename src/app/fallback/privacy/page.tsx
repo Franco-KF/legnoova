@@ -1,0 +1,2 @@
+export const metadata = { title: "Privacy Policy — LetterLift" };
+export default function PrivacyPage() { return <main className="mx-auto max-w-3xl px-4 py-16"><h1 className="font-heading text-3xl font-bold">Privacy Policy</h1><p className="mt-6 text-sm leading-7 text-muted-foreground">LetterLift is a writing software product. We use account and uploaded document data only to provide, secure and improve the service. We do not sell personal data. Uploaded documents are private to your account and are processed only to provide the requested writing result.</p></main>; }

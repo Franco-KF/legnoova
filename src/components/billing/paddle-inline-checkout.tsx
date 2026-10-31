@@ -87,7 +87,7 @@ export function PaddleInlineCheckout({
       <div
         id="paddle-inline-checkout"
         aria-label={`Paddle secure checkout for ${planName}`}
-        className={`${frameTarget} min-h-[620px] w-full overflow-hidden rounded-xl bg-background`}
+        className={`${frameTarget} min-h-[520px] w-full overflow-hidden rounded-xl bg-background`}
       />
       {confirming && <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/>Paddle confirmed checkout. Waiting for Legnoova to activate your plan…</p>}
       {confirmed && <p role="status" className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-3 text-sm text-emerald-200">Your plan is active in Legnoova. You can continue to your dashboard.</p>}

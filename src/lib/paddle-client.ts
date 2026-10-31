@@ -12,6 +12,12 @@
 
 const PADDLE_JS_SRC = "https://cdn.paddle.com/paddle/v2/paddle.js";
 
+function browserPaddleToken(): string {
+  const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
+  if (!token) throw new Error("Secure checkout is not configured. Please contact support.");
+  return token;
+}
+
 interface PaddleCheckoutOptions {
   items: Array<{ priceId: string; quantity: number }>;
   customer: { email: string };
@@ -91,7 +97,7 @@ export async function startCheckout(
   Paddle.Environment.set(data.environment);
   if (!initialized) {
     Paddle.Initialize({
-      token: process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN!,
+      token: browserPaddleToken(),
       eventCallback: (event) => {
         if (event.name === "checkout.completed") {
           checkoutCompletedHandler?.(event.data?.transaction_id);
