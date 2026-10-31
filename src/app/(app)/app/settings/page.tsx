@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { PLAN_BADGES } from "@/config/plans";
+import { mutationHeaders } from "@/lib/csrf-client";
 
 export default function SettingsPage() {
   const { data: session, update } = useSession();
@@ -65,7 +66,7 @@ export default function SettingsPage() {
     try {
       const res = await fetch("/api/account", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: mutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ name: name.trim() }),
       });
       const data = await res.json();
@@ -86,7 +87,7 @@ export default function SettingsPage() {
     try {
       const res = await fetch("/api/account", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: mutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ signalEmailAlerts: next }),
       });
       const data = await res.json();

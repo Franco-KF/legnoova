@@ -38,7 +38,7 @@ export const faqs = [
   {
     question: "Does Legnoova automate trades through my broker?",
     answer:
-      "Yes. The $59 plan includes broker automation. Connect your broker, set your trade rules and let Legnoova automate your trading workflow. Trading involves risk, so set rules that fit your needs and monitor your account.",
+      "Yes. MT5 automation is available with the Broker plan. Connect your own MT5 demo terminal, complete the safety checks, choose your risk and press Start. You can pause new orders from the dashboard. Legnoova never receives your broker password, and automation does not guarantee profits.",
   },
   {
     question: "Is the win rate 92%, and will Legnoova make me profitable?",

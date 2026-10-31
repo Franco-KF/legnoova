@@ -29,10 +29,12 @@ export interface DrawdownState {
 export function getMarketRegime(serverHour: number): MarketRegime {
   // Approximate UTC hours for major FX sessions
   let session: MarketRegime["session"];
+  // Check the London/New York overlap before the broader New York window.
+  // The previous ordering made `overlap` unreachable for every hour.
   if (serverHour >= 0 && serverHour < 8) session = "asian";
   else if (serverHour >= 8 && serverHour < 13) session = "london";
-  else if (serverHour >= 13 && serverHour < 18) session = "new-york";
   else if (serverHour >= 13 && serverHour < 17) session = "overlap";
+  else if (serverHour >= 17 && serverHour < 18) session = "new-york";
   else session = "closed";
 
   const volatility: MarketRegime["volatility"] =

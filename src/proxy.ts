@@ -5,6 +5,7 @@ import {
   verifySessionToken,
 } from "@/lib/auth/token";
 import { getClientIp, rateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { isCsrfSafeRequest } from "@/lib/security/csrf";
 
 const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password"];
 const PROTECTED_PREFIX = "/app";
@@ -16,10 +17,6 @@ const API_PROTECTED = [
   "/api/automation/settings",
 ];
 const STATE_CHANGING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
-
-/** CSRF-safe custom header that cross-site requests cannot set without CORS preflight. */
-const CSRF_HEADER = "x-requested-with";
-const CSRF_HEADER_VALUE = "XMLHttpRequest";
 
 export default async function proxy(req: NextRequest) {
   const { nextUrl } = req;
@@ -78,14 +75,16 @@ export default async function proxy(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // CSRF: state-changing API calls must include X-Requested-With.
-  if (isProtectedApi && STATE_CHANGING.has(method)) {
-    if (req.headers.get(CSRF_HEADER) !== CSRF_HEADER_VALUE) {
-      return NextResponse.json(
-        { error: "CSRF validation failed" },
-        { status: 403 }
-      );
-    }
+  // CSRF: state-changing API calls must prove they came from this site.
+  if (
+    isProtectedApi &&
+    STATE_CHANGING.has(method) &&
+    !isCsrfSafeRequest(req)
+  ) {
+    return NextResponse.json(
+      { error: "CSRF validation failed" },
+      { status: 403 }
+    );
   }
 
   const response = NextResponse.next();

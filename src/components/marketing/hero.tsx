@@ -44,9 +44,9 @@ export function Hero() {
         <p
           className="animate-fade-in-up animation-delay-200 mx-auto mt-6 max-w-2xl text-center text-base leading-relaxed text-muted-foreground sm:text-lg md:text-xl"
         >
-          Stop chasing calls across Telegram and forex groups. Upload a chart
-          for a clear AI review, then connect broker automation to put your
-          trading plan into action—all in one place.
+          Stop chasing calls across Telegram and forex groups. Upload your chart,
+          get a clear second opinion, then connect your MT5 demo account when
+          you are ready to automate your trading plan—all in one place.
         </p>
 
         {/* CTA buttons */}
@@ -71,9 +71,9 @@ export function Hero() {
         </div>
 
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          Want broker automation?{" "}
-          <Link href="#pricing" className="font-semibold text-emerald-400 hover:text-emerald-300">
-            See the $59 plan <span aria-hidden="true">→</span>
+          Want MT5 automation?{" "}
+          <Link href="#broker-automation" className="font-semibold text-emerald-400 hover:text-emerald-300">
+            See how it works <span aria-hidden="true">→</span>
           </Link>
         </p>
 

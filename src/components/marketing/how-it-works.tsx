@@ -31,9 +31,9 @@ const steps = [
   {
     icon: ClipboardList,
     step: "04",
-    title: "Trade, Then Log the Outcome",
+    title: "Choose to Trade or Wait",
     description:
-      "Take the trade or sit it out. Mark what happened — TP hit or stopped — and your hit rate vs Legnoova AI builds in your dashboard.",
+      "Take the setup, send it to your journal, or wait. Mark what happened so you can learn from your own trading over time.",
     accent: "text-emerald-400",
     bg: "bg-emerald-500/10 border-emerald-500/20",
   },

@@ -1,5 +1,5 @@
 #property strict
-#property version "0.7"
+#property version "0.8"
 #property description "Legnoova MT5 bridge. Demo-only and disabled until explicitly configured."
 
 input bool ExecutionEnabled = false;
@@ -9,6 +9,9 @@ input double MaximumLots = 0.10;
 input int MaximumOpenPositions = 1;
 input int MaximumSignalAgeSeconds = 300;
 input int MaximumEntryDriftPoints = 150;
+input double MaximumDailyLossPercent = 2.0;
+input int MaximumConsecutiveLosses = 3;
+input double MaximumDrawdownPercent = 5.0;
 input string BridgeUrl = "http://127.0.0.1:8765";
 input string LocalBridgeToken = "";
 input int PollSeconds = 10;
@@ -410,6 +413,104 @@ bool ScalpingLimitsAllow(string &status)
    return true;
 }
 
+int EaPositionsCount()
+{
+   int count = 0;
+   for(int i = 0; i < PositionsTotal(); i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if(ticket > 0 && (ulong)PositionGetInteger(POSITION_MAGIC) == EA_MAGIC) count++;
+   }
+   return count;
+}
+
+double EaDayNetProfit()
+{
+   MqlDateTime today;
+   TimeToStruct(TimeCurrent(), today);
+   today.hour = 0;
+   today.min = 0;
+   today.sec = 0;
+   datetime dayStart = StructToTime(today);
+   if(!HistorySelect(dayStart, TimeCurrent())) return 0.0;
+
+   double profit = 0.0;
+   for(int i = 0; i < HistoryDealsTotal(); i++)
+   {
+      ulong deal = HistoryDealGetTicket(i);
+      if(deal == 0 || (ulong)HistoryDealGetInteger(deal, DEAL_MAGIC) != EA_MAGIC) continue;
+      profit += HistoryDealGetDouble(deal, DEAL_PROFIT)
+         + HistoryDealGetDouble(deal, DEAL_COMMISSION)
+         + HistoryDealGetDouble(deal, DEAL_SWAP)
+         + HistoryDealGetDouble(deal, DEAL_FEE);
+   }
+   for(int i = 0; i < PositionsTotal(); i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if(ticket > 0 && (ulong)PositionGetInteger(POSITION_MAGIC) == EA_MAGIC)
+         profit += PositionGetDouble(POSITION_PROFIT) + PositionGetDouble(POSITION_SWAP);
+   }
+   return profit;
+}
+
+int EaConsecutiveLosses()
+{
+   if(!HistorySelect(TimeCurrent() - 30 * 86400, TimeCurrent())) return 0;
+   int losses = 0;
+   for(int i = HistoryDealsTotal() - 1; i >= 0; i--)
+   {
+      ulong deal = HistoryDealGetTicket(i);
+      if(deal == 0 || (ulong)HistoryDealGetInteger(deal, DEAL_MAGIC) != EA_MAGIC) continue;
+      long entry = HistoryDealGetInteger(deal, DEAL_ENTRY);
+      if(entry != DEAL_ENTRY_OUT && entry != DEAL_ENTRY_OUT_BY && entry != DEAL_ENTRY_INOUT) continue;
+      double net = HistoryDealGetDouble(deal, DEAL_PROFIT)
+         + HistoryDealGetDouble(deal, DEAL_COMMISSION)
+         + HistoryDealGetDouble(deal, DEAL_SWAP)
+         + HistoryDealGetDouble(deal, DEAL_FEE);
+      if(net < 0.0) losses++;
+      else break;
+   }
+   return losses;
+}
+
+double EquityDrawdownPercent()
+{
+   string key = "LVEquityPeak." + IntegerToString((long)AccountInfoInteger(ACCOUNT_LOGIN));
+   double equity = AccountInfoDouble(ACCOUNT_EQUITY);
+   double peak = GlobalVariableCheck(key) ? GlobalVariableGet(key) : equity;
+   if(equity > peak)
+   {
+      peak = equity;
+      GlobalVariableSet(key, peak);
+   }
+   if(peak <= 0.0) return 0.0;
+   return (peak - equity) / peak * 100.0;
+}
+
+bool AccountRiskLimitsAllow(string &status)
+{
+   if(MaximumDailyLossPercent > 0.0)
+   {
+      double dailyLossLimit = AccountInfoDouble(ACCOUNT_BALANCE) * MaximumDailyLossPercent / 100.0;
+      if(EaDayNetProfit() <= -dailyLossLimit)
+      {
+         status = "daily_loss_cap";
+         return false;
+      }
+   }
+   if(MaximumConsecutiveLosses > 0 && EaConsecutiveLosses() >= MaximumConsecutiveLosses)
+   {
+      status = "consecutive_loss_cap";
+      return false;
+   }
+   if(MaximumDrawdownPercent > 0.0 && EquityDrawdownPercent() >= MaximumDrawdownPercent)
+   {
+      status = "drawdown_cap";
+      return false;
+   }
+   return true;
+}
+
 int VolumeDigits(const double step)
 {
    if(step >= 1.0) return 0;
@@ -451,7 +552,7 @@ bool ExecuteSignal(const string json, string &status, string &orderId)
    orderId = "";
    if(StringLen(id) != 24 || entry <= 0 || stop <= 0 || target <= 0 || riskPercent <= 0 || riskPercent > MaximumRiskPercent) return false;
    int maximumSignalAge = mode == "scalping" ? (int)MathMin(MaximumSignalAgeSeconds, SCALPING_MAX_SIGNAL_AGE_SECONDS) : MaximumSignalAgeSeconds;
-   if(createdAt > 0 && TimeCurrent() - (datetime)createdAt > maximumSignalAge) { status = "stale_signal"; return false; }
+   if(createdAt > 0 && TimeGMT() - (datetime)createdAt > maximumSignalAge) { status = "stale_signal"; return false; }
    if(!ExecutionEnabled) { status = "execution_off"; return false; }
    if(!AllowLiveAccount && AccountInfoInteger(ACCOUNT_TRADE_MODE) != ACCOUNT_TRADE_MODE_DEMO) { status = "demo_only"; return false; }
    if(mode == "scalping")
@@ -462,9 +563,10 @@ bool ExecuteSignal(const string json, string &status, string &orderId)
       if(!ScalpingLimitsAllow(status)) return false;
    }
    if(!AccountInfoInteger(ACCOUNT_TRADE_ALLOWED) || !AccountInfoInteger(ACCOUNT_TRADE_EXPERT) || !TerminalInfoInteger(TERMINAL_TRADE_ALLOWED)) { status = "trading_disabled"; return false; }
+   if(!AccountRiskLimitsAllow(status)) return false;
    if(AlreadyExecuted(id)) { status = "already_executed"; return true; }
    int positionLimit = mode == "scalping" ? 1 : MaximumOpenPositions;
-   if(positionLimit < 1 || PositionsTotal() >= positionLimit) { status = "position_limit"; return false; }
+   if(positionLimit < 1 || EaPositionsCount() >= positionLimit) { status = "position_limit"; return false; }
 
    string symbol = ResolveSymbol(requestedSymbol);
    if(symbol == "") { status = "symbol_unavailable"; return false; }
@@ -537,7 +639,7 @@ bool TryAutonomousScalp(const double riskPercent, string &status, string &orderI
       status = "scalp_indicators_unavailable";
       return false;
    }
-   if(PositionsTotal() > 0) { status = "scalp_position_open"; return false; }
+   if(EaPositionsCount() > 0) { status = "scalp_position_open"; return false; }
    if(!ScalpingLimitsAllow(status)) return false;
 
    MqlTick tick;
@@ -567,7 +669,7 @@ bool TryAutonomousScalp(const double riskPercent, string &status, string &orderI
       + "\",\"entryPrice\":" + DoubleToString(price, digits)
       + ",\"stopLoss\":" + DoubleToString(stop, digits)
       + ",\"takeProfit\":" + DoubleToString(target, digits)
-      + ",\"createdAt\":" + IntegerToString((long)TimeCurrent())
+      + ",\"createdAt\":" + IntegerToString((long)TimeGMT())
       + ",\"timeframe\":\"M1\",\"automationMode\":\"scalping\",\"riskPercent\":" + DoubleToString(riskPercent, 2) + "}";
    return ExecuteSignal(payload, status, orderId);
 }
@@ -579,6 +681,7 @@ void OnTimer()
 
    int effectivePoll = g_pollSeconds;
    if(g_consecutiveFailures > 0) effectivePoll = MathMin(g_pollSeconds * (1 + g_consecutiveFailures), 60);
+   EquityDrawdownPercent();
 
    if(!ExecutionEnabled) g_diagnosticStatus = "execution_off";
    else if(!TerminalInfoInteger(TERMINAL_TRADE_ALLOWED) || !AccountInfoInteger(ACCOUNT_TRADE_ALLOWED) || !AccountInfoInteger(ACCOUNT_TRADE_EXPERT)) g_diagnosticStatus = "trading_disabled";
@@ -654,6 +757,7 @@ void OnTradeTransaction(const MqlTradeTransaction &trans, const MqlTradeRequest 
 int OnInit()
 {
    if(PollSeconds < 2 || MaximumRiskPercent <= 0 || MaximumRiskPercent > 2 || MaximumLots <= 0 || MaximumOpenPositions < 1) return INIT_PARAMETERS_INCORRECT;
+   if(MaximumDailyLossPercent < 0 || MaximumDailyLossPercent > 10 || MaximumConsecutiveLosses < 0 || MaximumConsecutiveLosses > 50 || MaximumDrawdownPercent < 0 || MaximumDrawdownPercent > 50) return INIT_PARAMETERS_INCORRECT;
    g_pollSeconds = PollSeconds;
    g_atrHandle = iATR(_Symbol, PERIOD_M1, 14);
    EventSetTimer(PollSeconds);

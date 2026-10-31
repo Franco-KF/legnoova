@@ -1,87 +1,45 @@
-import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
-import { cookies } from "next/headers";
-import { SECURITY } from "@/lib/security/config";
-
 /**
- * Double-submit CSRF protection.
+ * CSRF protection for cookie-authenticated API routes.
  *
- * The server sets a cryptographically random CSRF token in a
- * SameSite=Strict, HttpOnly, Secure cookie. Every state-changing request
- * (POST/PUT/PATCH/DELETE) must echo the same token in the
- * `X-CSRF-Token` header. The server compares cookie vs header in
- * constant time. GET/HEAD/OPTIONS are exempt.
- *
- * This defeats CSRF because an attacker's cross-origin request cannot
- * read the HttpOnly cookie, and therefore cannot forge the matching header.
+ * Browsers cannot set custom headers on a cross-site request without a CORS
+ * preflight, so `X-Requested-With` is the primary signal. Modern browsers also
+ * send `Sec-Fetch-Site`, and same-origin requests include an `Origin` header;
+ * accepting those avoids breaking clients that do not add the custom header.
  */
 
-function csrfSecret(): string {
-  // Fall back to AUTH_SECRET so existing deployments without CSRF_SECRET keep
-  // working. The secret is only read when a token is actually generated.
-  const secret = process.env.CSRF_SECRET || process.env.AUTH_SECRET;
-  if (!secret || secret.length < 32) {
-    throw new Error(
-      "CSRF_SECRET (or AUTH_SECRET) must be set to at least 32 random characters (openssl rand -hex 32)"
-    );
+export const CSRF_HEADER = "x-requested-with";
+export const CSRF_HEADER_VALUE = "XMLHttpRequest";
+
+function allowedOrigins(): Set<string> {
+  const origins = new Set<string>();
+  const configured = [
+    process.env.NEXTAUTH_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.NEXT_PUBLIC_SITE_URL,
+  ];
+  for (const value of configured) {
+    if (!value) continue;
+    try {
+      origins.add(new URL(value).origin);
+    } catch {
+      /* ignore malformed env values */
+    }
   }
-  return secret;
+  return origins;
 }
 
-function generateToken(): string {
-  return createHash("sha256")
-    .update(csrfSecret() + randomUUID() + Date.now().toString())
-    .digest("hex");
-}
+export function isCsrfSafeRequest(req: Request): boolean {
+  if (req.headers.get(CSRF_HEADER) === CSRF_HEADER_VALUE) return true;
+  if (req.headers.get("sec-fetch-site") === "same-origin") return true;
 
-export async function getCsrfCookie(): Promise<string | null> {
+  const origin = req.headers.get("origin");
+  if (!origin) return false;
+
+  const allowed = allowedOrigins();
   try {
-    const store = await cookies();
-    return (store.get(SECURITY.CSRF_COOKIE_NAME) as { value: string } | undefined)
-      ?.value ?? null;
+    allowed.add(new URL(req.url).origin);
   } catch {
-    return null;
+    /* ignore malformed request URLs */
   }
-}
-
-export async function setCsrfCookie(response: Headers, token: string): Promise<void> {
-  response.set(
-    "Set-Cookie",
-    `${SECURITY.CSRF_COOKIE_NAME}=${token}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${SECURITY.SESSION_MAX_AGE}`
-  );
-}
-
-export async function clearCsrfCookie(response: Headers): Promise<void> {
-  response.set(
-    "Set-Cookie",
-    `${SECURITY.CSRF_COOKIE_NAME}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0`
-  );
-}
-
-/** Validate a CSRF token from the header against the cookie. Returns the token if valid. */
-export function validateCsrf(
-  cookieToken: string | null,
-  headerToken: string | null
-): { ok: boolean; token?: string; reason?: string } {
-  if (!cookieToken || cookieToken === SECURITY.EMPTY_HASH) {
-    return { ok: false, reason: "missing_csrf_cookie" };
-  }
-  if (!headerToken || headerToken.length < 8) {
-    return { ok: false, reason: "missing_csrf_header" };
-  }
-  const headerBuf = Buffer.from(headerToken);
-  const cookieBuf = Buffer.from(cookieToken);
-  if (
-    headerBuf.length !== cookieBuf.length ||
-    !timingSafeEqual(headerBuf, cookieBuf)
-  ) {
-    return { ok: false, reason: "csrf_token_mismatch" };
-  }
-  return { ok: true, token: cookieToken };
-}
-
-/** Returns a fresh CSRF token and sets it as a cookie on the response. */
-export async function issueCsrfToken(response: Headers): Promise<string> {
-  const token = generateToken();
-  await setCsrfCookie(response, token);
-  return token;
+  return allowed.has(origin);
 }

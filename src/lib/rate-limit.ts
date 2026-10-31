@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { getRedis } from "@/lib/redis";
 
 /**
  * Rate limiter with optional Redis backend for multi-instance deployments.
- * Falls back to in-memory fixed-window when REDIS_URL is not set or ioredis
+ * Falls back to in-memory fixed-window when REDIS_URL is not set or Redis
  * cannot connect.
  */
 
@@ -10,27 +11,6 @@ type Bucket = { count: number; resetAt: number };
 const memoryBuckets = new Map<string, Bucket>();
 let lastCleanup = Date.now();
 const CLEANUP_INTERVAL_MS = 10 * 60 * 1000;
-
-let redis: InstanceType<typeof import("ioredis").Redis> | null = null;
-let redisReady = false;
-
-async function tryInitRedis(): Promise<void> {
-  if (typeof process === "undefined") return;
-  const url = process.env.REDIS_URL || process.env.UPSTASH_REDIS_REST_URL;
-  if (!url) return;
-  try {
-    const { Redis } = await import("ioredis");
-    const client = new Redis(url, { lazyConnect: true, maxRetriesPerRequest: 1 });
-    redis = client;
-    await redis.connect();
-    redisReady = true;
-  } catch {
-    redis = null;
-    redisReady = false;
-  }
-}
-
-void tryInitRedis();
 
 function cleanup(now: number) {
   if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
@@ -40,10 +20,31 @@ function cleanup(now: number) {
   }
 }
 
+/**
+ * Resolve the client IP without blindly trusting the left-most
+ * X-Forwarded-For value, which a client can spoof.
+ */
 export function getClientIp(req: Request): string {
+  const vercel = req.headers.get("x-vercel-forwarded-for");
+  if (vercel) return vercel.split(",")[0].trim();
+
+  const cloudflare = req.headers.get("cf-connecting-ip");
+  if (cloudflare) return cloudflare.trim();
+
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
+
   const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return req.headers.get("x-real-ip") ?? "unknown";
+  if (forwarded) {
+    const parts = forwarded
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+    // The right-most entry is appended by the nearest trusted proxy.
+    if (parts.length) return parts[parts.length - 1];
+  }
+
+  return "unknown";
 }
 
 export interface RateLimitOptions {
@@ -57,20 +58,26 @@ export interface RateLimitResult {
   retryAfterSec?: number;
 }
 
-async function redisRateLimit(key: string, limit: number, windowMs: number): Promise<RateLimitResult | null> {
-  if (!redis || !redisReady) return null;
+async function redisRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number
+): Promise<RateLimitResult | null> {
+  const redis = await getRedis();
+  if (!redis) return null;
   const now = Date.now();
   const windowKey = `rl:${key}:${Math.floor(now / windowMs)}`;
   try {
     const count = await redis.incr(windowKey);
-    await redis.expire(windowKey, Math.ceil(windowMs / 1000) + 1);
+    if (count === 1) {
+      await redis.expire(windowKey, Math.ceil(windowMs / 1000) + 1);
+    }
     if (count > limit) {
       const ttl = await redis.ttl(windowKey);
       return { ok: false, retryAfterSec: Math.max(1, ttl) };
     }
     return { ok: true };
   } catch {
-    redisReady = false;
     return null;
   }
 }
@@ -105,7 +112,11 @@ export async function rateLimitAsync(
   req: Request,
   { key, limit, windowMs }: RateLimitOptions
 ): Promise<RateLimitResult> {
-  const redisResult = await redisRateLimit(`${key}:${getClientIp(req)}`, limit, windowMs);
+  const redisResult = await redisRateLimit(
+    `${key}:${getClientIp(req)}`,
+    limit,
+    windowMs
+  );
   if (redisResult !== null) return redisResult;
   return rateLimit(req, { key, limit, windowMs });
 }

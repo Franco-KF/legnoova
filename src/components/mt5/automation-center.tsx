@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
+import { mutationHeaders } from "@/lib/csrf-client";
 
 type Mode = "normal" | "scalping";
 type Status = "pass" | "fail" | "waiting" | "info";
@@ -105,17 +106,30 @@ type Acknowledgement = {
   createdAt: string;
 };
 
+type LocalEa = Pick<
+  Runtime,
+  | "status"
+  | "executionEnabled"
+  | "demoAccount"
+  | "chartM1"
+  | "terminalTradeAllowed"
+  | "accountTradeAllowed"
+  | "expertTradeAllowed"
+  | "liveTradingAllowed"
+>;
+
 type LocalHealth = {
   bridgeRunning: boolean;
   configurationReady: boolean;
   eaConnected: boolean;
   eaLastSeenSecondsAgo: number | null;
-  ea: Runtime | null;
+  ea: LocalEa | null;
   eaLocalError: string | null;
   eaCloudReported: boolean;
   eaCloudError: string | null;
+  cloudReachable: boolean;
+  cloudError: string | null;
   offlineQueueLength: number;
-  wsUrl: string | null;
 };
 
 export function AutomationCenter() {
@@ -166,65 +180,64 @@ export function AutomationCenter() {
     return () => { clearTimeout(initial); clearInterval(timer); };
   }, [refresh]);
 
-  // SSE for real-time MT5 heartbeat updates
+  // SSE for real-time MT5 heartbeat updates. Polling remains as a fallback.
   useEffect(() => {
     if (!settings?.hasBrokerPlan) return;
     if (typeof EventSource === "undefined") return;
-    if (sseRef.current) return;
 
-    try {
+    let disposed = false;
+    let retryTimer: number | null = null;
+
+    const connect = () => {
+      if (disposed) return;
       const es = new EventSource("/api/automation/stream");
       sseRef.current = es;
-      es.onopen = () => setSseConnected(true);
+      es.onopen = () => {
+        if (!disposed) setSseConnected(true);
+      };
       es.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.type === "connected") return;
           if (data.type === "diagnostics" && data.data) {
             startTransition(() => setDiagnostics(data.data));
-          }
-          if (data.type === "error") {
-            // silent fallback, polling continues
           }
         } catch {
           // ignore malformed SSE
         }
       };
       es.onerror = () => {
-        setTimeout(() => setSseConnected(false), 0);
         es.close();
-        sseRef.current = null;
-        // Reconnect after 5s
-        const t = setTimeout(() => {
-          if (!sseRef.current) {
-            const es2 = new EventSource("/api/automation/stream");
-            sseRef.current = es2;
-            es2.onopen = () => setSseConnected(true);
-            es2.onmessage = (event) => {
-              try {
-                const data = JSON.parse(event.data);
-                if (data.type === "diagnostics" && data.data) startTransition(() => setDiagnostics(data.data));
-              } catch {}
-            };
-          }
-        }, 5_000);
-        return () => clearTimeout(t);
-      };
-      return () => {
-        es.close();
-        sseRef.current = null;
+        if (sseRef.current === es) sseRef.current = null;
+        if (disposed) return;
         setSseConnected(false);
+        if (retryTimer === null) {
+          retryTimer = window.setTimeout(() => {
+            retryTimer = null;
+            connect();
+          }, 5_000);
+        }
       };
-    } catch {
-      setTimeout(() => setSseConnected(false), 0);
-    }
+    };
+
+    connect();
+
+    return () => {
+      disposed = true;
+      if (retryTimer !== null) window.clearTimeout(retryTimer);
+      sseRef.current?.close();
+      sseRef.current = null;
+      setSseConnected(false);
+    };
   }, [settings?.hasBrokerPlan, startTransition]);
 
   const issueToken = async () => {
     if (settings?.tokenIssued && !window.confirm("Rotate the device token? The running bridge will stop authenticating until you replace its token and restart it.")) return;
     setTokenBusy(true);
     try {
-      const res = await fetch("/api/automation/settings", { method: "POST" });
+      const res = await fetch("/api/automation/settings", {
+        method: "POST",
+        headers: mutationHeaders(),
+      });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "Could not create device token");
       setToken(body.token);
@@ -240,7 +253,10 @@ export function AutomationCenter() {
     if (!window.confirm("Revoke the device token? This pauses cloud automation and disconnects the bridge until a new token is created.")) return;
     setTokenBusy(true);
     try {
-      const res = await fetch("/api/automation/settings", { method: "DELETE" });
+      const res = await fetch("/api/automation/settings", {
+        method: "DELETE",
+        headers: mutationHeaders(),
+      });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? "Could not revoke the bridge token");
       setToken("");
@@ -263,7 +279,7 @@ export function AutomationCenter() {
     try {
       const res = await fetch("/api/automation/settings", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: mutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ enabled: true, mode, riskPercent: mode === "scalping" ? 0.05 : Math.min(settings.riskPercent, 0.5) }),
       });
       const body = await res.json();
@@ -281,7 +297,7 @@ export function AutomationCenter() {
     try {
       const res = await fetch("/api/automation/settings", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: mutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ enabled: false, mode: settings.mode, riskPercent: settings.riskPercent }),
       });
       const body = await res.json();
@@ -327,16 +343,27 @@ export function AutomationCenter() {
   const heartbeatAge = mt5?.lastSeenSecondsAgo ?? null;
   const queuedSignals = diagnostics?.queuedSignals ?? 0;
   const currency = runtime?.accountCurrency || activity?.events.find((e) => e.currency)?.currency;
+  const nextStep = !settings.hasBrokerPlan
+    ? "Upgrade to a Broker plan to connect MT5 automation."
+    : !settings.tokenIssued
+      ? "Create a bridge token, then put it in the Python bridge command."
+      : !online
+        ? "Start bridge.py on the MT5 computer and attach the EA to a demo chart."
+        : !diagnostics?.activation.demoReady
+          ? diagnostics?.activation.blockers[0] ?? "Finish the MT5 readiness checks below."
+          : !settings.enabled
+            ? "Choose Normal or M1 Scalping below, then activate demo automation."
+            : "Automation is armed. Keep MT5, bridge.py, and the EA running.";
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-white/[0.06] pb-6">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">MT5 · Demo account</p>
-          <h1 className="mt-1 font-heading text-2xl font-bold">Broker Automation</h1>
+          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">MT5 · Demo first</p>
+          <h1 className="mt-1 font-heading text-2xl font-bold">Connect MT5 and automate with confidence</h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Connect your MT5 demo terminal to Legnoova. Trade execution runs only through your own local bridge and MT5 EA — Legnoova never receives your broker password.
+            Follow the checks, choose your risk and press start when you are ready. Your broker password stays in MT5, and you can pause new orders at any time.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -370,6 +397,16 @@ export function AutomationCenter() {
           </AlertDescription>
         </Alert>
       )}
+
+      <Alert className="glass-panel border-sky-500/20 bg-sky-500/[0.04]">
+        <AlertTitle>Next step</AlertTitle>
+        <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+          <span>{nextStep}</span>
+          {!settings.enabled && diagnostics?.activation.demoReady && (
+            <span className="text-xs text-sky-200/80">Ready to arm below</span>
+          )}
+        </AlertDescription>
+      </Alert>
 
       {/* Connection status hero */}
       <section className="glass-panel overflow-hidden">
@@ -502,10 +539,10 @@ export function AutomationCenter() {
       {/* Activation modes */}
       <section>
         <div className="mb-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-emerald-300">Demo trading modes</p>
-          <h2 className="mt-1 font-heading text-xl font-bold">Arm automation</h2>
+          <p className="text-xs uppercase tracking-[0.2em] text-emerald-300">Choose your way to trade</p>
+          <h2 className="mt-1 font-heading text-xl font-bold">Pick a mode and start on demo</h2>
           <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
-            Activation is allowed only after a recent MT5 heartbeat confirms a demo account, EA execution, and trade permissions. Normal mode waits for eligible chart signals; M1 Scalping evaluates live closed candles with its built-in rules. The terminal and bridge must stay open. Trades are not guaranteed.
+            We only let you start after MT5 confirms the demo account and permissions are ready. Normal mode uses your chart signals. M1 mode checks fresh one-minute candles. Keep MT5 and the connector open, and remember: no setup can guarantee a winning trade.
           </p>
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -517,7 +554,7 @@ export function AutomationCenter() {
             busy={activating === "normal" || activating === "pause"}
             onActivate={() => void activate("normal")}
             risk="Up to 0.5% risk per entry"
-            description="Trend-Pullback Confluence. MT5 receives new eligible chart signals only. One order per signal."
+            description="Best for most traders. Upload a chart, review the setup and let MT5 receive only the signals that pass the safety checks."
           />
           <ModeCard
             mode="scalping"
@@ -527,7 +564,7 @@ export function AutomationCenter() {
             busy={activating === "scalping" || activating === "pause"}
             onActivate={() => void activate("scalping")}
             risk="Demo only · M1 · 0.05% risk per trade"
-            description="One closed M1 candle per entry: strong candle body closing near its high/low sets direction; ATR stop and 1.2R target. Max 40/day, 10 per 2 min, one open position."
+            description="Demo-only one-minute mode. It waits for a strong candle, sets a stop and target, and limits how often it can trade."
           />
         </div>
         {settings.enabled && (
@@ -543,8 +580,7 @@ export function AutomationCenter() {
       </section>
 
       {/* Local bridge diagnostics */}
-      {(localCheckError || localHealth) && (
-        <section className="glass-panel p-6">
+      <section className="glass-panel p-6">
           <div className="flex items-center justify-between gap-3 mb-4">
             <div>
               <p className="text-xs uppercase tracking-[0.2em] text-sky-300">Read-only check · this computer</p>
@@ -584,8 +620,7 @@ export function AutomationCenter() {
               )}
             </>
           )}
-        </section>
-      )}
+      </section>
 
       {/* Readiness checks */}
       <section className="glass-panel p-6">

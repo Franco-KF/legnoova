@@ -74,7 +74,14 @@ export async function POST(req: Request) {
     const imageHash = Buffer.from(parsed.data.image, "base64")
       .slice(0, 2048)
       .toString("base64");
-    const cacheKeyStr = cacheKey("analyze", imageHash, parsed.data.strategy, parsed.data.timeframe, parsed.data.symbolHint);
+    const cacheKeyStr = cacheKey(
+      "analyze",
+      session.user.id,
+      imageHash,
+      parsed.data.strategy,
+      parsed.data.timeframe,
+      parsed.data.symbolHint
+    );
     const cached = responseCache.get(cacheKeyStr);
     if (cached) {
       return NextResponse.json({

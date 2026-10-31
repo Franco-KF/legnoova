@@ -7,6 +7,21 @@
  * here; shadcn/ui styles are handled via Tailwind classes in JSX).
  */
 export function buildCsp(isDev: boolean): string {
+  const connectSources = [
+    "'self'",
+    "https://generativelanguage.googleapis.com",
+    "https://*.googleapis.com",
+    "https://accounts.google.com",
+    "https://oauth2.googleapis.com",
+    "https://www.googleapis.com",
+    // Loopback bridge health check. The bridge is local and read-only.
+    "http://127.0.0.1:8765",
+    "http://localhost:8765",
+  ];
+  if (isDev) {
+    connectSources.push("ws://localhost:*", "http://localhost:*");
+  }
+
   const directives: string[] = [
     "default-src 'self'",
     // Next.js streams hydration/RSC bootstrap through inline <script> tags.
@@ -17,18 +32,13 @@ export function buildCsp(isDev: boolean): string {
     "style-src 'self' 'unsafe-inline'", // Tailwind inline styles injected at runtime
     "img-src 'self' data: https:",
     "font-src 'self'",
-    "connect-src 'self' https://generativelanguage.googleapis.com https://*.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com",
+    `connect-src ${connectSources.join(" ")}`,
     "frame-ancestors 'none'", // clickjacking
     "base-uri 'self'",
     "form-action 'self'",
     "object-src 'none'",
     "upgrade-insecure-requests",
   ];
-
-  if (isDev) {
-    // Allow Vite/HMR websocket in development only.
-    directives.push("connect-src 'self' ws://localhost:* http://localhost:*");
-  }
 
   return directives.join("; ");
 }

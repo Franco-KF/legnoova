@@ -19,13 +19,13 @@ export function CTASection() {
           </div>
 
           <h2 className="mx-auto mt-6 max-w-2xl font-heading text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-            Tired of Guessing From Group Chats?
+            Ready for a clearer trading routine?
             <br className="hidden sm:block" />
-            Bring Your Chart Here.
+            Bring your chart here.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base text-muted-foreground sm:text-lg">
-            Upload a screenshot. Get a clear second look. Make your next move
-            with more context—not another guess from a chat.
+            Upload a screenshot, see the possible entry and risk levels, and make
+            your own decision with more context—not more noise from a chat.
           </p>
 
           <div className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row">

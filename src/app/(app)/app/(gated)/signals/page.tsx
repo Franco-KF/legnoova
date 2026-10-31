@@ -7,6 +7,7 @@ import { SignalCard } from "@/components/signals/signal-card";
 import type { SignalRecord, SignalStatus, TookIt } from "@/lib/analysis/types";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
+import { mutationHeaders } from "@/lib/csrf-client";
 
 type Tab = "mine" | "market";
 type Filter = "all" | "active" | "profit" | "stopped";
@@ -89,7 +90,7 @@ export default function SignalsPage() {
     try {
       const res = await fetch(`/api/signals/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: mutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(patch),
       });
       const data = await res.json();

@@ -95,9 +95,9 @@ const features = [
   },
   {
     icon: Zap,
-    title: "Connect Your Broker. Automate Your Trades.",
+    title: "Connect MT5 When You Are Ready",
     description:
-      "Link your broker and let Legnoova put your trading plan into action. Get broker automation with the $59 plan, alongside chart reviews, signals and trading tools.",
+      "Start on demo, choose your risk and let Legnoova send qualifying setups to your MT5 terminal. Pause new orders whenever you want.",
     accent: "text-amber-400",
     border: "hover:border-amber-500/30",
     tint: "bg-amber-500/10",

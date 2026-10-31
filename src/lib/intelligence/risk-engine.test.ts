@@ -22,8 +22,15 @@ describe("getMarketRegime", () => {
     expect(regime.spreadFactor).toBe(1.0);
   });
 
-  it("identifies new-york session", () => {
+  it("identifies the London/New York overlap", () => {
     const regime = getMarketRegime(15);
+    expect(regime.session).toBe("overlap");
+    expect(regime.volatility).toBe("high");
+    expect(regime.spreadFactor).toBe(0.9);
+  });
+
+  it("identifies the later New York session", () => {
+    const regime = getMarketRegime(17);
     expect(regime.session).toBe("new-york");
     expect(regime.volatility).toBe("normal");
   });

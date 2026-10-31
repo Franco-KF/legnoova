@@ -1,4 +1,4 @@
-import { ShieldAlert, Monitor, Code2, ListChecks, Download, Terminal, ShieldCheck } from "lucide-react";
+import { ShieldAlert, Monitor, Code2, ListChecks, Download, Terminal, ShieldCheck, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { PageHeader } from "@/components/layout/page-header";
 import { siteConfig } from "@/config/site";
@@ -10,13 +10,28 @@ export default function BotPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <PageHeader
         eyebrow="Step-by-step guide · MetaTrader 5"
-        title="Connect your MT5 demo account"
-        description="Follow these steps to link your own MT5 terminal to Legnoova. Your computer runs the free bridge; Legnoova never receives your broker password."
+        title="Set up MT5 in a few simple steps"
+        description="Connect your demo account, run the small connector and check the green heartbeat. We explain each step in normal trader language—no broker password is sent to Legnoova."
       />
+
+      <section className="glass-panel border-emerald-500/20 bg-emerald-500/[0.04] p-5 sm:p-6">
+        <div className="flex items-start gap-3">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-300" />
+          <div>
+            <h2 className="font-heading text-lg font-bold">The simple version</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">You only need to do three things: connect MT5, keep the connector running, then press Start in Broker Automation. The detailed steps below show exactly where to click.</p>
+            <div className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
+              <div className="rounded-lg bg-white/[0.04] p-3"><strong>1. Connect</strong><p className="mt-1 text-xs text-muted-foreground">MT5 demo + private key</p></div>
+              <div className="rounded-lg bg-white/[0.04] p-3"><strong>2. Check</strong><p className="mt-1 text-xs text-muted-foreground">Green heartbeat on dashboard</p></div>
+              <div className="rounded-lg bg-white/[0.04] p-3"><strong>3. Start</strong><p className="mt-1 text-xs text-muted-foreground">Choose Normal or M1 Demo</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <div className="grid gap-4 md:grid-cols-3">
         {[
-          [Monitor, "Keep MT5 running", "Your computer, MT5, and the Python bridge must stay on while automation is running."],
+          [Monitor, "Keep MT5 running", "Your computer, MT5, and the connector must stay on while automation is running."],
           [Code2, "No extra bridge server", "The bridge runs on your computer and uses Python's built-in tools."],
           [ShieldAlert, "Start on demo", "Both the dashboard and the EA start with trade execution turned off."],
         ].map(([Icon, title, detail]) => (
@@ -29,7 +44,7 @@ export default function BotPage() {
       </div>
 
       <section className="glass-panel space-y-5 p-5 sm:p-7">
-        <Step number="1" title="Download and install MetaTrader 5 (MT5)">
+        <Step number="1" title="Get MT5 on your computer">
           MT5 is free and made by MetaQuotes — your broker only provides the account. Download the desktop terminal from the official MetaTrader 5 download page. Run the installer, accept the licence, and wait for it to finish. MT5 needs a live internet connection to connect to a broker server.
           <br className="hidden sm:block" />
           <br className="hidden sm:block" />
@@ -62,7 +77,7 @@ export default function BotPage() {
       </section>
 
       <section className="glass-panel space-y-5 p-5 sm:p-7">
-        <Step number="3" title="Check that Python 3.10 or later is installed">
+        <Step number="3" title="Install the small Legnoova connector">
           The Legnoova bridge is a Python script with no third-party dependencies, but it needs Python 3 installed.
           <br className="hidden sm:block" />
           <br className="hidden sm:block" />
@@ -75,7 +90,7 @@ export default function BotPage() {
       </section>
 
       <section className="glass-panel space-y-5 p-5 sm:p-7">
-        <Step number="4" title="Create your Legnoova device token">
+        <Step number="4" title="Create your private connection key">
           Sign in to Legnoova on a <strong>Broker plan</strong>. Open <Link className="text-emerald-300 underline" href="/app/automation">Broker Automation</Link> in the dashboard sidebar, then click <strong>Create bridge token</strong>. Copy the long token as soon as it appears — Legnoova stores only its hash and cannot show it again.
           <div className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/[0.05] p-3 text-sm leading-5">
             <strong>Device token vs local bridge token — they are different.</strong><br />
@@ -99,7 +114,7 @@ export default function BotPage() {
       </section>
 
       <section className="glass-panel space-y-5 p-5 sm:p-7">
-        <Step number="6" title="Start the Python bridge on your computer">
+        <Step number="6" title="Start the connector">
           Open PowerShell on Windows or Terminal on Linux/macOS, go to your Downloads folder, then run the commands below. Replace only <code>PASTE_DEVICE_TOKEN_HERE</code> with the token from Step 4. Keep the quotation marks already shown around the value; do not add extra ones.
         </Step>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -117,14 +132,14 @@ export default function BotPage() {
       </section>
 
       <section className="glass-panel space-y-5 p-5 sm:p-7">
-        <Step number="7" title="Let MT5 talk to the local bridge">
+        <Step number="7" title="Allow MT5 to talk to Legnoova">
           In MT5, open <strong>Tools → Options → Expert Advisors</strong> (or press Ctrl+O, then the Expert Advisors tab). Tick <strong>Allow WebRequest for listed URL</strong>, then add exactly <code>http://127.0.0.1:8765</code> to the URL list and click OK. MT5 matches the address exactly — no trailing slash, no typo. This address points to the bridge on your own computer. Do not open this port to the internet.
           <p className="rounded-lg bg-white/[0.03] p-3 text-sm text-muted-foreground">If requests fail, check the MT5 Journal/Experts tabs and make sure the Python bridge terminal is still running.</p>
         </Step>
       </section>
 
       <section className="glass-panel space-y-5 p-5 sm:p-7">
-        <Step number="8" title="Install, compile, and attach the Legnoova Expert Advisor">
+        <Step number="8" title="Add the Legnoova helper to your chart">
           In MT5 choose <strong>File → Open Data Folder</strong>. Open <code>MQL5</code>, then <code>Experts</code>. Copy <code>LegnoovaBridgeEA.mq5</code> from Downloads into that <code>Experts</code> folder. Back in MT5 press <strong>F4</strong> to open MetaEditor, find <code>LegnoovaBridgeEA</code> under Expert Advisors in the Navigator, open it, and press <strong>F7</strong> to compile. Check the bottom Errors panel says <strong>0 errors</strong>. This creates <code>LegnoovaBridgeEA.ex5</code>.
           <br className="hidden sm:block" />
           <br className="hidden sm:block" />
@@ -144,19 +159,19 @@ export default function BotPage() {
       </section>
 
       <section className="glass-panel space-y-5 p-5 sm:p-7">
-        <Step number="9" title="Turn on Algo Trading in MT5">
+        <Step number="9" title="Turn on Algo Trading">
           In the MT5 top toolbar click the <strong>Algo Trading</strong> button so it is green/enabled. On the chart where you attached LegnoovaBridgeEA, the small EA icon in the top-right corner should show a smiley face (not a &quot;no entry&quot; sign). If it shows &quot;no entry&quot;, click Algo Trading again. This lets the EA send orders. For your first test this stays off via <code>ExecutionEnabled=false</code> in the EA inputs, but Algo Trading itself must be enabled so the EA can run at all.
         </Step>
       </section>
 
       <section className="glass-panel space-y-5 p-5 sm:p-7">
-        <Step number="10" title="Verify the heartbeat in Legnoova">
-          Open <Link className="text-emerald-300 underline" href="/app/automation">Broker Automation</Link>. The dashboard shows the cloud-reported EA heartbeat, account safety, and trade permissions. A heartbeat means MT5, the bridge, and Legnoova are all connected. It updates while the bridge is running. If no heartbeat arrives, download and compile the latest EA (v0.6 or newer) and restart bridge.py.
+        <Step number="10" title="Check that everything is connected">
+          Open <Link className="text-emerald-300 underline" href="/app/automation">Broker Automation</Link>. The dashboard shows the cloud-reported EA heartbeat, account safety, and trade permissions. A heartbeat means MT5, the bridge, and Legnoova are all connected. It updates while the bridge is running. If no heartbeat arrives, download and compile the latest EA (v0.8 or newer) and restart bridge.py.
         </Step>
       </section>
 
       <section className="glass-panel space-y-5 p-5 sm:p-7">
-        <Step number="11" title="Choose a mode and activate demo automation">
+        <Step number="11" title="Choose a mode and press Start">
           <strong>Normal automation:</strong> in Broker Automation confirm the demo heartbeat, then activate Normal. Choose <strong>Trend-Pullback Confluence</strong> on Chart Analysis to publish signals. MT5 receives new eligible signals only.
           <br className="hidden sm:block" />
           <br className="hidden sm:block" />
@@ -164,7 +179,7 @@ export default function BotPage() {
         </Step>
         <div className="flex items-start gap-3 rounded-xl border border-amber-400/25 bg-amber-400/[0.06] p-4">
           <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
-          <div><p className="font-semibold text-amber-100">Before enabling execution</p><p className="mt-1 text-sm leading-6 text-muted-foreground">Automation is off by default. After the setup is connected, use Broker Automation to arm it; set <code>ExecutionEnabled</code> in the EA only on demo. Normal mode allows up to 0.5% risk; autonomous scalping risks about $4 per entry on $8,000 equity (0.05%), allows at most 40 entries/day and 10 in two minutes, and has a 0.5% daily loss stop. The two-minute rate is a safety ceiling, not a trade target. Signals can be wrong; slippage can exceed the planned loss and no profit is promised.</p></div>
+          <div><p className="font-semibold text-amber-100">Before enabling execution</p><p className="mt-1 text-sm leading-6 text-muted-foreground">Automation is off by default. After the setup is connected, use Broker Automation to arm it; set <code>ExecutionEnabled</code> in the EA only on demo. Normal mode allows up to 0.5% risk; autonomous scalping risks about $4 per entry on $8,000 equity (0.05%), allows at most 40 entries/day and 10 in two minutes, and has a 0.5% daily loss stop. A separate account guard pauses new entries after a 2% daily loss, three consecutive losses, or a 5% equity drawdown. The two-minute rate is a safety ceiling, not a trade target. Signals can be wrong; slippage can exceed the planned loss and no profit is promised.</p></div>
         </div>
       </section>
 

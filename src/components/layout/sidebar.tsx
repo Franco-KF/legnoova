@@ -32,7 +32,7 @@ const navItems = [
   { href: "/app/signals", label: "Signals", icon: BellRing },
   { href: "/app/analyze", label: "Chart Analysis", icon: LineChart },
   { href: "/app/automation", label: "Broker Automation", icon: Bot, badge: "MT5" },
-  { href: "/app/bot", label: "MT5 Setup Guide", icon: BookOpen },
+  { href: "/app/bot", label: "Automation Guide", icon: BookOpen, badge: "START" },
   { href: "/app/history", label: "History", icon: History },
   { href: "/app/watchlist", label: "Watchlist", icon: Star },
   { href: "/app/pricing", label: "Plans", icon: Sparkles },
@@ -155,6 +155,21 @@ function SidebarContent({
           );
         })}
       </nav>
+
+      {/* Friendly setup shortcut */}
+      {!compact && (
+        <div className="mx-3 mb-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-3">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-300">New to automation?</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">Connect MT5 in 3 simple steps. Start on demo and pause anytime.</p>
+          <Link
+            href="/app/bot"
+            onClick={onNavigate}
+            className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-emerald-300 hover:text-emerald-200"
+          >
+            Open the guide <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+      )}
 
       {/* Usage meter + plan */}
       {!compact && (

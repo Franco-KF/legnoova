@@ -10,7 +10,7 @@
  * Run with: npx vitest run tests/mt5-automation-flow.test.ts
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 // Mock the database connection
 vi.mock("@/lib/mongodb", () => ({

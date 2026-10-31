@@ -14,6 +14,7 @@ import {
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/page-header";
 import { toast } from "sonner";
+import { mutationHeaders } from "@/lib/csrf-client";
 
 interface WatchlistEntry {
   symbol: string;
@@ -62,7 +63,7 @@ export default function WatchlistPage() {
 
       const res = await fetch("/api/watchlist", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: mutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           entry: {
             symbol: signal.symbol,

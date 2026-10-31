@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { CircuitBreaker, getOrCreateBreaker, getBreakerState } from "@/lib/resilience/circuit-breaker";
 
 describe("CircuitBreaker", () => {

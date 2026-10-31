@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { headers, cookies } from "next/headers";
-import { validateCsrf, issueCsrfToken } from "@/lib/security/csrf";
-import { SECURITY } from "@/lib/security/config";
+import { headers } from "next/headers";
+import { isCsrfSafeRequest } from "@/lib/security/csrf";
 import { rateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit";
 import { recordSecurityEvent } from "@/models/AuditLog";
 
@@ -28,9 +27,6 @@ export function apiGuard(
     const ip = getClientIp(req);
     const method = req.method;
     const headersList = await headers();
-    const cookieStore = await cookies();
-    const cookieToken = (cookieStore.get(SECURITY.CSRF_COOKIE_NAME) as { value: string } | undefined)?.value ?? null;
-    const headerToken = headersList.get(SECURITY.CSRF_HEADER_NAME) ?? null;
 
     // Rate limit (per IP + key).
     const limited = rateLimitResponse(
@@ -53,32 +49,23 @@ export function apiGuard(
 
     // CSRF enforcement for state-changing methods.
     if (!options.skipCsrf && csrfMethods.has(method)) {
-      const validation = validateCsrf(cookieToken, headerToken);
-      if (!validation.ok) {
+      if (!isCsrfSafeRequest(req)) {
         await recordSecurityEvent({
           type: "csrf_failure",
           ip,
           userAgent: headersList.get("user-agent") ?? null,
-          details: { method, reason: validation.reason, path: new URL(req.url).pathname },
+          details: { method, reason: "csrf_header_or_origin_missing", path: new URL(req.url).pathname },
           severity: "high",
         });
         return NextResponse.json({ error: "CSRF validation failed" }, { status: 403 });
       }
     }
 
-    // Issue a fresh CSRF cookie on read-only responses so clients always have a current token.
-    const result = await handler(req, {
-      csrfToken: options.skipCsrf ? null : cookieToken,
+    return handler(req, {
+      csrfToken: null,
       skipCsrf: !!options.skipCsrf,
       userId: options.userId ?? null,
       ip,
     });
-
-    if (!options.skipCsrf && (method === "GET" || method === "HEAD" || method === "OPTIONS")) {
-      const token = await issueCsrfToken(result.headers);
-      result.headers.set(SECURITY.CSRF_HEADER_NAME, token);
-    }
-
-    return result;
   };
 }

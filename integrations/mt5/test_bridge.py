@@ -1,3 +1,5 @@
+import hashlib
+import hmac
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -56,6 +58,47 @@ class BridgeTests(unittest.TestCase):
             self.assertTrue(open_url.call_args.args[0].full_url.endswith("/api/automation/diagnostics/device"))
             bridge.api("POST", {"dealId": "123"}, "/api/automation/events/device")
             self.assertTrue(open_url.call_args.args[0].full_url.endswith("/api/automation/events/device"))
+
+
+    def test_v2_signature_covers_method_path_timestamp_nonce_and_body(self):
+        bridge.API_URL = "https://example.test"
+        bridge.DEVICE_TOKEN = "lvea_test-token"
+        body = b'{"signalId":"abc","status":"executed"}'
+        with patch.object(bridge.time, "time", return_value=1_800_000_000), patch.object(
+            bridge.secrets, "token_hex", return_value="a" * 32
+        ):
+            headers = bridge.signed_headers("POST", "/api/automation/device", body)
+        canonical = "\n".join(
+            [
+                "v2",
+                "POST",
+                "/api/automation/device",
+                "1800000000",
+                "a" * 32,
+                hashlib.sha256(body).hexdigest(),
+            ]
+        )
+        expected = hmac.new(
+            hashlib.sha256(bridge.DEVICE_TOKEN.encode("utf-8")).digest(),
+            canonical.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        self.assertEqual(headers["X-MT5-Signature"], expected)
+
+    def test_retry_uses_a_fresh_nonce(self):
+        bridge.API_URL = "https://example.test"
+        bridge.DEVICE_TOKEN = "token"
+
+        class Response:
+            def __enter__(self): return self
+            def __exit__(self, *args): pass
+            def read(self): return b'{"signal":null}'
+
+        nonces = iter(["a" * 32, "b" * 32])
+        with patch.object(bridge.secrets, "token_hex", side_effect=lambda _: next(nonces)), patch.object(
+            bridge, "urlopen", side_effect=[bridge.URLError("temporary"), Response()]
+        ), patch.object(bridge.time, "sleep", return_value=None):
+            bridge.api()
 
     def test_local_bridge_requires_its_separate_token(self):
         handler = object.__new__(bridge.Handler)

@@ -9,6 +9,7 @@ import { TrustPrinciples } from "@/components/marketing/trust-principles";
 import { Pricing } from "@/components/marketing/pricing";
 import { FAQ } from "@/components/marketing/faq";
 import { CTASection } from "@/components/marketing/cta-section";
+import { BrokerAutomation } from "@/components/marketing/broker-automation";
 import { JsonLd } from "@/components/seo/json-ld";
 import { siteConfig, siteUrl } from "@/config/site";
 import { faqs } from "@/config/faqs";
@@ -112,6 +113,7 @@ export default function Home() {
       <ProductExplanation />
       <CoreValue />
       <Features />
+      <BrokerAutomation />
       <Strategies />
       <UseCase />
       <TrustPrinciples />

@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { checkNewsGuard } from "@/lib/intelligence/news-guard";
-import type { NewsGuardResult } from "@/lib/intelligence/news-guard";
 
 describe("checkNewsGuard", () => {
   it("allows trading at midnight UTC (no news in 30-min window)", () => {

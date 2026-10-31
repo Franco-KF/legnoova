@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth/auth";
+import { rejectCrossOrigin } from "@/lib/auth/request";
 import { dbConnect } from "@/lib/mongodb";
 import { Analysis } from "@/models/Analysis";
 import { SIGNAL_STATUSES, TOOK_IT_VALUES } from "@/lib/analysis/types";
@@ -19,6 +20,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const crossOrigin = rejectCrossOrigin(req);
+    if (crossOrigin) return crossOrigin;
+
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

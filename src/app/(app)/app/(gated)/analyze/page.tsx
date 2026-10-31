@@ -25,6 +25,7 @@ import {
 import { SignalCard } from "@/components/signals/signal-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { cn } from "@/lib/utils";
+import { mutationHeaders } from "@/lib/csrf-client";
 
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const MAX_SIZE = 8 * 1024 * 1024;
@@ -154,7 +155,7 @@ export default function AnalyzePage() {
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: mutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           image: imageBase64,
           mimeType,
@@ -185,7 +186,7 @@ export default function AnalyzePage() {
     try {
       const res = await fetch(`/api/signals/${signalId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: mutationHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify(patch),
       });
       const data = await res.json();

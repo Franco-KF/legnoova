@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import { Analysis } from "@/models/Analysis";
 import { EAcknowledgement } from "@/models/EAcknowledgement";
-import { User, type IUser } from "@/models/User";
+import type { IUser } from "@/models/User";
 import { hasBrokerAutomationAccess } from "@/lib/mt5-access";
 
 export async function getAutomationDiagnostics(user: IUser) {
@@ -10,9 +10,8 @@ export async function getAutomationDiagnostics(user: IUser) {
   const automationModeFilter = mode === "normal"
     ? { $or: [{ automationMode: "normal" as const }, { automationMode: { $exists: false } }] }
     : { automationMode: "scalping" as const };
-  const tokenRecord = await User.findById(user._id).select("+eaTokenHash mt5LastSignalId mt5LeaseUntil mt5LastHeartbeatAt mt5Runtime");
-  const after = tokenRecord?.mt5LastSignalId && mongoose.isValidObjectId(tokenRecord.mt5LastSignalId)
-    ? new mongoose.Types.ObjectId(tokenRecord.mt5LastSignalId)
+  const after = user.mt5LastSignalId && mongoose.isValidObjectId(user.mt5LastSignalId)
+    ? new mongoose.Types.ObjectId(user.mt5LastSignalId)
     : null;
   const queueFilter = {
     userId: user._id,
@@ -23,7 +22,7 @@ export async function getAutomationDiagnostics(user: IUser) {
     direction: { $in: ["buy" as const, "sell" as const] },
     ...(after ? { _id: { $gt: after } } : {}),
   };
-  const leaseActive = !!tokenRecord?.mt5LeaseUntil && tokenRecord.mt5LeaseUntil > new Date();
+  const leaseActive = !!user.mt5LeaseUntil && user.mt5LeaseUntil > new Date();
 
   const [queuedSignals, nextSignal, latestDirectionalSignal, latestAcknowledgement] = await Promise.all([
     Analysis.countDocuments(queueFilter),
@@ -33,13 +32,13 @@ export async function getAutomationDiagnostics(user: IUser) {
     EAcknowledgement.findOne({ userId: user._id }).sort({ createdAt: -1 }).select("status details brokerOrderId createdAt").lean(),
   ]);
 
-  const tokenIssued = !!tokenRecord?.eaTokenHash;
+  const tokenIssued = !!user.eaTokenHash;
   const enabled = !!user.brokerAutomationEnabled;
-  const heartbeatAgeSeconds = tokenRecord?.mt5LastHeartbeatAt
-    ? Math.max(0, Math.floor((Date.now() - tokenRecord.mt5LastHeartbeatAt.getTime()) / 1000))
+  const heartbeatAgeSeconds = user.mt5LastHeartbeatAt
+    ? Math.max(0, Math.floor((Date.now() - user.mt5LastHeartbeatAt.getTime()) / 1000))
     : null;
   const heartbeatCurrent = heartbeatAgeSeconds !== null && heartbeatAgeSeconds <= 45;
-  const runtime = tokenRecord?.mt5Runtime ?? null;
+  const runtime = user.mt5Runtime ?? null;
   const tradePermissions = !!runtime?.terminalTradeAllowed && !!runtime?.accountTradeAllowed && !!runtime?.expertTradeAllowed;
   const demoActivationReady = hasBrokerPlan && tokenIssued && heartbeatCurrent && !!runtime?.executionEnabled
     && tradePermissions && !!runtime?.demoAccount && !runtime?.liveTradingAllowed;

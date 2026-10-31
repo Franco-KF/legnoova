@@ -32,7 +32,7 @@ export async function GET() {
       ? Math.min(user.brokerRiskPercent ?? 0.05, 0.05)
       : user.brokerRiskPercent ?? 0.5,
     tokenIssued: !!tokenRecord?.eaTokenHash,
-  });
+  }, { headers: { "Cache-Control": "no-store" } });
 }
 
 export async function PATCH(req: Request) {
