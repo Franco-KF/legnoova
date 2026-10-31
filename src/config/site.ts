@@ -35,7 +35,7 @@ export const siteConfig = {
     site: "@legnoova",
     creator: "@legnoova",
   },
-  contactEmail: "hello@legnoova.com",
+  contactEmail: "ntwarifrank100@gmail.com",
   author: "Legnoova AI",
   inLanguage: "en",
 };
