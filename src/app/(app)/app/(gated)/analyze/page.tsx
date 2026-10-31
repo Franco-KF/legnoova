@@ -30,8 +30,14 @@ import { mutationHeaders } from "@/lib/csrf-client";
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 const MAX_SIZE = 8 * 1024 * 1024;
 
-function normalizeMime(type: string): string {
+function normalizeMime(type: string, name = ""): string {
   if (type === "image/jpg") return "image/jpeg";
+  if (ACCEPTED_TYPES.includes(type)) return type;
+  const extension = name.toLowerCase().split(".").pop();
+  if (extension === "jpg" || extension === "jpeg") return "image/jpeg";
+  if (extension === "png") return "image/png";
+  if (extension === "webp") return "image/webp";
+  if (extension === "gif") return "image/gif";
   return type;
 }
 
@@ -81,7 +87,7 @@ function prepareImage(file: File): Promise<{ base64: string; mimeType: string }>
 
     image.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("Could not read the image file."));
+      reject(new Error("Could not read this image. Please use a PNG, JPEG or WEBP screenshot exported from your charting app."));
     };
 
     image.src = url;
@@ -105,8 +111,13 @@ export default function AnalyzePage() {
   const strategy = getStrategy(strategyId);
 
   const handleFile = useCallback(async (file: File) => {
-    if (!ACCEPTED_TYPES.includes(file.type)) {
+    const inputMime = normalizeMime(file.type, file.name);
+    if (!ACCEPTED_TYPES.includes(inputMime)) {
       toast.error("Unsupported file type. Use PNG, JPEG, WEBP or GIF.");
+      return;
+    }
+    if (file.size === 0) {
+      toast.error("This image is empty. Please export the chart again and retry.");
       return;
     }
     if (file.size > MAX_SIZE) {
@@ -115,14 +126,17 @@ export default function AnalyzePage() {
     }
 
     try {
-      const prepared = await prepareImage(file);
+      // Some browsers leave File.type empty for screenshots or downloaded files;
+      // use the filename extension as a safe fallback.
+      const normalizedFile = inputMime === file.type ? file : new File([file], file.name, { type: inputMime });
+      const prepared = await prepareImage(normalizedFile);
       setImageBase64(prepared.base64);
       setMimeType(prepared.mimeType);
       setPreviewUrl(URL.createObjectURL(file));
       setResult(null);
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Could not read the image file."
+        err instanceof Error ? err.message : "Could not read this image. Please export the chart as PNG or JPEG and try again."
       );
     }
   }, []);
