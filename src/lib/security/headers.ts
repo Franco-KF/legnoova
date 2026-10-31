@@ -18,6 +18,7 @@ export function buildCsp(isDev: boolean): string {
     "https://cdn.paddle.com",
     "https://*.paddle.com",
     "https://*.paddle.io",
+    "https://public.profitwell.com",
     // Loopback bridge health check. The bridge is local and read-only.
     "http://127.0.0.1:8765",
     "http://localhost:8765",
@@ -32,12 +33,12 @@ export function buildCsp(isDev: boolean): string {
     // Blocking inline scripts prevents React from hydrating, which makes the
     // whole page static (buttons/forms do nothing). 'unsafe-inline' is required
     // unless a nonce-based CSP is wired through middleware.
-    "script-src 'self' 'unsafe-inline' https://cdn.paddle.com https://*.paddle.com https://*.paddle.io" + (isDev ? " 'unsafe-eval'" : ""),
-    "style-src 'self' 'unsafe-inline'", // Tailwind inline styles injected at runtime
+    "script-src 'self' 'unsafe-inline' https://cdn.paddle.com https://*.paddle.com https://*.paddle.io https://public.profitwell.com" + (isDev ? " 'unsafe-eval'" : ""),
+    "style-src 'self' 'unsafe-inline' https://cdn.paddle.com https://*.paddle.com https://*.paddle.io", // Tailwind and Paddle hosted styles
     "img-src 'self' data: https:",
-    "font-src 'self' https://cdn.paddle.com https://*.paddle.com",
+    "font-src 'self' https://cdn.paddle.com https://*.paddle.com https://*.paddle.io",
     "frame-src 'self' https://*.paddle.com https://*.paddle.io",
-    `connect-src ${connectSources.join(" ")} https://*.paddle.com https://*.paddle.io`,
+    `connect-src ${connectSources.join(" ")} https://*.paddle.com https://*.paddle.io https://public.profitwell.com`,
     "frame-ancestors 'none'", // clickjacking
     "base-uri 'self'",
     "form-action 'self'",

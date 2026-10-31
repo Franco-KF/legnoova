@@ -114,6 +114,9 @@ export async function startCheckout(
       variant: "one-page",
       frameTarget,
       frameInitialHeight: "620",
+      // Paddle requires the account's approved default payment link for
+      // transaction checkouts. Configure this URL in Paddle Checkout settings.
+      successUrl: `${window.location.origin}/app/billing`,
       frameStyle: "width:100%; min-width:312px; background-color:transparent; border:0;",
       allowLogout: false,
     },
