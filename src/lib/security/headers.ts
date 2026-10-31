@@ -32,7 +32,7 @@ export function buildCsp(isDev: boolean): string {
     // Blocking inline scripts prevents React from hydrating, which makes the
     // whole page static (buttons/forms do nothing). 'unsafe-inline' is required
     // unless a nonce-based CSP is wired through middleware.
-    "script-src 'self' 'unsafe-inline'" + (isDev ? " 'unsafe-eval'" : ""),
+    "script-src 'self' 'unsafe-inline' https://cdn.paddle.com https://*.paddle.com https://*.paddle.io" + (isDev ? " 'unsafe-eval'" : ""),
     "style-src 'self' 'unsafe-inline'", // Tailwind inline styles injected at runtime
     "img-src 'self' data: https:",
     "font-src 'self' https://cdn.paddle.com https://*.paddle.com",
@@ -80,8 +80,10 @@ export function securityHeaders(isDev: boolean) {
       value: "same-origin",
     },
     {
+      // Hosted payment providers must be embeddable; require-corp blocks
+      // Paddle.js and its checkout frame in browsers.
       key: "Cross-Origin-Embedder-Policy",
-      value: "require-corp",
+      value: "unsafe-none",
     },
     {
       key: "X-DNS-Prefetch-Control",

@@ -58,6 +58,7 @@ function loadPaddle(): Promise<PaddleGlobal> {
   loadPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = PADDLE_JS_SRC;
+    script.referrerPolicy = "strict-origin-when-cross-origin";
     script.async = true;
     script.crossOrigin = "anonymous";
     script.onload = () => {
