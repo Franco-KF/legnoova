@@ -1,125 +1,18 @@
-import type { Metadata } from "next";
-import { Hero } from "@/components/marketing/hero";
-import { ProductExplanation } from "@/components/marketing/product-explanation";
-import { CoreValue } from "@/components/marketing/core-value";
-import { Features } from "@/components/marketing/features";
-import { Strategies } from "@/components/marketing/strategies";
-import { UseCase } from "@/components/marketing/use-case";
-import { TrustPrinciples } from "@/components/marketing/trust-principles";
-import { Pricing } from "@/components/marketing/pricing";
-import { FAQ } from "@/components/marketing/faq";
-import { CTASection } from "@/components/marketing/cta-section";
-import { BrokerAutomation } from "@/components/marketing/broker-automation";
-import { JsonLd } from "@/components/seo/json-ld";
-import { siteConfig, siteUrl } from "@/config/site";
-import { faqs } from "@/config/faqs";
-import { PLANS, CONSENSUS_THRESHOLDS } from "@/config/plans";
+import Link from "next/link";
+import { ArrowUpRight, Check, FileText, Sparkles } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "AI Forex Chart Analysis, Signals & MT5 Automation",
-  description: "Analyze forex charts with an AI second opinion, review trade levels and connect MT5 demo automation with clear risk controls.",
-  alternates: {
-    canonical: siteUrl,
-  },
-  openGraph: {
-    type: "website",
-    title: `${siteConfig.name} — AI Forex Signals`,
-    description: siteConfig.description,
-    url: siteUrl,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${siteConfig.name} — AI Forex Signals`,
-    description: siteConfig.description,
-  },
+export const metadata = {
+  title: "Legnoova AI — Improve your documents",
+  description: "Upload a document or paste text and improve grammar, structure and tone with Legnoova AI while keeping your meaning and voice.",
 };
 
-const faqSchema = {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  mainEntity: faqs.map((faq) => ({
-    "@type": "Question",
-    name: faq.question,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: faq.answer,
-    },
-  })),
-};
-
-const orgSchema = {
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  name: siteConfig.name,
-  url: siteUrl,
-  logo: `${siteUrl}/icon.svg`,
-  description: siteConfig.description,
-  email: siteConfig.contactEmail,
-};
-
-const websiteSchema = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: siteConfig.name,
-  url: siteUrl,
-  description: siteConfig.description,
-  inLanguage: siteConfig.inLanguage,
-  publisher: {
-    "@type": "Organization",
-    name: siteConfig.name,
-    logo: `${siteUrl}/icon.svg`,
-  },
-};
-
-const softwareSchema = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: siteConfig.name,
-  applicationCategory: "BusinessApplication",
-  operatingSystem: "Web",
-  description: siteConfig.description,
-  url: siteUrl,
-  offers: {
-    "@type": "Offer",
-    price: String(PLANS[0]?.price ?? "29"),
-    priceCurrency: "USD",
-    offers: PLANS.map((plan) => ({
-      "@type": "Offer",
-      name: plan.name,
-      price: String(plan.price),
-      priceCurrency: "USD",
-      description: plan.tagline,
-    })),
-  },
-  featureList: [
-    "AI chart analysis",
-    "Trend detection",
-    "Market structure",
-    "Support and resistance",
-    "Smart Money Concepts",
-    "Entry, take profit and stop loss ideas",
-    `Confidence threshold: ${CONSENSUS_THRESHOLDS.buy}% agreement to form a signal`,
-  ],
-};
+const benefits = ["Clearer writing without losing your voice", "Professional grammar, structure and tone suggestions", "You review and approve every final change"];
 
 export default function Home() {
-  return (
-    <>
-      <JsonLd data={faqSchema} />
-      <JsonLd data={orgSchema} />
-      <JsonLd data={websiteSchema} />
-      <JsonLd data={softwareSchema} />
-      <Hero />
-      <ProductExplanation />
-      <CoreValue />
-      <Features />
-      <BrokerAutomation />
-      <Strategies />
-      <UseCase />
-      <TrustPrinciples />
-      <Pricing />
-      <FAQ />
-      <CTASection />
-    </>
-  );
+  return <main className="min-h-screen bg-[#f7f4ee] text-[#24231f]">
+    <section className="relative overflow-hidden border-b border-[#24231f]/10 px-5 pb-24 pt-20 sm:px-8 sm:pb-32 sm:pt-28"><div className="pointer-events-none absolute -right-32 top-12 h-96 w-96 rounded-full bg-[#e8b66a]/30 blur-3xl" /><div className="mx-auto grid max-w-6xl items-center gap-14 lg:grid-cols-[1.05fr_0.95fr]"><div><p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#b45309]">AI document improvement</p><h1 className="mt-5 max-w-3xl font-serif text-5xl font-bold leading-[1.02] tracking-tight sm:text-7xl">Make your document clearer, stronger and easier to understand.</h1><p className="mt-7 max-w-xl text-lg leading-8 text-[#24231f]/65">Upload a document or paste your text. Legnoova AI improves grammar, structure and tone while keeping your meaning and voice.</p><div className="mt-9 flex flex-col gap-3 sm:flex-row"><Link href="/fallback/dashboard" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#24231f] px-6 text-sm font-semibold text-[#f7f4ee] hover:bg-[#3b3933]">Improve my document <ArrowUpRight className="h-4 w-4" /></Link><Link href="#how" className="inline-flex h-12 items-center justify-center rounded-full border border-[#24231f]/20 px-6 text-sm font-semibold hover:bg-white/50">See how it works</Link></div><p className="mt-5 text-xs text-[#24231f]/50">AI suggestions, human judgment. You approve the final words.</p></div><div className="relative rotate-1 rounded-[2rem] border border-[#24231f]/15 bg-[#fffdf8] p-5 shadow-[12px_18px_0_rgba(36,35,31,0.08)] sm:p-7"><div className="flex items-center justify-between border-b border-[#24231f]/10 pb-4"><div className="flex items-center gap-2 text-sm font-semibold"><FileText className="h-4 w-4 text-[#b45309]" /> Document review</div><span className="rounded-full bg-[#f3e4c9] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#8a4a0a]">Improved</span></div><p className="mt-6 font-serif text-2xl leading-relaxed">Clear writing gives your ideas room to be understood.</p><div className="mt-7 space-y-2">{benefits.map((benefit) => <div key={benefit} className="flex items-center gap-2 text-sm text-[#24231f]/60"><Check className="h-4 w-4 text-[#b45309]" />{benefit}</div>)}</div><div className="mt-7 flex items-center gap-2 border-t border-[#24231f]/10 pt-4 text-xs text-[#24231f]/50"><Sparkles className="h-3.5 w-3.5 text-[#b45309]" /> Your voice stays in the document</div></div></div></section>
+    <section id="how" className="px-5 py-20 sm:px-8"><div className="mx-auto max-w-6xl"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b45309]">The simple process</p><h2 className="mt-3 max-w-xl font-serif text-4xl font-bold">From rough text to ready to share.</h2><div className="mt-12 grid gap-5 md:grid-cols-3">{[{ n:"01", title:"Add your content", text:"Upload a document or paste the text you want to improve." },{ n:"02", title:"Tell us what to improve", text:"Ask for clearer grammar, a warmer tone, shorter wording or more confidence." },{ n:"03", title:"Review and use it", text:"Read the suggestions, make your edits and approve the final version." }].map((item) => <article key={item.n} className="border-t-2 border-[#24231f] pt-5"><span className="font-mono text-xs text-[#b45309]">{item.n}</span><h3 className="mt-6 font-serif text-2xl font-bold">{item.title}</h3><p className="mt-3 text-sm leading-6 text-[#24231f]/60">{item.text}</p></article>)}</div></div></section>
+    <section id="support" className="bg-[#eee9df] px-5 py-16 sm:px-8"><div className="mx-auto max-w-4xl"><p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#b45309]">Support</p><h2 className="mt-3 font-serif text-4xl font-bold">Questions about Legnoova AI?</h2><p className="mt-3 max-w-xl text-[#24231f]/60">We can help with your account, documents, subscription or workspace.</p><a href="mailto:ntwarifrank100@gmail.com" className="mt-6 inline-flex rounded-full bg-[#24231f] px-5 py-3 text-sm font-semibold text-[#f7f4ee]">Email support</a></div></section>
+    <footer className="bg-[#24231f] px-5 py-10 text-[#f7f4ee] sm:px-8"><div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-5 text-xs text-white/60"><span>© 2026 Legnoova AI</span><div className="flex flex-wrap gap-5"><Link href="/fallback/pricing">Pricing</Link><Link href="/fallback/privacy">Privacy</Link><Link href="/fallback/terms">Terms</Link><Link href="/fallback/refunds">Refund policy</Link></div></div></footer>
+  </main>;
 }
