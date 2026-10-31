@@ -1,0 +1,2 @@
+import { Skeleton } from "@/components/ui/skeleton";
+export default function FallbackLoading() { return <main className="mx-auto max-w-5xl space-y-6 px-4 py-16"><Skeleton className="mx-auto h-12 w-2/3" /><Skeleton className="mx-auto h-5 w-1/2" /><div className="grid gap-5 sm:grid-cols-3"><Skeleton className="h-36 rounded-2xl" /><Skeleton className="h-36 rounded-2xl" /><Skeleton className="h-36 rounded-2xl" /></div></main>; }
