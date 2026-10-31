@@ -3,7 +3,7 @@ import { MONEY_BACK_DAYS } from "./billing";
 export const faqs = [
   {
     question: "How does the subscription work?",
-    answer: `Subscribe monthly. You need to add a payment method, but we won't charge you during the trial. Cancel before it ends to avoid the monthly charge. If you keep your plan, it will renew at its listed price.`,
+    answer: "Subscribe monthly through secure Paddle checkout. Your selected plan renews monthly until you cancel. You can cancel anytime to stop future charges.",
   },
   {
     question: "Is Legnoova financial advice?",

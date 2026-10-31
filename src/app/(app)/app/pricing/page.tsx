@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import {
   ArrowRight,
   BadgeCheck,
-  CalendarDays,
   Check,
   CreditCard,
   Lock,
@@ -15,7 +14,7 @@ import { auth } from "@/lib/auth/auth";
 import { dbConnect } from "@/lib/mongodb";
 import { User } from "@/models/User";
 import { PLANS, PLAN_BADGES } from "@/config/plans";
-import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
+import { MONEY_BACK_DAYS } from "@/config/billing";
 import { PricingCard } from "@/components/marketing/pricing-card";
 import { PageHeader } from "@/components/layout/page-header";
 
@@ -25,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 const TRUST = [
-  { icon: CalendarDays, label: `${TRIAL_DAYS}-day subscription` },
+  { icon: ShieldCheck, label: "Secure monthly billing" },
   { icon: ShieldCheck, label: "Encrypted card storage" },
   { icon: BadgeCheck, label: `${MONEY_BACK_DAYS}-day money-back guarantee` },
   { icon: Lock, label: "Cancel anytime, no fees" },
@@ -59,9 +58,7 @@ export default async function UpgradePage({
           <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
           <p>
             <strong className="font-semibold">Choose a plan to continue.</strong>{" "}
-            Start with a {TRIAL_DAYS}-day subscription — your workspace unlocks
-            the moment it begins, and you won&apos;t be charged until the trial
-            ends.
+            Subscribe monthly — your workspace unlocks after payment is confirmed. Paddle shows the price before you confirm.
           </p>
         </div>
       )}
@@ -72,7 +69,7 @@ export default async function UpgradePage({
         description={
           hasPlan
             ? "You have full access. Manage your subscription or switch plans below."
-            : `Every plan starts with a ${TRIAL_DAYS}-day subscription. Upgrade, cancel, or switch anytime.`
+            : "Choose a plan with secure monthly billing. Upgrade, cancel, or switch anytime."
         }
         actions={
           hasPlan ? (
