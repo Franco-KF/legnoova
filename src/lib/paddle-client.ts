@@ -59,6 +59,7 @@ function loadPaddle(): Promise<PaddleGlobal> {
     const script = document.createElement("script");
     script.src = PADDLE_JS_SRC;
     script.async = true;
+    script.crossOrigin = "anonymous";
     script.onload = () => {
       if (window.Paddle) resolve(window.Paddle);
       else reject(new Error("Paddle.js loaded but Paddle global missing"));
@@ -79,7 +80,8 @@ export async function startCheckout(
 ): Promise<void> {
   const res = await fetch("/api/billing/checkout", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
     body: JSON.stringify({ planId }),
   });
   const data = await res.json().catch(() => null);

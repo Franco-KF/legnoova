@@ -14,6 +14,10 @@ export function buildCsp(isDev: boolean): string {
     "https://accounts.google.com",
     "https://oauth2.googleapis.com",
     "https://www.googleapis.com",
+    // Paddle.js and its hosted checkout/payment services.
+    "https://cdn.paddle.com",
+    "https://*.paddle.com",
+    "https://*.paddle.io",
     // Loopback bridge health check. The bridge is local and read-only.
     "http://127.0.0.1:8765",
     "http://localhost:8765",
@@ -31,8 +35,9 @@ export function buildCsp(isDev: boolean): string {
     "script-src 'self' 'unsafe-inline'" + (isDev ? " 'unsafe-eval'" : ""),
     "style-src 'self' 'unsafe-inline'", // Tailwind inline styles injected at runtime
     "img-src 'self' data: https:",
-    "font-src 'self'",
-    `connect-src ${connectSources.join(" ")}`,
+    "font-src 'self' https://cdn.paddle.com https://*.paddle.com",
+    "frame-src 'self' https://*.paddle.com https://*.paddle.io",
+    `connect-src ${connectSources.join(" ")} https://*.paddle.com https://*.paddle.io`,
     "frame-ancestors 'none'", // clickjacking
     "base-uri 'self'",
     "form-action 'self'",
