@@ -11,6 +11,9 @@ const routes: Array<{
   { path: "/features", priority: 0.9, changeFrequency: "monthly", lastModified: "2026-09-13" },
   { path: "/pricing", priority: 0.9, changeFrequency: "monthly", lastModified: "2026-09-13" },
   { path: "/how-it-works", priority: 0.8, changeFrequency: "monthly", lastModified: "2026-09-13" },
+  { path: "/forex-chart-analysis", priority: 0.9, changeFrequency: "monthly", lastModified: "2026-10-31" },
+  { path: "/forex-automation", priority: 0.9, changeFrequency: "monthly", lastModified: "2026-10-31" },
+  { path: "/forex-trading-bot", priority: 0.9, changeFrequency: "monthly", lastModified: "2026-10-31" },
   { path: "/privacy", priority: 0.3, changeFrequency: "yearly", lastModified: "2026-01-15" },
   { path: "/terms", priority: 0.3, changeFrequency: "yearly", lastModified: "2026-01-15" },
 ];

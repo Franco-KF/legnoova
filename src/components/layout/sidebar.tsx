@@ -12,7 +12,6 @@ import {
   History,
   Star,
   BookOpen,
-  CreditCard,
   Settings,
   LogOut,
   ChevronLeft,
@@ -35,8 +34,6 @@ const navItems = [
   { href: "/app/bot", label: "Automation Guide", icon: BookOpen, badge: "START" },
   { href: "/app/history", label: "History", icon: History },
   { href: "/app/watchlist", label: "Watchlist", icon: Star },
-  { href: "/app/pricing", label: "Plans", icon: Sparkles },
-  { href: "/app/billing", label: "Billing", icon: CreditCard },
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
@@ -121,7 +118,7 @@ function SidebarContent({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
         {navItems.map((item) => {
           const active = isActive(item.href, item.exact);
           return (
@@ -210,6 +207,32 @@ function SidebarContent({
       )}
 
       {/* User section */}
+      {!compact && (
+        <div className="border-t border-white/[0.06] px-3 pb-3">
+          <button
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-300 disabled:cursor-wait disabled:opacity-60"
+          >
+            {signingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+            {signingOut ? "Signing out…" : "Log out"}
+          </button>
+        </div>
+      )}
+      {compact && (
+        <div className="border-t border-white/[0.06] px-2 pb-3 pt-2">
+          <button
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="flex w-full justify-center rounded-xl p-2.5 text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-300 disabled:cursor-wait disabled:opacity-60"
+            title="Log out"
+            aria-label="Log out"
+          >
+            {signingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
+          </button>
+        </div>
+      )}
+
       <div
         className={cn(
           "flex items-center gap-3 border-t border-white/[0.06] px-4 py-4",
@@ -229,17 +252,7 @@ function SidebarContent({
             </p>
           </div>
         )}
-        {!compact && (
-          <button
-            onClick={handleSignOut}
-            disabled={signingOut}
-            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-red-400 disabled:cursor-wait disabled:opacity-60"
-            title="Sign out"
-            aria-label="Sign out"
-          >
-            {signingOut ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
-          </button>
-        )}
+
       </div>
     </>
   );

@@ -52,6 +52,10 @@ export const metadata: Metadata = {
     title: `${siteConfig.name} — AI Forex Signals`,
     description: siteConfig.description,
   },
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-icon", type: "image/png", sizes: "180x180" }],
+  },
   robots: {
     index: true,
     follow: true,

@@ -16,8 +16,8 @@ import { faqs } from "@/config/faqs";
 import { PLANS, CONSENSUS_THRESHOLDS } from "@/config/plans";
 
 export const metadata: Metadata = {
-  title: `${siteConfig.name} — AI Forex Signals`,
-  description: siteConfig.description,
+  title: "AI Forex Chart Analysis, Signals & MT5 Automation",
+  description: "Analyze forex charts with an AI second opinion, review trade levels and connect MT5 demo automation with clear risk controls.",
   alternates: {
     canonical: siteUrl,
   },
