@@ -1,102 +1,10 @@
-import type { Metadata } from "next";
-import { PLANS } from "@/config/plans";
-import { MONEY_BACK_DAYS, TRIAL_DAYS } from "@/config/billing";
-import { PricingCard } from "@/components/marketing/pricing-card";
-import { SubpageHero } from "@/components/marketing/subpage-hero";
-import { FAQ } from "@/components/marketing/faq";
-import { CTASection } from "@/components/marketing/cta-section";
-import { JsonLd } from "@/components/seo/json-ld";
-import { BadgeCheck, CalendarDays, ShieldCheck } from "lucide-react";
-import { siteUrl } from "@/config/site";
+import Link from "next/link";
+import { Check, FileText, ShieldCheck, Sparkles } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Pricing",
-  description: `Get clear chart reviews, signals and trading tools in one place. Try Legnoova free for ${TRIAL_DAYS} days. Cancel anytime.`,
-  alternates: {
-    canonical: `${siteUrl}/pricing`,
-  },
-  openGraph: {
-    type: "website",
-    title: "Pricing — Legnoova AI",
-    description: `Start with a ${TRIAL_DAYS}-day free trial. Your next trade deserves a second opinion.`,
-    url: `${siteUrl}/pricing`,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Pricing — Legnoova AI",
-    description: `Start with a ${TRIAL_DAYS}-day free trial. Your next trade deserves a second opinion.`,
-  },
-};
+export const metadata = { title: "Document improvement pricing — Legnoova AI", description: "Simple pricing for improving letters, emails and professional documents with Legnoova AI." };
 
-const pricingSchema = {
-  "@context": "https://schema.org",
-  "@type": "Product",
-  name: "Legnoova AI",
-  description:
-    "AI-powered forex chart analysis. An independent second opinion that validates your setups before you trade.",
-  url: `${siteUrl}/pricing`,
-  brand: {
-    "@type": "Brand",
-    name: "Legnoova AI",
-  },
-  offers: {
-    "@type": "AggregateOffer",
-    lowPrice: String(Math.min(...PLANS.map((p) => p.price))),
-    highPrice: String(Math.max(...PLANS.map((p) => p.price))),
-    priceCurrency: "USD",
-    availability: "https://schema.org/InStock",
-    offers: PLANS.map((plan) => ({
-      "@type": "Offer",
-      name: plan.name,
-      price: String(plan.price),
-      priceCurrency: "USD",
-      description: plan.tagline,
-    })),
-  },
-};
+const features = ["Improve letters, emails and professional documents", "Paste text or upload TXT, PDF, DOC and DOCX files", "Ask for clearer grammar, tone or structure", "Review and edit every suggestion", "Private writing workspace", "Copy your final improved document"];
 
 export default function PricingPage() {
-  return (
-    <>
-      <JsonLd data={pricingSchema} />
-      <SubpageHero
-        eyebrow="Pricing"
-        title={<>Forex Tools for $29.<br className="hidden sm:block" /> Broker Automation for $59.</>}
-        subtitle={`Try a plan free for ${TRIAL_DAYS} days. Add a payment method to start. Cancel before the trial ends to avoid a charge. Cancel anytime after that, too.`}
-      />
-      <section className="py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2 lg:gap-6">
-            {PLANS.map((plan) => (
-              <PricingCard
-                key={plan.id}
-                plan={plan}
-                popular={plan.id === "broker"}
-                ctaLabel={plan.id === "broker" ? "Choose the $59 Broker Plan" : plan.cta}
-                footnote={plan.note}
-              />
-            ))}
-          </div>
-
-          <div className="mx-auto mt-10 grid max-w-3xl gap-3 sm:grid-cols-3">
-            {[
-              { icon: CalendarDays, label: `${TRIAL_DAYS} days free, then monthly billing` },
-              { icon: BadgeCheck, label: `${MONEY_BACK_DAYS}-day money-back guarantee` },
-              { icon: ShieldCheck, label: "Pay monthly · cancel anytime" },
-            ].map(({ icon: Icon, label }) => (
-              <div
-                key={label}
-                className="flex items-center justify-center gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.02] px-3.5 py-3 text-xs text-muted-foreground"
-              >
-                <Icon className="h-4 w-4 shrink-0 text-emerald-400" />
-                {label}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      <FAQ />
-      <CTASection />
-    </>
-  );
+  return <main className="min-h-screen bg-[#0d1117] px-5 py-16 text-[#f4f7fb] sm:px-8"><div className="mx-auto max-w-5xl"><div className="max-w-2xl"><p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#67e8f9]">Legnoova AI document editor</p><h1 className="mt-4 font-serif text-4xl font-bold tracking-tight sm:text-6xl">Clear writing, one simple plan.</h1><p className="mt-5 text-lg leading-8 text-[#f4f7fb]/65">Improve the content you already have. Legnoova AI helps you make documents clearer and more professional while you keep control of the final version.</p></div><div className="mt-12 grid gap-6 lg:grid-cols-[1fr_0.8fr]"><section className="rounded-2xl border border-[#67e8f9]/25 bg-[#151d2b] p-6 sm:p-8"><div className="flex items-start justify-between gap-4"><div><div className="flex items-center gap-2"><FileText className="h-5 w-5 text-[#67e8f9]" /><h2 className="font-serif text-2xl font-bold">Legnoova Writing Pro</h2></div><p className="mt-2 text-sm text-[#f4f7fb]/60">For people who want better letters, emails and documents.</p></div><Sparkles className="h-6 w-6 text-[#a78bfa]" /></div><div className="mt-7 flex items-baseline gap-2"><span className="font-serif text-6xl font-bold">$19</span><span className="text-sm text-[#f4f7fb]/50">/month</span></div><p className="mt-3 inline-flex rounded-full bg-[#1e293b] px-3 py-1.5 text-sm font-semibold text-[#c4b5fd]">7-day free trial</p><p className="mt-2 text-xs text-[#f4f7fb]/50">No charge until the trial ends. Cancel anytime.</p><Link href="/register?product=legnoova-writing" className="mt-7 flex h-12 items-center justify-center rounded-full bg-[#f4f7fb] font-semibold text-[#0d1117] hover:bg-[#dfe8f2]">Start improving documents</Link><p className="mt-4 flex items-center justify-center gap-2 text-center text-xs text-[#f4f7fb]/50"><ShieldCheck className="h-4 w-4 text-[#67e8f9]" />14-day money-back guarantee</p></section><aside className="rounded-2xl border border-[#f4f7fb]/10 bg-[#111827] p-6 sm:p-8"><h3 className="font-semibold">Included with Pro</h3><ul className="mt-5 space-y-4 text-sm text-[#f4f7fb]/75">{features.map((feature) => <li key={feature} className="flex items-start gap-3"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#67e8f9]" />{feature}</li>)}</ul></aside></div><p className="mt-8 text-center text-xs text-[#f4f7fb]/45">Legnoova AI is writing software. AI suggestions can be imperfect; review your document before sharing or submitting it.</p></div></main>;
 }

@@ -1,36 +1,4 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/config/site";
-
-const routes: Array<{
-  path: string;
-  priority: number;
-  changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
-  lastModified: string;
-}> = [
-  { path: "", priority: 1, changeFrequency: "weekly", lastModified: "2026-09-13" },
-  { path: "/features", priority: 0.9, changeFrequency: "monthly", lastModified: "2026-09-13" },
-  { path: "/pricing", priority: 0.9, changeFrequency: "monthly", lastModified: "2026-09-13" },
-  { path: "/how-it-works", priority: 0.8, changeFrequency: "monthly", lastModified: "2026-09-13" },
-  { path: "/forex-chart-analysis", priority: 0.9, changeFrequency: "monthly", lastModified: "2026-10-31" },
-  { path: "/forex-automation", priority: 0.9, changeFrequency: "monthly", lastModified: "2026-10-31" },
-  { path: "/forex-trading-bot", priority: 0.9, changeFrequency: "monthly", lastModified: "2026-10-31" },
-  { path: "/fallback", priority: 0.9, changeFrequency: "weekly", lastModified: "2026-10-31" },
-  { path: "/fallback/pricing", priority: 0.8, changeFrequency: "monthly", lastModified: "2026-10-31" },
-  { path: "/fallback/about", priority: 0.5, changeFrequency: "yearly", lastModified: "2026-10-31" },
-  { path: "/fallback/contact", priority: 0.5, changeFrequency: "yearly", lastModified: "2026-10-31" },
-  { path: "/fallback/faq", priority: 0.7, changeFrequency: "monthly", lastModified: "2026-10-31" },
-  { path: "/fallback/privacy", priority: 0.3, changeFrequency: "yearly", lastModified: "2026-10-31" },
-  { path: "/fallback/terms", priority: 0.3, changeFrequency: "yearly", lastModified: "2026-10-31" },
-  { path: "/fallback/refunds", priority: 0.3, changeFrequency: "yearly", lastModified: "2026-10-31" },
-  { path: "/privacy", priority: 0.3, changeFrequency: "yearly", lastModified: "2026-01-15" },
-  { path: "/terms", priority: 0.3, changeFrequency: "yearly", lastModified: "2026-01-15" },
-];
-
-export default function sitemap(): MetadataRoute.Sitemap {
-  return routes.map((route) => ({
-    url: `${siteUrl}${route.path}`,
-    lastModified: route.lastModified,
-    changeFrequency: route.changeFrequency,
-    priority: route.priority,
-  }));
-}
+const paths = ["", "/features", "/pricing", "/how-it-works", "/privacy", "/terms", "/fallback/refunds"];
+export default function sitemap(): MetadataRoute.Sitemap { return paths.map((path) => ({ url: `${siteUrl}${path}`, lastModified: new Date(), changeFrequency: path === "" ? "weekly" : "monthly", priority: path === "" ? 1 : 0.7 })); }
