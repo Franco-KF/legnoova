@@ -26,6 +26,7 @@ interface PaddleCheckoutOptions {
     successUrl?: string;
     allowLogout?: boolean;
     showAddTaxId?: boolean;
+    showAddDiscounts?: boolean;
   };
 }
 
@@ -119,6 +120,8 @@ export async function startCheckout(
       successUrl: `${window.location.origin}/app/billing`,
       frameStyle: "width:100%; min-width:312px; background-color:transparent; border:0;",
       allowLogout: false,
+      showAddTaxId: false,
+      showAddDiscounts: false,
     },
   });
 }
