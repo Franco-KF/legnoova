@@ -114,7 +114,7 @@ export default async function UpgradePage({
                   ? "Current plan"
                   : plan.id === "broker"
                     ? "Choose the $59 Broker Plan"
-                    : plan.cta
+                    : "Start chart analysis"
               }
             />
           );

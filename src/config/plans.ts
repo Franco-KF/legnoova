@@ -45,7 +45,7 @@ export const PLANS: Plan[] = [
       "Past chart reviews and watchlists",
       "Faster chart reviews",
     ],
-    cta: `Start ${TRIAL_DAYS}-day subscription`,
+    cta: "Start chart analysis",
     priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_ANALYZE,
   },
   {
@@ -62,7 +62,7 @@ export const PLANS: Plan[] = [
       "Connect your MT5 demo terminal and automate qualifying setups",
       "Choose risk rules, pause new orders and view trade activity",
     ],
-    cta: `Start ${TRIAL_DAYS}-day subscription`,
+    cta: "Activate MT5 tools",
     priceId: process.env.NEXT_PUBLIC_PADDLE_PRICE_BROKER,
   },
 ];

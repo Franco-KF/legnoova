@@ -38,7 +38,7 @@ export function Pricing() {
               key={plan.id}
               plan={plan}
               popular={plan.id === "broker"}
-              ctaLabel={plan.id === "broker" ? "Choose the $59 Broker Plan" : plan.cta}
+              ctaLabel={plan.id === "broker" ? "Activate MT5 tools" : "Start chart analysis"}
               footnote={plan.note}
             />
           ))}
