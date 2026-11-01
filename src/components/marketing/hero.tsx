@@ -73,7 +73,7 @@ export function Hero() {
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Want MT5 automation?{" "}
           <Link href="#broker-automation" className="font-semibold text-emerald-400 hover:text-emerald-300">
-            See how it works <span aria-hidden="true">→</span>
+            See the MT5 bot <span aria-hidden="true">→</span>
           </Link>
         </p>
 

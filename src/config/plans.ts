@@ -50,13 +50,13 @@ export const PLANS: Plan[] = [
   },
   {
     id: "broker",
-    name: "Forex Essentials + Broker Tools",
+    name: "Legnoova AI MT5 Automation",
     price: 59,
     period: "/month",
-    tagline: "Everything in the $29 plan, plus MT5 automation and risk controls",
+    tagline: "Everything in Forex Essentials, plus demo-first MT5 automation and risk controls",
     highlight: true,
     trialDays: TRIAL_DAYS,
-    note: "Automate your broker workflow while keeping control of your trading plan.",
+    note: "A controlled MT5 trading bot workflow for traders who want automation without giving up risk controls.",
     features: [
       "Everything in the $29 plan",
       "Connect your MT5 demo terminal and automate qualifying setups",
@@ -73,7 +73,7 @@ export function getPlan(id: string | null | undefined): Plan | undefined {
 
 export const PLAN_BADGES: Record<PlanId, string> = {
   analyze: "Forex Essentials",
-  broker: "Forex Essentials + Broker Tools",
+  broker: "Legnoova AI MT5 Automation",
 };
 
 export const STRATEGY_WEIGHTS = {

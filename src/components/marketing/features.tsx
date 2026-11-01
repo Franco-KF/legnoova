@@ -117,7 +117,7 @@ export function Features() {
           </h2>
           <p className="mt-4 text-muted-foreground">
             Spend less time searching chats. Check your chart, follow signals
-            and track your plan. Automate your broker workflow with the $59 plan.
+            and track your plan. Connect the Legnoova AI MT5 trading bot with the $59 plan.
           </p>
         </div>
 

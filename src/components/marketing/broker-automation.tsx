@@ -29,10 +29,10 @@ export function BrokerAutomation() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
-            <span className="text-sm font-semibold uppercase tracking-widest text-emerald-400">Broker tools</span>
-            <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">From your chart to MT5—without the busywork.</h2>
+            <span className="text-sm font-semibold uppercase tracking-widest text-emerald-400">Legnoova AI MT5 automation</span>
+            <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">Your chart plan, connected to your MT5 trading bot.</h2>
             <p className="mt-5 text-base leading-7 text-muted-foreground">
-              No broker password in Legnoova. No confusing control panel. Connect your own MT5 demo account, choose your risk and stay in control from one simple screen.
+              Turn qualifying forex setups into a controlled MT5 workflow. Connect your own demo terminal, choose your risk and let Legnoova AI handle the repetitive steps while you stay in control.
             </p>
             <ul className="mt-6 space-y-3 text-sm text-foreground/80">
               {["Start on demo with execution off", "Clear checks before automation can start", "Pause new orders with one click", "Your account and trade activity stay visible"].map((item) => (
@@ -40,7 +40,7 @@ export function BrokerAutomation() {
               ))}
             </ul>
             <Button render={<Link href="/register?plan=broker" />} className="mt-8 h-11 rounded-xl bg-emerald-500 px-6 text-emerald-950 hover:bg-emerald-400">
-              Try Broker Tools <ArrowRight className="ml-2 h-4 w-4" />
+              Explore MT5 automation <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             <p className="mt-3 text-xs text-muted-foreground">Demo-first setup · No guaranteed results · Cancel anytime</p>
           </div>

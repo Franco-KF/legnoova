@@ -12,12 +12,12 @@ export function Pricing() {
             Pricing
           </span>
           <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-            Start Reading Your Charts for $29.<br className="hidden sm:block" /> Add Simple MT5 Tools for $59.
+            Start Reading Your Charts for $29.<br className="hidden sm:block" /> Automate Qualifying Setups with MT5 for $59.
           </h2>
           <p className="mt-4 text-muted-foreground">
             Get clear chart reviews, signals and a trading journal for $29 a month.
-            Add simple demo-first MT5 tools for $59 when you are ready. Choose your
-            plan and stay in control. Trading always carries risk.
+            Add Legnoova AI MT5 automation for $59 when you are ready. Choose your
+            risk, review the checks and stay in control. Trading always carries risk.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

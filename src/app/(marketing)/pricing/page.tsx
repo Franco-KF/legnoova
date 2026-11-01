@@ -61,8 +61,8 @@ export default function PricingPage() {
       <JsonLd data={pricingSchema} />
       <SubpageHero
         eyebrow="Pricing"
-        title={<>Forex Tools for $29.<br className="hidden sm:block" /> Broker Automation for $59.</>}
-        subtitle="Choose a plan and subscribe securely through Paddle. Cancel anytime, and your 14-day money-back guarantee applies."
+        title={<>Forex Analysis for $29.<br className="hidden sm:block" /> Legnoova AI MT5 Automation for $59.</>}
+        subtitle="Choose chart analysis or connect the Legnoova AI MT5 trading bot. Subscribe securely through Paddle and cancel anytime."
       />
       <section className="py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
