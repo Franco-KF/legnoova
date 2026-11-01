@@ -11,6 +11,7 @@ import { FAQ } from "@/components/marketing/faq";
 import { CTASection } from "@/components/marketing/cta-section";
 import { SupportSection } from "@/components/marketing/support-section";
 import { BrokerAutomation } from "@/components/marketing/broker-automation";
+import { TraderCommunity } from "@/components/marketing/trader-community";
 import { JsonLd } from "@/components/seo/json-ld";
 import { siteConfig, siteUrl } from "@/config/site";
 import { faqs } from "@/config/faqs";
@@ -111,6 +112,7 @@ export default function Home() {
       <JsonLd data={websiteSchema} />
       <JsonLd data={softwareSchema} />
       <Hero />
+      <TraderCommunity />
       <ProductExplanation />
       <CoreValue />
       <Features />
