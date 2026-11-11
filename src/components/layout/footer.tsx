@@ -32,6 +32,11 @@ export function Footer() {
   return (
     <footer className="border-t border-white/[0.06] bg-background">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mb-12 flex flex-wrap gap-x-6 gap-y-3 border-b border-white/[0.06] pb-8 text-sm">
+          <Link href="/forex-chart-analysis" className="text-muted-foreground hover:text-emerald-400">Forex chart analysis</Link>
+          <Link href="/forex-automation" className="text-muted-foreground hover:text-emerald-400">Forex automation</Link>
+          <Link href="/forex-trading-bot" className="text-muted-foreground hover:text-emerald-400">MT5 forex trading bot</Link>
+        </div>
         <div className="grid gap-12 md:grid-cols-5">
           <div className="md:col-span-2">
             <Logo />

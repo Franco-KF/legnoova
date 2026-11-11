@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "How It Works",
+  title: "How AI Forex Chart Analysis Works | Legnoova",
   description:
     "From screenshot to second opinion — how the Legnoova AI pipeline analyzes your forex chart across six transparent stages and explains its reasoning.",
   alternates: {

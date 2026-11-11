@@ -10,7 +10,7 @@ import { BadgeCheck, ShieldCheck } from "lucide-react";
 import { siteUrl } from "@/config/site";
 
 export const metadata: Metadata = {
-  title: "Pricing",
+  title: "Forex Chart Analysis & MT5 Automation Pricing",
   description: "Get clear chart reviews, signals and trading tools in one place with secure monthly billing. Cancel anytime.",
   alternates: {
     canonical: `${siteUrl}/pricing`,

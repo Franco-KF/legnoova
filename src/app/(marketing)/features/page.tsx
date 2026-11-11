@@ -6,7 +6,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { siteUrl } from "@/config/site";
 
 export const metadata: Metadata = {
-  title: "Features",
+  title: "AI Forex Analysis Features | Chart Tools & Signals",
   description:
     "Explore Legnoova AI feature set: AI chart analysis, trend detection, market structure, support and resistance, entry TP & SL ideas, multi-timeframe thinking and analysis history.",
   alternates: {
